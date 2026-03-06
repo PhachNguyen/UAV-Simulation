@@ -1,0 +1,53 @@
+export const uavList = [
+  {
+    id: 1,
+    name: "DJI Mavic 3 Pro",
+    category: "Consumer",
+    price: 2199,
+    oldPrice: 2499,
+    image:
+      "https://images.unsplash.com/photo-1508614589041-895b88991e3e?q=80&w=600",
+    status: "New",
+    badgeColor: "bg-green-500",
+    model3d: "/models/mavic3.glb",
+    stats: { battery: "46 Mins", range: "15 KM", speed: "21 m/s" },
+  },
+  {
+    id: 2,
+    name: "Fixed Wing Mapper",
+    category: "Professional",
+    price: 4500,
+    oldPrice: null,
+    image:
+      "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?q=80&w=600",
+    status: "Sale",
+    badgeColor: "bg-orange-500",
+    model3d: "/models/fixed_wing.glb",
+    stats: { battery: "120 Mins", range: "50 KM", speed: "25 m/s" },
+  },
+  {
+    id: 3,
+    name: "Industrial VTOL V2",
+    category: "Industrial",
+    price: 8900,
+    oldPrice: 9500,
+    image:
+      "https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?q=80&w=600",
+    status: null,
+    model3d: "/models/vtol.glb",
+    stats: { battery: "180 Mins", range: "100 KM", speed: "30 m/s" },
+  },
+  {
+    id: 4,
+    name: "FPV Racing Drone",
+    category: "Racing",
+    price: 599,
+    oldPrice: 750,
+    image:
+      "https://images.unsplash.com/photo-1521410834197-671cb760bd2e?q=80&w=600",
+    status: "New",
+    badgeColor: "bg-green-500",
+    model3d: "/models/fpv.glb",
+    stats: { battery: "10 Mins", range: "2 KM", speed: "45 m/s" },
+  },
+];
