@@ -1,107 +1,186 @@
 <template>
   <div
     ref="container"
-    class="w-full h-[500px] rounded-lg overflow-hidden relative shadow-2xl"
-  ></div>
+    class="w-full h-[500px] rounded-lg overflow-hidden relative shadow-2xl bg-[#0d0d0d]"
+  >
+    <div class="absolute top-4 left-4 z-10 flex gap-2 pointer-events-none">
+      <span
+        class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-white border border-white/20 uppercase"
+        >4K View</span
+      >
+      <span
+        class="bg-teal-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase"
+        >Live Sim</span
+      >
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { onMounted, ref, onUnmounted } from "vue";
+import { onMounted, ref, onUnmounted, watch } from "vue";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+// Import thêm 2 thành phần này từ Three.js examples
+import {
+  CSS2DRenderer,
+  CSS2DObject,
+} from "three/examples/jsm/renderers/CSS2DRenderer";
+import gsap from "gsap"; // Đảm bảo bạn đã npm install gsap
 
+const props = defineProps({
+  uav: {
+    type: Object,
+    required: true,
+  },
+});
+
+const emit = defineEmits(["select-hotspot"]);
 const container = ref(null);
 
-// Đưa các biến ra ngoài để onUnmounted có thể truy cập
-let scene, camera, renderer, controls, animationId;
+// Mở rộng các biến quản lý
+let scene, camera, renderer, labelRenderer, controls, animationId, currentModel;
+
+// 1. Hàm tạo nốt ghi chú (Hotspot)
+const createHotspot = (data) => {
+  const div = document.createElement("div");
+  div.className = "hotspot-marker";
+  div.textContent = data.id;
+
+  // Biến div HTML thành vật thể 3D
+  const label = new CSS2DObject(div);
+  label.position.set(data.pos.x, data.pos.y, data.pos.z);
+  scene.add(label);
+
+  // Xử lý click vào nốt số
+  div.style.pointerEvents = "auto"; // Cho phép click
+  div.onclick = () => {
+    // Bay camera đến vị trí linh kiện
+    gsap.to(camera.position, {
+      x: data.pos.x + 8,
+      y: data.pos.y + 4,
+      z: data.pos.z + 8,
+      duration: 1.2,
+      ease: "power2.inOut",
+    });
+    // Xoay tâm nhìn vào linh kiện
+    gsap.to(controls.target, {
+      x: data.pos.x,
+      y: data.pos.y,
+      z: data.pos.z,
+      duration: 1.2,
+      onUpdate: () => controls.update(),
+    });
+    emit("select-hotspot", data);
+  };
+};
+
+// 2. Dọn dẹp nốt cũ khi đổi Drone
+const clearHotspots = () => {
+  const labels = scene.getObjectsByProperty("type", "Object3D");
+  labels.forEach((obj) => {
+    if (obj instanceof CSS2DObject) scene.remove(obj);
+  });
+};
 
 const initScene = () => {
   if (!container.value) return;
 
-  // 1. Scene & Background
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0d0d0d); // Đen tech sâu hơn
+  scene.background = new THREE.Color(0x0d0d0d);
 
-  // 2. GridHelper - Hạ thấp hẳn xuống để không chạm drone
+  // Grid
   const grid = new THREE.GridHelper(100, 50, 0x333333, 0x1a1a1a);
   grid.position.y = -4;
   scene.add(grid);
 
-  // 3. Camera - Góc nhìn ngang thân (Eye-level)
   camera = new THREE.PerspectiveCamera(
     40,
     container.value.clientWidth / container.value.clientHeight,
     0.1,
     1000,
   );
-  camera.position.set(25, 6, 25); // Y thấp để nhìn trực diện
+  camera.position.set(25, 12, 25);
 
-  // 4. Renderer
+  // WebGL Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(container.value.clientWidth, container.value.clientHeight);
   container.value.appendChild(renderer.domElement);
 
-  // 5. Ánh sáng
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambientLight);
+  // --- QUAN TRỌNG: Khởi tạo Label Renderer ---
+  labelRenderer = new CSS2DRenderer();
+  labelRenderer.setSize(
+    container.value.clientWidth,
+    container.value.clientHeight,
+  );
+  labelRenderer.domElement.style.position = "absolute";
+  labelRenderer.domElement.style.top = "0px";
+  labelRenderer.domElement.style.pointerEvents = "none"; // Để không chặn xoay chuột 3D
+  container.value.appendChild(labelRenderer.domElement);
 
+  // Ánh sáng (Tăng cường để thấy rõ model)
+  scene.add(new THREE.AmbientLight(0xffffff, 1.2));
   const sunLight = new THREE.DirectionalLight(0xffffff, 2);
   sunLight.position.set(10, 20, 10);
   scene.add(sunLight);
 
-  const blueLight = new THREE.PointLight(0x00ffff, 1);
-  blueLight.position.set(-10, 5, -10);
-  scene.add(blueLight);
+  loadModel(props.uav);
 
-  // 6. Load Model & Fix Pivot
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+};
+
+const loadModel = (uavData) => {
+  if (currentModel) scene.remove(currentModel);
+  clearHotspots();
+
   const loader = new GLTFLoader();
-  loader.load("/models/inside_drone.glb", (gltf) => {
-    const model = gltf.scene;
+  loader.load(uavData.model3d, (gltf) => {
+    currentModel = gltf.scene;
 
-    const box = new THREE.Box3().setFromObject(model);
+    const box = new THREE.Box3().setFromObject(currentModel);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    // 1. Căn tâm
-    model.position.x += model.position.x - center.x;
-    model.position.y += model.position.y - center.y;
-    model.position.z += model.position.z - center.z;
+    currentModel.position.x += currentModel.position.x - center.x;
+    currentModel.position.y += currentModel.position.y - center.y;
+    currentModel.position.z += currentModel.position.z - center.z;
 
-    // 2. Tự động tính toán scale để model luôn có kích thước ~10 đơn vị trong Three.js
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const fScale = 10 / maxDim;
-    model.scale.set(fScale, fScale, fScale);
+    const scale = uavData.scale || 10 / Math.max(size.x, size.y, size.z);
+    currentModel.scale.set(scale, scale, scale);
+    currentModel.position.y = 0;
+    scene.add(currentModel);
 
-    model.position.y = 0;
-    scene.add(model);
+    // Thêm các điểm ghi chú từ Props
+    if (uavData.hotspots) {
+      uavData.hotspots.forEach(createHotspot);
+    }
 
     if (controls) {
       controls.target.set(0, 0, 0);
       controls.update();
     }
   });
-
-  // 7. Controls - Giới hạn góc nhìn để không bị chúi đầu
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.minPolarAngle = Math.PI / 3; // Không cho nhìn quá cao từ trên xuống
-  controls.maxPolarAngle = Math.PI / 1.8; // Không cho nhìn dưới gầm
 };
 
 const animate = () => {
   animationId = requestAnimationFrame(animate);
   if (controls) controls.update();
-  if (renderer && scene && camera) renderer.render(scene, camera);
+  if (renderer && scene && camera) {
+    renderer.render(scene, camera);
+    labelRenderer.render(scene, camera); // Render cả các nốt số
+  }
 };
 
-const handleResize = () => {
-  if (!container.value || !camera || !renderer) return;
-  camera.aspect = container.value.clientWidth / container.value.clientHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight);
-};
+// Theo dõi khi Props thay đổi (người dùng chọn Drone khác)
+watch(
+  () => props.uav,
+  (newUav) => {
+    if (newUav) loadModel(newUav);
+  },
+  { deep: true },
+);
 
 onMounted(() => {
   initScene();
@@ -109,7 +188,17 @@ onMounted(() => {
   window.addEventListener("resize", handleResize);
 });
 
-// GIẢI QUYẾT LỖI NÚT BACK: Dọn dẹp triệt để WebGL
+const handleResize = () => {
+  if (!container.value || !camera || !renderer) return;
+  const w = container.value.clientWidth;
+  const h = container.value.clientHeight;
+
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  labelRenderer.setSize(w, h);
+};
+
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   cancelAnimationFrame(animationId);
@@ -117,15 +206,56 @@ onUnmounted(() => {
   if (renderer) {
     renderer.dispose();
     renderer.forceContextLoss();
-    if (renderer.domElement && renderer.domElement.parentNode) {
-      renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
   }
-
-  // Giải phóng biến để Garbage Collector làm việc
+  if (labelRenderer) {
+    labelRenderer.domElement.remove();
+  }
   scene = null;
   camera = null;
   controls = null;
   renderer = null;
+  labelRenderer = null;
 });
 </script>
+
+<style scoped>
+/* Style cho nốt số nhấp nháy */
+:deep(.hotspot-marker) {
+  width: 24px;
+  height: 24px;
+  background: #14b8a6; /* teal-500 */
+  border: 2px solid white;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(20, 184, 166, 0.8);
+  transition: all 0.3s ease;
+  /* Hiệu ứng nhấp nháy */
+  animation: pulse-ring 2s infinite;
+}
+
+:deep(.hotspot-marker:hover) {
+  transform: scale(1.3);
+  background: #0d9488;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(20, 184, 166, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
+  }
+}
+</style>
