@@ -19,6 +19,56 @@ const routes = [
     name: "NFZ",
     component: NoFlyZones,
   },
+  {
+    path: "/fleet/drones",
+    name: "ListDrones",
+    component: () => import("@/pages/users/DroneList.vue"),
+  },
+  {
+    path: "/fleet/battery",
+    name: "Battery",
+    component: () => import("@/pages/users/Battery.vue"),
+  },
+  {
+    path: "/fleet/stations",
+    name: "Stations",
+    component: () => import("@/pages/users/Stations.vue"),
+  },
+  {
+    path: "/missions/planner",
+    name: "Planner",
+    component: () => import("@/pages/users/Planner.vue"),
+  },
+  {
+    path: "/missions/data",
+    name: "Data",
+    component: () => import("@/pages/users/Data.vue"),
+  },
+  {
+    path: "/missions/history",
+    name: "History",
+    component: () => import("@/pages/users/History.vue"),
+  },
+  {
+    path: "/monitor/live-map",
+    name: "LiveMap",
+    component: () => import("@/pages/users/LiveMap.vue"),
+  },
+  {
+    path: "/monitor/live-stream",
+    name: "LiveStream",
+    component: () => import("@/pages/users/LiveStream.vue"),
+  },
+  {
+    path: "/monitor/telemetry",
+    name: "Telemetry",
+    component: () => import("@/pages/users/Telemetry.vue"),
+  },
+  {
+    path: "/settings",
+    name: "Settings",
+    component: () => import("@/pages/users/Settings.vue"),
+  },
   // Thêm các route khác cho monitor, fleet...
 ];
 
