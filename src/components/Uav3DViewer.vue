@@ -139,31 +139,76 @@ const loadModel = (uavData) => {
   loader.load(uavData.model3d, (gltf) => {
     currentModel = gltf.scene;
 
+    // --- LOGIC TỰ TÍNH SCALE VÀ CĂN TÂM ---
     const box = new THREE.Box3().setFromObject(currentModel);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    currentModel.position.x += currentModel.position.x - center.x;
-    currentModel.position.y += currentModel.position.y - center.y;
-    currentModel.position.z += currentModel.position.z - center.z;
+    // 1. Tính toán tỷ lệ tự động (Auto-scaling)
+    // Giả sử chúng ta muốn mô hình luôn dài khoảng 15 đơn vị trong không gian 3D
+    const desiredSize = 15;
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const autoScale = desiredSize / maxDim;
 
-    const scale = uavData.scale || 10 / Math.max(size.x, size.y, size.z);
-    currentModel.scale.set(scale, scale, scale);
-    currentModel.position.y = 0;
+    currentModel.scale.set(autoScale, autoScale, autoScale);
+
+    // 2. Căn giữa mô hình dựa trên scale mới
+    // Đưa drone về gốc tọa độ 0,0,0
+    currentModel.position.x = -center.x * autoScale;
+    currentModel.position.y = -center.y * autoScale;
+    currentModel.position.z = -center.z * autoScale;
+
+    // Nâng drone lên một chút so với mặt lưới (y = 0)
+    currentModel.position.y += 2;
+
     scene.add(currentModel);
 
-    // Thêm các điểm ghi chú từ Props
+    // --- GẮN HOTSPOT VÀO MODEL ---
+    // Để nốt dính chặt vào thân drone khi quay, chúng ta gắn trực tiếp vào model
     if (uavData.hotspots) {
-      uavData.hotspots.forEach(createHotspot);
+      uavData.hotspots.forEach((data) => {
+        const div = document.createElement("div");
+        div.className = "hotspot-marker";
+        div.textContent = data.id;
+
+        const label = new CSS2DObject(div);
+        // Tọa độ pos trong uavData sẽ được nhân với 1 (vì ta đã scale model tổng thể)
+        label.position.set(data.pos.x, data.pos.y, data.pos.z);
+
+        // Gắn vào currentModel để nó xoay theo máy bay
+        currentModel.add(label);
+
+        div.style.pointerEvents = "auto";
+        div.onclick = () => {
+          // Lấy tọa độ thế giới thực tế của nốt để camera bay tới
+          const worldPos = new THREE.Vector3();
+          label.getWorldPosition(worldPos);
+
+          gsap.to(camera.position, {
+            x: worldPos.x + 8,
+            y: worldPos.y + 4,
+            z: worldPos.z + 8,
+            duration: 1.2,
+            ease: "power2.inOut",
+          });
+          gsap.to(controls.target, {
+            x: worldPos.x,
+            y: worldPos.y,
+            z: worldPos.z,
+            duration: 1.2,
+            onUpdate: () => controls.update(),
+          });
+          emit("select-hotspot", data);
+        };
+      });
     }
 
     if (controls) {
-      controls.target.set(0, 0, 0);
+      controls.target.set(0, 2, 0);
       controls.update();
     }
   });
 };
-
 const animate = () => {
   animationId = requestAnimationFrame(animate);
   if (controls) controls.update();
@@ -236,7 +281,7 @@ onUnmounted(() => {
   box-shadow: 0 0 15px rgba(20, 184, 166, 0.8);
   transition: all 0.3s ease;
   /* Hiệu ứng nhấp nháy */
-  animation: pulse-ring 2s infinite;
+  /* animation: pulse-ring 2s infinite; */
 }
 
 :deep(.hotspot-marker:hover) {

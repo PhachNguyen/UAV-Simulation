@@ -10,7 +10,6 @@ export const uavList = [
       "https://images.unsplash.com/photo-1508614589041-895b88991e3e?q=80&w=600",
     status: "New",
     badgeColor: "bg-green-500",
-    // model3d: "../assets/inside_drone.glb",
     model3d: "/models/test_model.glb",
     scale: 0.07, // Thêm scale riêng cho từng model
     stats: { battery: "46 Mins", range: "15 KM", speed: "21 m/s" },
