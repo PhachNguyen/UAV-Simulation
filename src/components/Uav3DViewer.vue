@@ -57,23 +57,26 @@ const initScene = () => {
 
   // 6. Load Model & Fix Pivot
   const loader = new GLTFLoader();
-  loader.load("/models/purist_classic_5_sx.glb", (gltf) => {
+  loader.load("/models/inside_drone.glb", (gltf) => {
     const model = gltf.scene;
 
     const box = new THREE.Box3().setFromObject(model);
+    const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    // Đưa tâm drone về gốc tọa độ
+    // 1. Căn tâm
     model.position.x += model.position.x - center.x;
     model.position.y += model.position.y - center.y;
     model.position.z += model.position.z - center.z;
 
-    // Drone bay lơ lửng tại Y = 0
+    // 2. Tự động tính toán scale để model luôn có kích thước ~10 đơn vị trong Three.js
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fScale = 10 / maxDim;
+    model.scale.set(fScale, fScale, fScale);
+
     model.position.y = 0;
-    model.scale.set(0.07, 0.07, 0.07);
     scene.add(model);
 
-    // Khóa tâm nhìn vào drone
     if (controls) {
       controls.target.set(0, 0, 0);
       controls.update();

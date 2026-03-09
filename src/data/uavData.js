@@ -1,4 +1,4 @@
-export const purist_classic_5_sxList = [
+export const uavList = [
   {
     id: 1,
     name: "DJI Mavic 3 Pro",
@@ -9,7 +9,7 @@ export const purist_classic_5_sxList = [
       "https://images.unsplash.com/photo-1508614589041-895b88991e3e?q=80&w=600",
     status: "New",
     badgeColor: "bg-green-500",
-    model3d: "/models/purist_classic_5_sx.glb",
+    model3d: "/models/inside_drone.glb",
     stats: { battery: "46 Mins", range: "15 KM", speed: "21 m/s" },
   },
   {
@@ -22,7 +22,7 @@ export const purist_classic_5_sxList = [
       "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?q=80&w=600",
     status: "Sale",
     badgeColor: "bg-orange-500",
-    model3d: "/models/purist_classic_5_sx.glb",
+    model3d: "/models/inside_drone.glb",
     stats: { battery: "120 Mins", range: "50 KM", speed: "25 m/s" },
   },
   {
