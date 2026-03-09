@@ -268,7 +268,7 @@ onUnmounted(() => {
 :deep(.hotspot-marker) {
   width: 24px;
   height: 24px;
-  background: #14b8a6; /* teal-500 */
+  /* background: #14b8a6; */
   border: 2px solid white;
   border-radius: 50%;
   color: white;
@@ -278,7 +278,7 @@ onUnmounted(() => {
   font-size: 11px;
   font-weight: 900;
   cursor: pointer;
-  box-shadow: 0 0 15px rgba(20, 184, 166, 0.8);
+  /* box-shadow: 0 0 15px rgba(20, 184, 166, 0.8); */
   transition: all 0.3s ease;
   /* Hiệu ứng nhấp nháy */
   /* animation: pulse-ring 2s infinite; */

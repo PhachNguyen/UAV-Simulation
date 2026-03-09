@@ -16,15 +16,21 @@ export const uavList = [
     hotspots: [
       {
         id: 1,
-        pos: { x: 2, y: 0.5, z: 5 },
+        pos: { x: 0.03, y: 0.25, z: 0.8 },
         title: "Cụm Camera O3+",
         desc: "Cảm biến 1/1.3-inch CMOS độ phân giải cao.",
       },
       {
         id: 2,
-        pos: { x: -3, y: 1.5, z: -2 },
-        title: "Hệ thống GPS",
+        pos: { x: -0.02, y: 0.62, z: 0.32 },
+        title: "Đèn chiếu sáng",
         desc: "Định vị đa vệ tinh chuẩn xác cao.",
+      },
+      {
+        id: 3,
+        pos: { x: 0.59, y: 0.57, z: 0.19 },
+        title: "Cánh quay gập",
+        desc: "Cánh quay có thể gập lại để tiết kiệm không gian.",
       },
     ],
   },
