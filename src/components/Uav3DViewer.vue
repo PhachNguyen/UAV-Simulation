@@ -4,14 +4,14 @@
     class="w-full h-[500px] rounded-lg overflow-hidden relative shadow-2xl bg-[#0d0d0d]"
   >
     <div class="absolute top-4 left-4 z-10 flex gap-2 pointer-events-none">
-      <span
+      <!-- <span
         class="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] text-white border border-white/20 uppercase"
         >4K View</span
-      >
-      <span
+      > -->
+      <!-- <span
         class="bg-teal-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase"
         >Live Sim</span
-      >
+      > -->
     </div>
   </div>
 </template>

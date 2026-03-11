@@ -6,8 +6,7 @@ export const uavList = [
     category: "Consumer",
     price: 2199,
     oldPrice: 2499,
-    image:
-      "https://images.unsplash.com/photo-1508614589041-895b88991e3e?q=80&w=600",
+    image: "/img/Drone cam tu.png",
     status: "New",
     badgeColor: "bg-green-500",
     model3d: "/models/test_model.glb",
@@ -40,21 +39,20 @@ export const uavList = [
     category: "Professional",
     price: 4500,
     oldPrice: null,
-    image:
-      "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?q=80&w=600",
+    image: "/public/img/UAV-50_1.png",
     status: "Sale",
     badgeColor: "bg-orange-500",
-    model3d: "/models/inside_drone.glb",
+    model3d: "/models/UAV-50_1.glb",
     scale: 0.07,
     stats: { battery: "120 Mins", range: "50 KM", speed: "25 m/s" },
-    hotspots: [
-      {
-        id: 1,
-        pos: { x: 0, y: 1, z: 2 },
-        title: "Cảm biến LiDAR",
-        desc: "Quét bản đồ 3D địa hình chính xác.",
-      },
-    ],
+    // hotspots: [
+    //   {
+    //     id: 1,
+    //     pos: { x: 0, y: 1, z: 2 },
+    //     title: "Cảm biến LiDAR",
+    //     desc: "Quét bản đồ 3D địa hình chính xác.",
+    //   },
+    // ],
   },
   {
     id: 3,
@@ -62,20 +60,20 @@ export const uavList = [
     category: "Industrial",
     price: 8900,
     oldPrice: 9500,
-    image:
-      "https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?q=80&w=600",
+    image: "/public/img/UCAV-13_0.png",
+
     status: null,
-    model3d: "/models/purist_classic_5_sx.glb",
+    model3d: "/models/UCAV-13_0.glb",
     scale: 0.1,
     stats: { battery: "180 Mins", range: "100 KM", speed: "30 m/s" },
-    hotspots: [
-      {
-        id: 1,
-        pos: { x: 5, y: 2, z: 0 },
-        title: "Động cơ VTOL",
-        desc: "Cho phép cất hạ cánh thẳng đứng.",
-      },
-    ],
+    // hotspots: [
+    //   {
+    //     id: 1,
+    //     pos: { x: 5, y: 2, z: 0 },
+    //     title: "Động cơ VTOL",
+    //     desc: "Cho phép cất hạ cánh thẳng đứng.",
+    //   },
+    // ],
   },
   {
     id: 4,
@@ -83,8 +81,7 @@ export const uavList = [
     category: "Racing",
     price: 599,
     oldPrice: 750,
-    image:
-      "https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?q=80&w=600",
+    image: "/public/img/UAV-100AI.png",
     status: "New",
     badgeColor: "bg-green-500",
     model3d: "/models/purist_classic_5_sx.glb",

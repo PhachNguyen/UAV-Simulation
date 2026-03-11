@@ -19,9 +19,16 @@
       >
         <button
           @click="$emit('open-sim', uav)"
-          class="w-full bg-white text-slate-900 py-3.5 rounded-2xl shadow-xl font-bold transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-teal-600 hover:text-white"
+          class="w-full relative overflow-hidden bg-slate-900 text-white py-3.5 rounded-2xl shadow-[0_0_0_1px_rgba(255,255,255,0.1)] font-bold transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 hover:shadow-[0_0_20px_rgba(20,184,166,0.5)] hover:bg-teal-600 group/btn"
         >
-          Mô phỏng 3D
+          <div
+            class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:animate-shimmer"
+          ></div>
+
+          <span class="relative flex items-center justify-center gap-2">
+            <Box class="w-4 h-4" />
+            Xem chi tiết
+          </span>
         </button>
       </div>
     </div>

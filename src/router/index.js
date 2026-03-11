@@ -3,16 +3,21 @@ import { createRouter, createWebHistory } from "vue-router";
 // Import các Page (Component) của bạn
 import Dashboard from "../pages/users/Home.vue";
 import NoFlyZones from "@/pages/users/NoFlyZones.vue";
-
+import DetailData from "@/components/DetailData.vue";
 const routes = [
   //   {
   //     path: "/",
   //     redirect: "/dashboard",
   //   },
   {
-    path: "/dashboard",
+    path: "/",
     name: "Dashboard",
     component: Dashboard,
+  },
+  {
+    path: "/drone/:id",
+    name: "droneDetail",
+    component: DetailData,
   },
   {
     path: "/no-fly-zones",
