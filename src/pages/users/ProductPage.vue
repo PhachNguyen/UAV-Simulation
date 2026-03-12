@@ -128,37 +128,12 @@
           name="list"
           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
         >
-          <div
+          <UavCard
             v-for="product in filteredProducts"
             :key="product.id"
-            class="group bg-white border border-gray-100 rounded-2xl p-6 transition-all duration-500 hover:shadow-2xl hover:border-orange-200 flex flex-col items-center text-center relative overflow-hidden"
-          >
-            <div
-              class="relative w-full aspect-square mb-6 overflow-hidden bg-gray-50 rounded-xl"
-            >
-              <img
-                :src="product.image"
-                class="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 group-hover:scale-110"
-              />
-            </div>
-
-            <h3
-              class="text-sm font-black text-gray-800 mb-4 h-10 flex items-center justify-center leading-tight"
-            >
-              {{ product.name }}
-            </h3>
-            <div
-              class="text-[#222222] font-black text-xs tracking-widest uppercase mb-4"
-            >
-              Liên hệ
-            </div>
-
-            <button
-              class="w-full py-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-gray-900 text-white text-[10px] rounded-xl font-bold uppercase tracking-[0.2em]"
-            >
-              Xem chi tiết
-            </button>
-          </div>
+            :product="product"
+            @view-detail="handleDetail"
+          />
         </TransitionGroup>
 
         <div
@@ -174,55 +149,36 @@
 
 <script setup>
 import { ref, computed } from "vue";
-
+import UavCard from "@/components/UavCard.vue";
+import { uavList } from "@/data/uavData";
 // Filter State
 const activeCategory = ref("Tất cả");
 const sortBy = ref("default");
 
 const categories = [
   { name: "Tất cả" },
-  { name: "DJI Mavic" },
-  { name: "DJI Air" },
-  { name: "DJI Mini" },
+  { name: "Consumer" },
+  { name: "Professional" },
+  { name: "Industrial" },
+  { name: "Racing" },
 ];
 
-const products = ref([
-  {
-    id: 1,
-    name: "DJI Mavic 4 Pro",
-    category: "DJI Mavic",
-    image:
-      "https://www.dji.com/assets/images/products/mavic-3-pro/mavic-3-pro-main.png",
-  },
-  {
-    id: 2,
-    name: "DJI Mavic 3 Pro Cine",
-    category: "DJI Mavic",
-    image:
-      "https://www.dji.com/assets/images/products/mavic-3-pro/mavic-3-pro-main.png",
-  },
-  {
-    id: 4,
-    name: "DJI Air 3S",
-    category: "DJI Air",
-    image:
-      "https://www.dji.com/assets/images/products/mavic-3-pro/mavic-3-pro-main.png",
-  },
-  {
-    id: 8,
-    name: "DJI Mini 3",
-    category: "DJI Mini",
-    image:
-      "https://www.dji.com/assets/images/products/mavic-3-pro/mavic-3-pro-main.png",
-  },
-]);
+const products = ref(uavList);
 
 // Logic Filter Thực Tế
 const filteredProducts = computed(() => {
   let result = products.value;
+
+  // Lọc theo Category
   if (activeCategory.value !== "Tất cả") {
     result = result.filter((p) => p.category === activeCategory.value);
   }
+
+  // Sắp xếp theo giá (ví dụ thêm)
+  if (sortBy.value === "newest") {
+    return [...result].reverse();
+  }
+
   return result;
 });
 </script>
