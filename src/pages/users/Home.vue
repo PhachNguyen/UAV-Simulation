@@ -197,7 +197,170 @@
         </div>
       </div>
     </section>
+    <!--  Ưu đãi -->
+    <section class="py-8 bg-white flex justify-center">
+      <div
+        class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-8"
+      >
+        <div
+          class="bg-[#F3F4F6] rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between overflow-hidden group min-h-[320px]"
+        >
+          <div
+            class="flex-1 flex flex-col h-full justify-between space-y-4 w-full"
+          >
+            <div class="space-y-4">
+              <p class="text-gray-500 font-medium text-sm">
+                Cần dịch vụ cho Drone?
+              </p>
+              <h3
+                class="text-3xl font-black text-gray-900 leading-tight line-clamp-2 h-[4.5rem]"
+                title="Giảm 30% cho lần bảo trì đầu tiên"
+              >
+                Giảm 30% cho lần bảo trì đầu tiên
+              </h3>
+            </div>
 
+            <div class="pt-4">
+              <button
+                class="bg-black cursor-pointer text-white px-8 py-3 rounded-full font-bold text-sm transition-transform hover:scale-105 active:scale-95"
+              >
+                NHẬN NGAY
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="flex-1 mt-8 md:mt-0 flex justify-center transform transition-transform group-hover:rotate-6 duration-500"
+          >
+            <img
+              src="/public/img/promt_1.jpg"
+              alt="Promo Drone"
+              class="w-full max-w-[280px] object-contain"
+            />
+          </div>
+        </div>
+
+        <div
+          class="bg-[#F3F4F6] rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between overflow-hidden group min-h-[320px]"
+        >
+          <div
+            class="flex-1 flex flex-col h-full justify-between space-y-4 w-full"
+          >
+            <div class="space-y-4">
+              <p class="text-gray-500 font-medium text-sm">
+                Khởi đầu hành trình bay
+              </p>
+              <h3
+                class="text-3xl font-black text-gray-900 leading-tight h-[4.5rem]"
+                title="Cẩm nang Drone cho người mới bắt đầu"
+              >
+                Cẩm nang Drone cho người mới bắt đầu
+              </h3>
+            </div>
+
+            <div class="pt-4">
+              <button
+                class="cursor-pointer border-2 border-gray-900 bg-white text-shadow-gray-950 px-8 py-3 rounded-full font-bold text-sm transition-all hover:bg-gray-900 hover:text-white"
+              >
+                XEM CHI TIẾT
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="flex-1 mt-8 md:mt-0 flex justify-center transform transition-transform group-hover:-translate-y-4 duration-500"
+          >
+            <img
+              src="/public/img/promt_2.jpg"
+              alt="Guide Drone"
+              class="w-full max-w-[280px] object-contain"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Khách hàng  -->
+    <section class="py-16 bg-white px-3.5 flex justify-center">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div
+            class="relative md:col-span-2 h-[400px] rounded-[2rem] overflow-hidden group"
+          >
+            <img
+              src="/public/img/best_resolution 1.svg"
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"
+            ></div>
+            <div class="absolute bottom-8 left-8 right-8 text-white">
+              <p class="text-lg italic font-light mb-4">
+                "Drone tuyệt vời với chất lượng camera đỉnh cao và tính năng rất
+                dễ sử dụng." - Alex
+              </p>
+              <div class="flex text-yellow-400">★★★★★</div>
+            </div>
+          </div>
+
+          <div class="relative h-[300px] rounded-[2rem] overflow-hidden group">
+            <img
+              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700"
+            />
+            <div class="absolute inset-0 bg-black/40"></div>
+            <div class="absolute bottom-6 left-6 right-6 text-white text-sm">
+              <p class="italic mb-2">
+                "Hình ảnh kinh ngạc và rất dễ lái. Nhiệt tình đề xuất!" - Emily
+              </p>
+              <div class="flex text-yellow-400 text-xs">★★★★★</div>
+            </div>
+          </div>
+
+          <div class="relative h-[300px] rounded-[2rem] overflow-hidden group">
+            <img
+              src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1000&q=80"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700"
+            />
+            <div class="absolute inset-0 bg-black/40"></div>
+            <div class="absolute bottom-6 left-6 right-6 text-white text-sm">
+              <p class="italic mb-2">
+                "Dronex hoàn hảo cho cả mục đích giải trí và công việc." - Brian
+              </p>
+              <div class="flex text-yellow-400 text-xs">★★★★★</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <div
+            class="bg-[#F3F4F6] rounded-[2rem] p-10 flex-1 flex flex-col justify-center"
+          >
+            <h2 class="text-4xl font-black text-gray-900 mb-6">
+              Khách hàng của chúng tôi
+            </h2>
+            <p class="text-gray-500 leading-relaxed">
+              Khám phá những dòng drone hàng đầu với công nghệ tiên tiến, được
+              thiết kế cho mọi phi công.
+            </p>
+          </div>
+
+          <div
+            class="bg-[#F3F4F6] rounded-[2rem] p-10 flex-1 flex flex-col justify-center"
+          >
+            <div class="text-6xl font-black text-gray-900 mb-2">90%</div>
+            <p class="text-gray-600 font-bold mb-9" style="margin-bottom: 36px">
+              Khách hàng đề xuất sản phẩm của chúng tôi cho mọi người.
+            </p>
+            <button
+              class="bg-black text-white w-[150px] py-4 rounded-full font-bold text-sm hover:bg-gray-800 cursor-pointer transition-colors uppercase tracking-widest"
+            >
+              Mua ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Đánh giá -->
     <section class="py-[30px] bg-white flex flex-col items-center">
       <div class="max-w-7xl w-full mx-auto px-6">
         <div class="mb-20 text-center md:text-left" style="margin-bottom: 20px">
