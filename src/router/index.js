@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import Dashboard from "../pages/users/Home.vue";
 import NoFlyZones from "@/pages/users/NoFlyZones.vue";
 import DetailData from "@/components/DetailData.vue";
+import ProductPage from "@/pages/users/ProductPage.vue";
 const routes = [
   //   {
   //     path: "/",
@@ -13,6 +14,11 @@ const routes = [
     path: "/",
     name: "Dashboard",
     component: Dashboard,
+  },
+  {
+    path: "/fleet/list",
+    name: "ProductPage",
+    component: ProductPage,
   },
   {
     path: "/drone/:id",
