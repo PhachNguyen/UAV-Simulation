@@ -82,7 +82,7 @@
       </section>
     </div>
     <section
-      class="py-10 px-4 max-w-7xl mx-auto flex items-center justify-center text-center"
+      class="py-10 px-4 mx-auto flex items-center justify-center text-center"
     >
       <div class="mb-16">
         <img
@@ -93,7 +93,10 @@
       </div>
 
       <div class="max-w-3xl space-y-8">
-        <h2 class="text-4xl md:text-5xl font-bold text-gray-800">
+        <h2
+          class="text-4xl md:text-5xl font-bold text-gray-800"
+          style="margin-bottom: 16px"
+        >
           Tại sao chọn Drone Light?
         </h2>
         <p class="text-gray-500 text-lg leading-relaxed mx-auto">

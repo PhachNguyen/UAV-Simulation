@@ -53,7 +53,7 @@
     </div>
 
     <div class="flex items-center justify-between mt-auto">
-      <div class="flex flex-col">
+      <div class="">
         <span
           v-if="product.oldPrice"
           class="text-xs text-gray-400 line-through font-medium"
@@ -64,10 +64,10 @@
           >${{ product.price }}</span
         >
       </div>
-
+      <!--  Sự kiện Click ra Detail -->
       <button
         @click="$emit('view-detail', product)"
-        class="p-3 bg-gray-900 text-white rounded-xl hover:bg-blue-600 transition-colors duration-300 group/btn"
+        class="p-3 bg-gray-900 text-white rounded-xl hover:bg-gray-950 cursor-pointer transition-colors duration-300 group/btn"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

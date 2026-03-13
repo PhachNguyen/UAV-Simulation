@@ -3,8 +3,9 @@ import { createRouter, createWebHistory } from "vue-router";
 // Import các Page (Component) của bạn
 import Dashboard from "../pages/users/Home.vue";
 import NoFlyZones from "@/pages/users/NoFlyZones.vue";
-import DetailData from "@/components/DetailData.vue";
+import ProductDetail from "@/components/ProductDetail.vue";
 import ProductPage from "@/pages/users/ProductPage.vue";
+import Uav3DViewer from "@/components/Uav3DViewer.vue";
 const routes = [
   //   {
   //     path: "/",
@@ -16,6 +17,11 @@ const routes = [
     component: Dashboard,
   },
   {
+    path: "/simulation/:id",
+    name: "simulation",
+    component: Uav3DViewer,
+  },
+  {
     path: "/fleet/list",
     name: "ProductPage",
     component: ProductPage,
@@ -23,7 +29,7 @@ const routes = [
   {
     path: "/drone/:id",
     name: "droneDetail",
-    component: DetailData,
+    component: ProductDetail,
   },
   {
     path: "/no-fly-zones",

@@ -75,21 +75,6 @@
                   {{ category.name }}
                 </span>
               </div>
-              <!-- <svg
-                v-if="activeCategory === category.name"
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 text-orange-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg> -->
             </li>
           </ul>
         </div>
@@ -132,7 +117,7 @@
             v-for="product in filteredProducts"
             :key="product.id"
             :product="product"
-            @view-detail="handleDetail"
+            @view-detail="handleDetail(product)"
           />
         </TransitionGroup>
 
@@ -151,6 +136,8 @@
 import { ref, computed } from "vue";
 import UavCard from "@/components/UavCard.vue";
 import { uavList } from "@/data/uavData";
+import { useRouter } from "vue-router";
+const router = useRouter();
 // Filter State
 const activeCategory = ref("Tất cả");
 const sortBy = ref("default");
@@ -181,6 +168,13 @@ const filteredProducts = computed(() => {
 
   return result;
 });
+//  Hàm xử lý khi click vào View Detail
+const handleDetail = (product) => {
+  // Chuyển sang trang chi tiết sản phẩm, có thể dùng router hoặc emit sự kiện
+  // Ví dụ: this.$router.push(`/products/${product.id}`);
+  router.push({ name: "droneDetail", params: { id: product.id } });
+  console.log("Xem chi tiết sản phẩm:", product);
+};
 </script>
 
 <style scoped>
