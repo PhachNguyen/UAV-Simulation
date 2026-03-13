@@ -72,7 +72,7 @@
           <div
             v-for="(img, index) in product.images"
             :key="index"
-            @click="selectedImage = img"
+            @click="currentImage = index"
             :class="[
               'w-20 h-20 rounded-xl border-2 cursor-pointer overflow-hidden transition-all p-2 bg-white',
               selectedImage === img
