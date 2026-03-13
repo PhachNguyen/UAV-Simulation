@@ -67,10 +67,9 @@ const initScene = () => {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x080808);
-  // Thêm sương mù để tạo cảm giác không gian sâu
   scene.fog = new THREE.Fog(0x080808, 20, 100);
 
-  // --- 1. THÊM LƯỚI TỌA ĐỘ (GRID HELPERS) ---
+  // --- 1. MÔI TRƯỜNG (GRIDS) ---
   const mainGrid = new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a);
   mainGrid.position.y = -0.01;
   scene.add(mainGrid);
@@ -104,6 +103,7 @@ const initScene = () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   container.value.appendChild(renderer.domElement);
 
+  // Quan trọng: CSS2D Renderer để hiển thị Hotspots
   labelRenderer = new CSS2DRenderer();
   labelRenderer.setSize(
     container.value.clientWidth,
@@ -111,20 +111,20 @@ const initScene = () => {
   );
   labelRenderer.domElement.style.position = "absolute";
   labelRenderer.domElement.style.top = "0px";
-  labelRenderer.domElement.style.pointerEvents = "none";
+  labelRenderer.domElement.style.left = "0px";
+  labelRenderer.domElement.style.pointerEvents = "none"; // Không chặn xoay chuột WebGL
+  labelRenderer.domElement.style.zIndex = "10";
   container.value.appendChild(labelRenderer.domElement);
 
   // --- 4. LIGHTING ---
   scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-  const spotLight = new THREE.SpotLight(0x3b82f6, 50);
+  const spotLight = new THREE.SpotLight(0xffffff, 50);
   spotLight.position.set(20, 30, 20);
   scene.add(spotLight);
 
   // --- 5. CONTROLS ---
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.maxDistance = 60;
-  controls.minDistance = 10;
 
   if (product.value) loadModel(product.value);
 };
@@ -133,54 +133,37 @@ const loadModel = (data) => {
   if (!data?.model3d) return;
   loading.value = true;
 
-  if (currentModel) {
-    scene.remove(currentModel);
-    currentModel.traverse((child) => {
-      if (child.isMesh) {
-        child.geometry.dispose();
-        child.material.dispose();
-      }
-    });
-  }
+  if (currentModel) scene.remove(currentModel);
 
   const loader = new GLTFLoader();
-  loader.load(
-    data.model3d,
-    (gltf) => {
-      currentModel = gltf.scene;
+  loader.load(data.model3d, (gltf) => {
+    currentModel = gltf.scene;
 
-      const box = new THREE.Box3().setFromObject(currentModel);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      const scale = 15 / Math.max(size.x, size.y, size.z);
+    const box = new THREE.Box3().setFromObject(currentModel);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const scale = 15 / Math.max(size.x, size.y, size.z);
 
-      currentModel.scale.set(scale, scale, scale);
-      currentModel.position.set(
-        -center.x * scale,
-        -center.y * scale + 3,
-        -center.z * scale,
-      );
+    currentModel.scale.set(scale, scale, scale);
+    currentModel.position.set(
+      -center.x * scale,
+      -center.y * scale + 3,
+      -center.z * scale,
+    );
 
-      scene.add(currentModel);
-      if (data.hotspots) setupHotspots(data.hotspots);
+    scene.add(currentModel);
+    if (data.hotspots) setupHotspots(data.hotspots);
 
-      loading.value = false;
+    loading.value = false;
 
-      // Hiệu ứng camera bay vào khi load xong
-      gsap.from(camera.position, {
-        x: 50,
-        y: 40,
-        z: 50,
-        duration: 2,
-        ease: "power2.out",
-      });
-    },
-    undefined,
-    (err) => {
-      console.error(err);
-      loading.value = false;
-    },
-  );
+    gsap.from(camera.position, {
+      x: 50,
+      y: 40,
+      z: 50,
+      duration: 2,
+      ease: "power2.out",
+    });
+  });
 };
 
 const setupHotspots = (hotspots) => {
@@ -188,7 +171,6 @@ const setupHotspots = (hotspots) => {
     const wrapper = document.createElement("div");
     wrapper.className = "hotspot-container";
 
-    // Vòng radar nhấp nháy
     const pulse = document.createElement("div");
     pulse.className = "hotspot-pulse";
 
@@ -239,13 +221,12 @@ const animate = () => {
 
 const handleResize = () => {
   if (!container.value) return;
-  camera.aspect = container.value.clientWidth / container.value.clientHeight;
+  const w = container.value.clientWidth;
+  const h = container.value.clientHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight);
-  labelRenderer.setSize(
-    container.value.clientWidth,
-    container.value.clientHeight,
-  );
+  renderer.setSize(w, h);
+  labelRenderer.setSize(w, h);
 };
 
 watch(product, (newVal) => {
@@ -267,24 +248,33 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Hiệu ứng mờ dần cho Loading */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.5s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 
-/* Container của Hotspot */
+/* FIX LỖI VỊ TRÍ TẠI ĐÂY */
 :deep(.hotspot-container) {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Đưa tâm của div về đúng tọa độ 3D */
+  transform: translate(-50%, -50%);
+
   width: 32px;
   height: 32px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  /* Hiệu ứng mọc lên từ model */
+  /* Animation pop phải kết hợp với translate để không bị giật */
   animation: hotspot-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Vòng tròn sóng lan tỏa */
 :deep(.hotspot-pulse) {
   position: absolute;
   width: 100%;
@@ -294,7 +284,6 @@ onUnmounted(() => {
   animation: hotspot-ripple 2s infinite;
 }
 
-/* Nốt số chính */
 :deep(.hotspot-dot) {
   width: 24px;
   height: 24px;
@@ -305,24 +294,31 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-[900] text-[10px];
+  font-weight: 900;
+  font-size: 10px;
   box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
   z-index: 2;
-  transition: all 0.3s ease;
-}
-
-:deep(.hotspot-container:hover .hotspot-dot) {
-  background: #2563eb;
-  transform: scale(1.2);
 }
 
 @keyframes hotspot-ripple {
-  0% { transform: scale(0.6); opacity: 1; }
-  100% { transform: scale(2.2); opacity: 0; }
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
 
 @keyframes hotspot-pop {
-  0% { transform: scale(0) translateY(10px); opacity: 0; }
-  100% { transform: scale(1) translateY(0); opacity: 1; }
+  0% {
+    transform: translate(-50%, -50%) scale(0) translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) translateY(0);
+    opacity: 1;
+  }
 }
 </style>
