@@ -12,6 +12,12 @@ export const uavList = [
       "/public/img/UCAV-13_0.png",
       "/public/img/UAV-100AI.png",
     ],
+    // Model 3D
+    model3d: "/public/models/inside_drone.glb",
+    video: "/public/img/AdvertisementUav.mp4", // Thay bằng link video thật
+    scale: 0.1,
+    stats: { battery: "34 Mins", range: "15 KM", speed: "19 m/s" },
+
     versions: [
       { title: "DJI Mavic 4 Pro (DJI RC 2)", controller: "DJI RC 2" },
       {

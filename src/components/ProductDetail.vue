@@ -266,7 +266,7 @@
             class="w-full rounded-2xl"
             style="margin-bottom: 16px"
           >
-            <source src="/public/img/AdvertisementUav.mp4" type="video/mp4" />
+            <source :src="product.video" type="video/mp4" />
             Trình duyệt không hỗ trợ video
           </video>
           <p
@@ -335,13 +335,14 @@ const props = defineProps({
   product: Object,
 });
 const selectedVersionIndex = ref(0);
-// const goToSimulation = () => {
-//   // Chuyển hướng tới trang mô phỏng kèm theo ID sản phẩm
-//   router.push({
-//     name: "Simulation",
-//     params: { id: props.product.id || 1 },
-//   });
-// };
+const goToSimulation = () => {
+  const idFromUrl = route.params.id;
+  // Chuyển hướng tới trang mô phỏng kèm theo ID sản phẩm
+  router.push({
+    name: "Simulation",
+    params: { id: idFromUrl || 1 },
+  });
+};
 
 const product = computed(() => {
   // Lấy ID từ URL (ví dụ: /product/1 thì id là "1")

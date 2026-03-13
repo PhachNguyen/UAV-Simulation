@@ -18,7 +18,7 @@ const routes = [
   },
   {
     path: "/simulation/:id",
-    name: "simulation",
+    name: "Simulation",
     component: Uav3DViewer,
   },
   {
