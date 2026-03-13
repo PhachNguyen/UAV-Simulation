@@ -14,6 +14,14 @@ export const uavList = [
     ],
     // Model 3D
     model3d: "/public/models/inside_drone.glb",
+    hotspots: [
+      {
+        id: 1,
+        pos: { x: 0, y: 0.02, z: 0.05 },
+        title: "Cảm biến LiDAR",
+        desc: "Quét bản đồ 3D địa hình chính xác.",
+      },
+    ],
     video: "/public/img/AdvertisementUav.mp4", // Thay bằng link video thật
     scale: 0.1,
     stats: { battery: "34 Mins", range: "15 KM", speed: "19 m/s" },
