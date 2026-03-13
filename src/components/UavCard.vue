@@ -9,7 +9,7 @@
         'absolute top-4 left-4 z-10 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm',
       ]"
     >
-      {{ product.status }}
+      {{ product.status || "Unknown Status" }}
     </div>
 
     <div
@@ -25,31 +25,31 @@
     <div
       class="mb-1 text-[10px] font-bold text-blue-500 uppercase tracking-[0.15em]"
     >
-      {{ product.category }}
+      {{ product.category || "Unknown Category" }}
     </div>
     <h3 class="text-base font-black text-gray-800 mb-3 line-clamp-1">
-      {{ product.name }}
+      {{ product.name || "Unknown Product" }}
     </h3>
 
     <div class="grid grid-cols-3 gap-2 mb-5 border-y border-gray-50 py-3">
-      <div class="text-center">
+      <!-- <div class="text-center">
         <p class="text-[9px] text-gray-400 uppercase font-bold">Pin</p>
         <p class="text-[11px] font-black text-gray-700">
-          {{ product.stats.battery }}
+          {{ product.stats.battery || "N/A" }}
         </p>
-      </div>
-      <div class="text-center border-x border-gray-50">
+      </div> -->
+      <!-- <div class="text-center border-x border-gray-50">
         <p class="text-[9px] text-gray-400 uppercase font-bold">Tầm xa</p>
         <p class="text-[11px] font-black text-gray-700">
-          {{ product.stats.range }}
+          {{ product.stats.range || "N/A" }}
         </p>
-      </div>
-      <div class="text-center">
+      </div> -->
+      <!-- <div class="text-center">
         <p class="text-[9px] text-gray-400 uppercase font-bold">Tốc độ</p>
         <p class="text-[11px] font-black text-gray-700">
-          {{ product.stats.speed }}
+          {{ product.stats.speed || "N/A" }}
         </p>
-      </div>
+      </div> -->
     </div>
 
     <div class="flex items-center justify-between mt-auto">
@@ -58,10 +58,10 @@
           v-if="product.oldPrice"
           class="text-xs text-gray-400 line-through font-medium"
         >
-          ${{ product.oldPrice }}
+          ${{ product.oldPrice || 0 }}
         </span>
         <span class="text-lg font-black text-gray-900"
-          >${{ product.price }}</span
+          >${{ product.price || 0 }}</span
         >
       </div>
       <!--  Sự kiện Click ra Detail -->

@@ -163,7 +163,7 @@
         <div class="flex space-x-4">
           <button
             @click="goToSimulation"
-            class="flex-1 bg-black text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg shadow-black/10"
+            class="cursor-pointer flex-1 bg-black text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg shadow-black/10"
           >
             Mô phỏng sản phẩm
           </button>
@@ -327,43 +327,61 @@
 
 <script setup>
 import { ref, computed } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
+import { uavList } from "@/data/uavData";
 const router = useRouter();
+const route = useRoute();
 const props = defineProps({
   product: Object,
 });
 const selectedVersionIndex = ref(0);
-const goToSimulation = () => {
-  // Chuyển hướng tới trang mô phỏng kèm theo ID sản phẩm
-  router.push({
-    name: "Simulation",
-    params: { id: 1 }, // Bạn có thể thay bằng ID thực tế của sản phẩm
-  });
-};
+// const goToSimulation = () => {
+//   // Chuyển hướng tới trang mô phỏng kèm theo ID sản phẩm
+//   router.push({
+//     name: "Simulation",
+//     params: { id: props.product.id || 1 },
+//   });
+// };
 
-const product = ref({
-  name: "DJI Mavic 4 Pro",
-  description:
-    "DJI Mavic 4 Pro, equipped with a powerful triple-camera system featuring a 100MP Hasselblad main camera, dual large CMOS telephoto cameras, a 360° rotating Infinity gimbal, omnidirectional obstacle-avoidance sensors with Nightscape 0.1-Lux, and the advanced O4+ video transmission system.",
-  image: "/public/img/Drone cam tu.png", // Thay bằng link ảnh thật
-  // Thumbail
-  images: [
-    "/public/img/Drone cam tu.png",
-    "/public/img/UCAV-13_0.png",
-    "/public/img/UAV-100AI.png",
-  ],
-  versions: [
-    { title: "DJI Mavic 4 Pro (DJI RC 2)", controller: "DJI RC 2" },
-    {
-      title: "DJI Mavic 4 Pro Fly More Combo (DJI RC 2)",
-      controller: "DJI RC 2",
-    },
-    {
-      title: "DJI Mavic 4 Pro 512GB Creator Combo",
-      controller: "DJI RC Pro 2",
-    },
-  ],
+const product = computed(() => {
+  // Lấy ID từ URL (ví dụ: /product/1 thì id là "1")
+  const idFromUrl = route.params.id;
+
+  // Tìm trong danh sách tổng
+  const result = uavList.find((item) => item.id === parseInt(idFromUrl));
+
+  return (
+    result || {
+      name: "Unknown Product",
+      description: "No description available.",
+      images: ["/public/img/Drone cam tu.png"],
+      versions: [],
+    }
+  );
 });
+// const product = ref({
+//   name: "DJI Mavic 4 Pro",
+//   description:
+//     "DJI Mavic 4 Pro, equipped with a powerful triple-camera system featuring a 100MP Hasselblad main camera, dual large CMOS telephoto cameras, a 360° rotating Infinity gimbal, omnidirectional obstacle-avoidance sensors with Nightscape 0.1-Lux, and the advanced O4+ video transmission system.",
+//   image: "/public/img/Drone cam tu.png", // Thay bằng link ảnh thật
+//   // Thumbail
+//   images: [
+//     "/public/img/Drone cam tu.png",
+//     "/public/img/UCAV-13_0.png",
+//     "/public/img/UAV-100AI.png",
+//   ],
+//   versions: [
+//     { title: "DJI Mavic 4 Pro (DJI RC 2)", controller: "DJI RC 2" },
+//     {
+//       title: "DJI Mavic 4 Pro Fly More Combo (DJI RC 2)",
+//       controller: "DJI RC 2",
+//     },
+//     {
+//       title: "DJI Mavic 4 Pro 512GB Creator Combo",
+//       controller: "DJI RC Pro 2",
+//     },
+//   ],
+// });
 const currentImage = ref(0);
 // Tạo một biến ref để lưu ảnh đang được chọn, ảnh đang hiển thị trên main
 const selectedImage = computed(() => product.value.images[currentImage.value]);

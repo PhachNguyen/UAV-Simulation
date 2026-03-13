@@ -86,7 +86,6 @@ const routes = [
     name: "Settings",
     component: () => import("@/pages/users/Settings.vue"),
   },
-  // Thêm các route khác cho monitor, fleet...
 ];
 
 const router = createRouter({
