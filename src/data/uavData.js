@@ -23,7 +23,7 @@ export const uavList = [
       },
       {
         id: 2,
-        pos: { x: 0, y: -0.02, z: -0.05 },
+        pos: { x: 0, y: 0.05, z: -0.05 },
         title: "Cảm biến LiDAR",
         desc: "Quét bản đồ 3D địa hình chính xác.",
       },

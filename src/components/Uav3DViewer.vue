@@ -24,15 +24,12 @@
     <div
       class="absolute bottom-6 left-6 z-10 opacity-30 hover:opacity-100 transition-opacity duration-500"
     >
-      <div
-        class="flex items-center gap-4 text-[10px] text-white uppercase font-bold tracking-widest"
+      <p
+        class="text-white text-[10px] uppercase font-bold tracking-widest flex gap-4"
       >
         <span>Orbit: Left Click</span>
-        <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
         <span>Zoom: Scroll</span>
-        <span class="w-1 h-1 bg-blue-500 rounded-full"></span>
-        <span>Pan: Right Click</span>
-      </div>
+      </p>
     </div>
   </div>
 </template>
@@ -67,9 +64,10 @@ const initScene = () => {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x080808);
+  // Sương mù nhẹ tạo chiều sâu không gian
   scene.fog = new THREE.Fog(0x080808, 20, 100);
 
-  // --- 1. MÔI TRƯỜNG (GRIDS) ---
+  // --- 1. HỆ THỐNG LƯỚI (GRID & RADAR) ---
   const mainGrid = new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a);
   mainGrid.position.y = -0.01;
   scene.add(mainGrid);
@@ -103,7 +101,6 @@ const initScene = () => {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   container.value.appendChild(renderer.domElement);
 
-  // Quan trọng: CSS2D Renderer để hiển thị Hotspots
   labelRenderer = new CSS2DRenderer();
   labelRenderer.setSize(
     container.value.clientWidth,
@@ -111,8 +108,10 @@ const initScene = () => {
   );
   labelRenderer.domElement.style.position = "absolute";
   labelRenderer.domElement.style.top = "0px";
-  labelRenderer.domElement.style.left = "0px";
-  labelRenderer.domElement.style.pointerEvents = "none"; // Không chặn xoay chuột WebGL
+  labelRenderer.domElement.style.left = "0px"; // Căn lề trái để fix lỗi lệch
+  labelRenderer.domElement.style.width = "100%"; // Ép chiều rộng
+  labelRenderer.domElement.style.height = "100%";
+  labelRenderer.domElement.style.pointerEvents = "none";
   labelRenderer.domElement.style.zIndex = "10";
   container.value.appendChild(labelRenderer.domElement);
 
@@ -122,7 +121,6 @@ const initScene = () => {
   spotLight.position.set(20, 30, 20);
   scene.add(spotLight);
 
-  // --- 5. CONTROLS ---
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
 
@@ -139,6 +137,7 @@ const loadModel = (data) => {
   loader.load(data.model3d, (gltf) => {
     currentModel = gltf.scene;
 
+    // Căn giữa & Scale
     const box = new THREE.Box3().setFromObject(currentModel);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
@@ -156,6 +155,7 @@ const loadModel = (data) => {
 
     loading.value = false;
 
+    // Animation camera mượt khi mới vào
     gsap.from(camera.position, {
       x: 50,
       y: 40,
@@ -171,9 +171,11 @@ const setupHotspots = (hotspots) => {
     const wrapper = document.createElement("div");
     wrapper.className = "hotspot-container";
 
+    // Vòng radar nhấp nháy (Pulse)
     const pulse = document.createElement("div");
     pulse.className = "hotspot-pulse";
 
+    // Nốt số chính
     const dot = document.createElement("div");
     dot.className = "hotspot-dot";
     dot.textContent = spot.id;
@@ -221,12 +223,13 @@ const animate = () => {
 
 const handleResize = () => {
   if (!container.value) return;
-  const w = container.value.clientWidth;
-  const h = container.value.clientHeight;
-  camera.aspect = w / h;
+  camera.aspect = container.value.clientWidth / container.value.clientHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-  labelRenderer.setSize(w, h);
+  renderer.setSize(container.value.clientWidth, container.value.clientHeight);
+  labelRenderer.setSize(
+    container.value.clientWidth,
+    container.value.clientHeight,
+  );
 };
 
 watch(product, (newVal) => {
@@ -257,37 +260,32 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-/* FIX LỖI VỊ TRÍ TẠI ĐÂY */
+/* FIX LỖI VỊ TRÍ & THÊM ANIMATION */
 :deep(.hotspot-container) {
   position: absolute;
-  top: 0;
-  left: 0;
   /* Đưa tâm của div về đúng tọa độ 3D */
   transform: translate(-50%, -50%);
-
   width: 32px;
   height: 32px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  /* Animation pop phải kết hợp với translate để không bị giật */
-  animation: hotspot-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-:deep(.hotspot-pulse) {
+/* :deep(.hotspot-pulse) {
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
   border: 2px solid #3b82f6;
   animation: hotspot-ripple 2s infinite;
-}
+} */
 
 :deep(.hotspot-dot) {
   width: 24px;
   height: 24px;
-  background: rgba(59, 130, 246, 0.9);
+  /* background: rgba(59, 130, 246, 0.9); */
   border: 2px solid white;
   border-radius: 50%;
   color: white;
@@ -296,8 +294,9 @@ onUnmounted(() => {
   align-items: center;
   font-weight: 900;
   font-size: 10px;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+  /* box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); */
   z-index: 2;
+  transition: all 0.3s ease;
 }
 
 @keyframes hotspot-ripple {
@@ -313,7 +312,7 @@ onUnmounted(() => {
 
 @keyframes hotspot-pop {
   0% {
-    transform: translate(-50%, -50%) scale(0) translateY(20px);
+    transform: translate(-50%, -50%) scale(0) translateY(10px);
     opacity: 0;
   }
   100% {
