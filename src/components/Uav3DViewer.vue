@@ -1,35 +1,59 @@
 <template>
-  <div
-    ref="container"
-    class="w-full h-[600px] rounded-2xl overflow-hidden relative shadow-2xl bg-[#080808] border border-white/5"
-  >
+  <div ref="container" class="viewer-container">
     <Transition name="fade">
-      <div
-        v-if="loading"
-        class="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-md"
-      >
-        <div class="flex flex-col items-center">
-          <div
-            class="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"
-          ></div>
-          <p
-            class="text-blue-500 text-[10px] font-black uppercase tracking-[0.3em]"
-          >
-            Initializing System...
-          </p>
-        </div>
+      <div v-if="loading" class="loading-overlay">
+        <div class="loader"></div>
+        <p class="loader-text">Initializing System...</p>
       </div>
     </Transition>
 
-    <div
-      class="absolute bottom-6 left-6 z-10 opacity-30 hover:opacity-100 transition-opacity duration-500"
-    >
-      <p
-        class="text-white text-[10px] uppercase font-bold tracking-widest flex gap-4"
-      >
-        <span>Orbit: Left Click</span>
-        <span>Zoom: Scroll</span>
-      </p>
+    <div class="ui-panel-top">
+      <button @click="isStatsOpen = !isStatsOpen" class="toggle-btn">
+        <div class="btn-label">
+          <span class="label-sub">Hệ thống</span>
+          <span class="label-main">{{
+            isStatsOpen ? "Đóng" : "Thông số"
+          }}</span>
+        </div>
+        <div class="btn-icon" :class="{ 'is-active': isStatsOpen }">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              d="M19 9l-7 7-7-7"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+      </button>
+
+      <Transition name="slide-down">
+        <div v-if="isStatsOpen && product?.stats" class="stats-card">
+          <div v-for="(val, key) in product.stats" :key="key" class="stat-item">
+            <div class="stat-header">
+              <span class="stat-key">{{ key }}</span>
+              <span class="stat-val">{{ val }}</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <Transition name="slide-up">
+      <div v-if="activeSpot" class="hotspot-detail-card">
+        <button @click="activeSpot = null" class="close-btn">&times;</button>
+        <div class="detail-header">
+          <div class="spot-id">{{ activeSpot.id }}</div>
+          <h4 class="spot-title">{{ activeSpot.title }}</h4>
+        </div>
+        <p class="spot-desc">{{ activeSpot.desc }}</p>
+        <div class="detail-footer uppercase">Diagnostic: Operational</div>
+      </div>
+    </Transition>
+
+    <div class="ui-panel-bottom">
+      <p class="guide-text">Orbit: Left Click • Zoom: Scroll</p>
     </div>
   </div>
 </template>
@@ -50,6 +74,8 @@ import { uavList } from "../data/uavData";
 const route = useRoute();
 const container = ref(null);
 const loading = ref(true);
+const isStatsOpen = ref(false);
+const activeSpot = ref(null); // Lưu hotspot đang chọn
 const emit = defineEmits(["select-hotspot"]);
 
 const product = computed(() => {
@@ -64,28 +90,15 @@ const initScene = () => {
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x080808);
-  // Sương mù nhẹ tạo chiều sâu không gian
   scene.fog = new THREE.Fog(0x080808, 20, 100);
 
-  // --- 1. HỆ THỐNG LƯỚI (GRID & RADAR) ---
-  const mainGrid = new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a);
-  mainGrid.position.y = -0.01;
-  scene.add(mainGrid);
+  // Môi trường Grid
+  scene.add(new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a));
+  const polar = new THREE.PolarGridHelper(30, 10, 8, 64, 0x3b82f6, 0x111827);
+  polar.material.opacity = 0.1;
+  polar.material.transparent = true;
+  scene.add(polar);
 
-  const polarGrid = new THREE.PolarGridHelper(
-    30,
-    10,
-    8,
-    64,
-    0x3b82f6,
-    0x111827,
-  );
-  polarGrid.position.y = -0.02;
-  polarGrid.material.opacity = 0.15;
-  polarGrid.material.transparent = true;
-  scene.add(polarGrid);
-
-  // --- 2. CAMERA ---
   camera = new THREE.PerspectiveCamera(
     40,
     container.value.clientWidth / container.value.clientHeight,
@@ -94,11 +107,9 @@ const initScene = () => {
   );
   camera.position.set(30, 20, 30);
 
-  // --- 3. RENDERERS ---
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(container.value.clientWidth, container.value.clientHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
   container.value.appendChild(renderer.domElement);
 
   labelRenderer = new CSS2DRenderer();
@@ -106,20 +117,19 @@ const initScene = () => {
     container.value.clientWidth,
     container.value.clientHeight,
   );
-  labelRenderer.domElement.style.position = "absolute";
-  labelRenderer.domElement.style.top = "0px";
-  labelRenderer.domElement.style.left = "0px"; // Căn lề trái để fix lỗi lệch
-  labelRenderer.domElement.style.width = "100%"; // Ép chiều rộng
-  labelRenderer.domElement.style.height = "100%";
-  labelRenderer.domElement.style.pointerEvents = "none";
-  labelRenderer.domElement.style.zIndex = "10";
+  Object.assign(labelRenderer.domElement.style, {
+    position: "absolute",
+    top: "0",
+    left: "0",
+    pointerEvents: "none",
+    zIndex: "10",
+  });
   container.value.appendChild(labelRenderer.domElement);
 
-  // --- 4. LIGHTING ---
   scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-  const spotLight = new THREE.SpotLight(0xffffff, 50);
-  spotLight.position.set(20, 30, 20);
-  scene.add(spotLight);
+  const spot = new THREE.SpotLight(0xffffff, 50);
+  spot.position.set(20, 30, 20);
+  scene.add(spot);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
@@ -130,14 +140,20 @@ const initScene = () => {
 const loadModel = (data) => {
   if (!data?.model3d) return;
   loading.value = true;
+  activeSpot.value = null;
 
-  if (currentModel) scene.remove(currentModel);
+  if (currentModel) {
+    scene.remove(currentModel);
+    currentModel.traverse((o) => {
+      if (o.isMesh) {
+        o.geometry.dispose();
+        o.material.dispose();
+      }
+    });
+  }
 
-  const loader = new GLTFLoader();
-  loader.load(data.model3d, (gltf) => {
+  new GLTFLoader().load(data.model3d, (gltf) => {
     currentModel = gltf.scene;
-
-    // Căn giữa & Scale
     const box = new THREE.Box3().setFromObject(currentModel);
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
@@ -154,8 +170,6 @@ const loadModel = (data) => {
     if (data.hotspots) setupHotspots(data.hotspots);
 
     loading.value = false;
-
-    // Animation camera mượt khi mới vào
     gsap.from(camera.position, {
       x: 50,
       y: 40,
@@ -168,28 +182,18 @@ const loadModel = (data) => {
 
 const setupHotspots = (hotspots) => {
   hotspots.forEach((spot) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "hotspot-container";
+    const el = document.createElement("div");
+    el.className = "hotspot-wrapper";
+    el.innerHTML = `<div class="hotspot-pulse"></div><div class="hotspot-node">${spot.id}</div>`;
 
-    // Vòng radar nhấp nháy (Pulse)
-    const pulse = document.createElement("div");
-    pulse.className = "hotspot-pulse";
-
-    // Nốt số chính
-    const dot = document.createElement("div");
-    dot.className = "hotspot-dot";
-    dot.textContent = spot.id;
-
-    wrapper.appendChild(pulse);
-    wrapper.appendChild(dot);
-
-    const label = new CSS2DObject(wrapper);
+    const label = new CSS2DObject(el);
     label.position.set(spot.pos.x, spot.pos.y, spot.pos.z);
     currentModel.add(label);
 
-    wrapper.style.pointerEvents = "auto";
-    wrapper.onclick = (e) => {
+    el.onclick = (e) => {
       e.stopPropagation();
+      activeSpot.value = spot; // Hiển thị title/desc
+
       const worldPos = new THREE.Vector3();
       label.getWorldPosition(worldPos);
 
@@ -214,110 +218,208 @@ const setupHotspots = (hotspots) => {
 
 const animate = () => {
   animationId = requestAnimationFrame(animate);
-  if (controls) controls.update();
-  if (renderer && scene && camera) {
-    renderer.render(scene, camera);
-    labelRenderer.render(scene, camera);
-  }
+  controls?.update();
+  renderer?.render(scene, camera);
+  labelRenderer?.render(scene, camera);
 };
 
 const handleResize = () => {
   if (!container.value) return;
-  camera.aspect = container.value.clientWidth / container.value.clientHeight;
+  const w = container.value.clientWidth;
+  const h = container.value.clientHeight;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight);
-  labelRenderer.setSize(
-    container.value.clientWidth,
-    container.value.clientHeight,
-  );
+  renderer.setSize(w, h);
+  labelRenderer.setSize(w, h);
 };
 
-watch(product, (newVal) => {
-  if (newVal && scene) loadModel(newVal);
-});
-
+watch(product, (v) => v && scene && loadModel(v));
 onMounted(() => {
   initScene();
   animate();
   window.addEventListener("resize", handleResize);
 });
-
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   cancelAnimationFrame(animationId);
-  if (renderer) renderer.dispose();
-  scene = null;
+  renderer?.dispose();
 });
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.viewer-container {
+  width: 100%;
+  height: 600px;
+  position: relative;
+  background: #080808;
+  border-radius: 1.5rem;
+  overflow: hidden;
 }
 
-/* FIX LỖI VỊ TRÍ & THÊM ANIMATION */
-:deep(.hotspot-container) {
+/* Hotspot Detail Card */
+.hotspot-detail-card {
   position: absolute;
-  /* Đưa tâm của div về đúng tọa độ 3D */
-  transform: translate(-50%, -50%);
-  width: 32px;
-  height: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 40;
+  width: 280px;
+  background: rgba(37, 99, 235, 0.85);
+  backdrop-filter: blur(12px);
+  padding: 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  color: white;
+}
+.close-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.5;
   cursor: pointer;
 }
-
-/* :deep(.hotspot-pulse) {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 2px solid #3b82f6;
-  animation: hotspot-ripple 2s infinite;
-} */
-
-:deep(.hotspot-dot) {
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.spot-id {
   width: 24px;
   height: 24px;
-  /* background: rgba(59, 130, 246, 0.9); */
+  background: white;
+  color: #2563eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 10px;
+}
+.spot-title {
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+.spot-desc {
+  font-size: 11px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+.detail-footer {
+  margin-top: 1rem;
+  font-size: 8px;
+  font-weight: 900;
+  opacity: 0.3;
+  text-align: right;
+}
+
+/* Stats Panel */
+.ui-panel-top {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+.toggle-btn {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+.label-sub {
+  font-size: 8px;
+  color: #60a5fa;
+  font-weight: 900;
+  text-transform: uppercase;
+  display: block;
+}
+.label-main {
+  font-size: 11px;
+  color: white;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  background: #3b82f6;
+  border-radius: 0.5rem;
+  color: white;
+  display: flex;
+  items-center: center;
+  justify-content: center;
+  transition: 0.4s;
+}
+.btn-icon.is-active {
+  transform: rotate(180deg);
+}
+.stats-card {
+  width: 240px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Common 3D UI */
+:deep(.hotspot-wrapper) {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+}
+:deep(.hotspot-pulse) {
+  position: absolute;
+  inset: -4px;
+  border: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+:deep(.hotspot-node) {
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
   border: 2px solid white;
   border-radius: 50%;
   color: white;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   font-weight: 900;
   font-size: 10px;
-  /* box-shadow: 0 0 15px rgba(59, 130, 246, 0.8); */
   z-index: 2;
-  transition: all 0.3s ease;
+  position: relative;
 }
 
-@keyframes hotspot-ripple {
+@keyframes pulse {
   0% {
     transform: scale(0.6);
     opacity: 1;
   }
   100% {
-    transform: scale(2.2);
+    transform: scale(2);
     opacity: 0;
   }
 }
-
-@keyframes hotspot-pop {
-  0% {
-    transform: translate(-50%, -50%) scale(0) translateY(10px);
-    opacity: 0;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1) translateY(0);
-    opacity: 1;
-  }
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.5s ease;
+}
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
 }
 </style>
