@@ -6,7 +6,10 @@ import NoFlyZones from "@/pages/users/NoFlyZones.vue";
 import ProductDetail from "@/components/ProductDetail.vue";
 import ProductPage from "@/pages/users/ProductPage.vue";
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
+import Login from "@/pages/auth/Login.vue";
+import Register from "@/pages/auth/Register.vue";
 const routes = [
+  // history: createWebHistory(),
   //   {
   //     path: "/",
   //     redirect: "/dashboard",
@@ -15,6 +18,18 @@ const routes = [
     path: "/",
     name: "Dashboard",
     component: Dashboard,
+  },
+  {
+    path: "/login",
+    name: "Login",
+    component: Login,
+    meta: { hideHeaderFooter: true },
+  },
+  {
+    path: "/register",
+    name: "register",
+    component: Register,
+    meta: { hideHeaderFooter: true }, // Ẩn header/footer
   },
   {
     path: "/simulation/:id",

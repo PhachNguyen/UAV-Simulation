@@ -6,6 +6,7 @@ export const uavList = [
     description:
       "DJI Mavic 4 Pro, equipped with a powerful triple-camera system featuring a 100MP Hasselblad main camera, dual large CMOS telephoto cameras, a 360° rotating Infinity gimbal, omnidirectional obstacle-avoidance sensors with Nightscape 0.1-Lux, and the advanced O4+ video transmission system.",
     image: "/public/img/Drone cam tu.png", // Thay bằng link ảnh thật
+    category: "Consumer",
     // Thumbail
     images: [
       "/public/img/Drone cam tu.png",
