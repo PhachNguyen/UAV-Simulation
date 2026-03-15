@@ -8,16 +8,19 @@ import ProductPage from "@/pages/users/ProductPage.vue";
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import Login from "@/pages/auth/Login.vue";
 import Register from "@/pages/auth/Register.vue";
+import MainLayoutUser from "@/layout/MainLayoutUser.vue";
 const routes = [
   // history: createWebHistory(),
   //   {
   //     path: "/",
   //     redirect: "/dashboard",
   //   },
+
   {
-    path: "/",
-    name: "Dashboard",
-    component: Dashboard,
+    path: "/profile",
+    name: "MainLayoutUser",
+    component: MainLayoutUser,
+    meta: { hideHeaderFooter: true },
   },
   {
     path: "/login",
