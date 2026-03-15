@@ -18,8 +18,13 @@ const routes = [
 
   {
     path: "/profile",
-    name: "MainLayoutUser",
     component: MainLayoutUser,
+    children: [
+      {
+        path: "dashboard",
+        component: () => import("../pages/users/DashboardView.vue"),
+      },
+    ],
     meta: { hideHeaderFooter: true },
   },
   {
