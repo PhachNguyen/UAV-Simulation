@@ -24,6 +24,10 @@ const routes = [
         path: "dashboard",
         component: () => import("../pages/users/DashboardView.vue"),
       },
+      {
+        path: "fleet",
+        component: () => import("../pages/users/DroneFleetView.vue"),
+      },
     ],
     meta: { hideHeaderFooter: true },
   },
@@ -32,6 +36,12 @@ const routes = [
     name: "Login",
     component: Login,
     meta: { hideHeaderFooter: true },
+  },
+  {
+    path: "/",
+    name: "Home",
+    component: Dashboard,
+    // meta: { hideHeaderFooter: true },
   },
   {
     path: "/register",

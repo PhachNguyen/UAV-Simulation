@@ -1,12 +1,13 @@
 <script setup>
 import { ref } from "vue";
-import { Eye, EyeOff, User, Mail, Lock } from "lucide-vue-next";
+import { Eye, EyeOff, User, Mail, Lock, ArrowLeft } from "lucide-vue-next";
 
 const name = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const bgImage = "/public/img/Login.svg"; // Dùng chung ảnh cho đồng bộ
 </script>
@@ -27,6 +28,17 @@ const bgImage = "/public/img/Login.svg"; // Dùng chung ảnh cho đồng bộ
           <span class="underline cursor-pointer text-gray-200"
             >PhachNguyen</span
           >
+        </div>
+        <div class="absolute top-6 left-6">
+          <router-link
+            to="/"
+            class="flex items-center gap-2 text-white hover:text-blue-500 transition-colors"
+          >
+            <ArrowLeft
+              class="w-4 h-4 group-hover:-translate-x-1 transition-transform"
+            />
+            Trang chủ
+          </router-link>
         </div>
       </div>
 
@@ -74,7 +86,7 @@ const bgImage = "/public/img/Login.svg"; // Dùng chung ảnh cho đồng bộ
               <input
                 v-model="email"
                 type="email"
-                placeholder="example@gmail.com"
+                placeholder="thephach@gmail.com"
                 class="w-full px-4 py-3 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
               />
             </div>
@@ -109,12 +121,22 @@ const bgImage = "/public/img/Login.svg"; // Dùng chung ảnh cho đồng bộ
                 style="margin-bottom: 8px"
                 >Xác nhận mật khẩu</label
               >
-              <input
-                v-model="confirmPassword"
-                type="password"
-                placeholder="Nhập lại mật khẩu"
-                class="w-full px-4 py-3 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
-              />
+              <div class="relative">
+                <input
+                  v-model="confirmPassword"
+                  :type="showConfirmPassword ? 'text' : 'password'"
+                  placeholder="Xác nhận mật khẩu"
+                  class="w-full px-4 py-3 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                />
+                <button
+                  type="button"
+                  @click="showConfirmPassword = !showConfirmPassword"
+                  class="cursor-pointer absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  <Eye v-if="!showConfirmPassword" :size="18" />
+                  <EyeOff v-else :size="18" />
+                </button>
+              </div>
             </div>
 
             <button

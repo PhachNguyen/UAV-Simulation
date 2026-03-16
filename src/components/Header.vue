@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import {
   Search,
   ChevronDown,
@@ -9,24 +9,42 @@ import {
   User,
   Settings,
   LogOut,
-  ShieldCheck,
+  UserPlus,
+  LogIn,
 } from "lucide-vue-next";
 
-// Quản lý trạng thái đóng/mở Submenu Profile
+// --- Quản lý Auth (Sau này hãy mang logic này vào Pinia) ---
+const user = ref(null); // Nếu user != null nghĩa là đã đăng nhập
+const isLoggedIn = computed(() => !!user.value);
+
+// Giả lập dữ liệu user sau khi login
+const mockLogin = () => {
+  user.value = {
+    name: "PhachNguyen",
+    email: "phachnguyen@sky.link",
+    role: "Operator",
+    avatar: "OP",
+  };
+};
+
+const logout = () => {
+  user.value = null;
+  isProfileOpen.value = false;
+};
+
+// --- Quản lý UI ---
 const isProfileOpen = ref(false);
 const profileRef = ref(null);
 
-const toggleProfile = () => (isProfileOpen.value = !isProfileOpen.value);
-
-const handleClickOutside = (event) => {
-  if (profileRef.value && !profileRef.value.contains(event.target)) {
+const handleClickOutside = (e) => {
+  if (profileRef.value && !profileRef.value.contains(e.target))
     isProfileOpen.value = false;
-  }
 };
 
 onMounted(() => document.addEventListener("click", handleClickOutside));
 onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 
+// --- Menu Data ---
 const navLinks = [
   { name: "Tổng quan", href: "/" },
   {
@@ -41,12 +59,7 @@ const navLinks = [
       {
         name: "Lập trình đường bay",
         href: "/operation/planner",
-        desc: "Thiết lập Waypoints cho nhiệm vụ",
-      },
-      {
-        name: "Kiểm tra an toàn",
-        href: "/operation/checklist",
-        desc: "Quy trình Pre-flight bắt buộc",
+        desc: "Thiết lập Waypoints",
       },
     ],
   },
@@ -54,21 +67,7 @@ const navLinks = [
     name: "Thiết bị",
     href: "/fleet",
     subLinks: [
-      {
-        name: "Sản phẩm",
-        href: "/fleet/list",
-        desc: "Thông số kỹ thuật & Firmware",
-      },
-      {
-        name: "Tình trạng Pin",
-        href: "/fleet/battery",
-        desc: "Theo dõi chu kỳ & điện áp",
-      },
-      {
-        name: "Nhật ký bảo trì",
-        href: "/fleet/maintenance",
-        desc: "Lịch sử sửa chữa thiết bị",
-      },
+      { name: "Sản phẩm", href: "/fleet/list", desc: "Thông số & Firmware" },
     ],
   },
   {
@@ -78,24 +77,13 @@ const navLinks = [
       {
         name: "Lịch sử chuyến bay",
         href: "/data/history",
-        desc: "Xem lại quỹ đạo bay (Playback)",
-      },
-      {
-        name: "Thư viện hình ảnh",
-        href: "/data/media",
-        desc: "Ảnh & Video thu thập từ Drone",
-      },
-      {
-        name: "Báo cáo nhiệm vụ",
-        href: "/data/reports",
-        desc: "Xuất file PDF kết quả sau bay",
+        desc: "Xem lại quỹ đạo bay",
       },
     ],
   },
   { name: "Cấu hình", href: "/settings" },
 ];
 </script>
-
 <template>
   <header
     class="border-b border-slate-200 sticky top-0 bg-white/90 backdrop-blur-md z-50"
@@ -122,6 +110,7 @@ const navLinks = [
         </router-link>
 
         <div
+          v-if="isLoggedIn"
           class="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full select-none"
         >
           <span class="relative flex h-2 w-2">
@@ -130,9 +119,8 @@ const navLinks = [
             ></span>
             <span class="relative rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span
-            class="text-[10px] font-bold text-emerald-700 tracking-tight uppercase"
-            >Cổng tín hiệu: Sẵn sàng</span
+          <span class="text-[10px] font-bold text-emerald-700 uppercase"
+            >Tín hiệu: Sẵn sàng</span
           >
         </div>
       </div>
@@ -183,13 +171,12 @@ const navLinks = [
         <div class="flex items-center border-r border-slate-200 pr-2 gap-1">
           <button
             class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-all"
-            title="Tìm kiếm"
           >
             <Search class="w-5 h-5" />
           </button>
           <button
+            v-if="isLoggedIn"
             class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-all relative"
-            title="Thông báo"
           >
             <Bell class="w-5 h-5" />
             <span
@@ -199,91 +186,89 @@ const navLinks = [
         </div>
 
         <div class="relative" ref="profileRef">
-          <button
-            @click="toggleProfile"
-            class="flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all active:scale-95 shadow-md shadow-slate-200 group border border-slate-700/50"
-            :class="{ 'ring-2 ring-teal-500/50': isProfileOpen }"
-          >
-            <div
-              class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-[11px] font-black shadow-inner ring-2 ring-slate-800 group-hover:ring-teal-500/30 transition-all"
-            >
-              OP
-            </div>
-            <div class="flex flex-col items-start leading-none">
-              <span class="text-[11px] font-bold tracking-wide"
-                >PhachNguyen</span
-              >
-              <span
-                class="text-[9px] text-teal-400 font-medium uppercase mt-0.5 tracking-wider"
-                >Operator</span
-              >
-            </div>
-          </button>
-
-          <transition
-            enter-active-class="transition duration-200 ease-out"
-            enter-from-class="transform scale-95 opacity-0 -translate-y-2"
-            enter-to-class="transform scale-100 opacity-100 translate-y-0"
-            leave-active-class="transition duration-150 ease-in"
-            leave-from-class="transform scale-100 opacity-100 translate-y-0"
-            leave-to-class="transform scale-95 opacity-0 -translate-y-2"
-          >
-            <div
-              v-if="isProfileOpen"
-              class="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[60] overflow-hidden"
+          <template v-if="isLoggedIn">
+            <button
+              @click="isProfileOpen = !isProfileOpen"
+              class="flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all active:scale-95 shadow-md shadow-slate-200 border border-slate-700/50"
+              :class="{ 'ring-2 ring-teal-500/50': isProfileOpen }"
             >
               <div
-                class="px-4 py-3 bg-slate-50/50 border-b border-slate-100 mb-1"
+                class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-[11px] font-black ring-2 ring-slate-800"
               >
-                <p
-                  class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1"
-                >
-                  Hệ thống
-                </p>
-                <p class="text-xs font-bold text-slate-700 truncate">
-                  phachnguyen@sky.link
-                </p>
+                {{ user.avatar }}
               </div>
+              <div class="flex flex-col items-start leading-none">
+                <span class="text-[11px] font-bold tracking-wide">{{
+                  user.name
+                }}</span>
+                <span
+                  class="text-[9px] text-teal-400 font-medium uppercase mt-0.5"
+                  >{{ user.role }}</span
+                >
+              </div>
+            </button>
 
-              <div class="px-1.5 space-y-0.5">
-                <router-link
-                  to="/profile"
-                  class="flex items-center gap-3 px-3 py-2 text-[13px] font-bold text-slate-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl transition-all group/item"
+            <transition
+              enter-active-class="transition duration-200 ease-out"
+              enter-from-class="transform scale-95 opacity-0 -translate-y-2"
+              enter-to-class="transform scale-100 opacity-100 translate-y-0"
+              leave-active-class="transition duration-150 ease-in"
+              leave-from-class="transform scale-100 opacity-100 translate-y-0"
+              leave-to-class="transform scale-95 opacity-0 -translate-y-2"
+            >
+              <div
+                v-if="isProfileOpen"
+                class="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[60] overflow-hidden"
+              >
+                <div
+                  class="px-4 py-3 bg-slate-50/50 border-b border-slate-100 mb-1"
                 >
-                  <div
-                    class="p-1.5 bg-slate-100 rounded-lg group-hover/item:bg-white transition-colors"
+                  <p
+                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1"
                   >
-                    <User class="w-4 h-4" />
-                  </div>
-                  Bảng điều khiển
-                </router-link>
-                <router-link
-                  to="/settings"
-                  class="flex items-center gap-3 px-3 py-2 text-[13px] font-bold text-slate-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl transition-all group/item"
-                >
-                  <div
-                    class="p-1.5 bg-slate-100 rounded-lg group-hover/item:bg-white transition-colors"
+                    Hệ thống
+                  </p>
+                  <p class="text-xs font-bold text-slate-700 truncate">
+                    {{ user.email }}
+                  </p>
+                </div>
+                <div class="px-1.5 space-y-0.5">
+                  <router-link
+                    to="/profile"
+                    class="flex items-center gap-3 px-3 py-2 text-[13px] font-bold text-slate-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl transition-all"
+                    ><User class="w-4 h-4" /> Bảng điều khiển</router-link
                   >
-                    <Settings class="w-4 h-4" />
-                  </div>
-                  Cài đặt hệ thống
-                </router-link>
+                  <router-link
+                    to="/settings"
+                    class="flex items-center gap-3 px-3 py-2 text-[13px] font-bold text-slate-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl transition-all"
+                    ><Settings class="w-4 h-4" /> Cài đặt</router-link
+                  >
+                </div>
+                <div class="mt-2 pt-1 border-t border-slate-100 px-1.5">
+                  <button
+                    @click="logout"
+                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-black text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                  >
+                    <LogOut class="w-4 h-4" /> ĐĂNG XUẤT
+                  </button>
+                </div>
               </div>
+            </transition>
+          </template>
 
-              <div class="mt-2 pt-1 border-t border-slate-100 px-1.5">
-                <button
-                  class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-black text-red-500 hover:bg-red-50 rounded-xl transition-all group/logout"
-                >
-                  <div
-                    class="p-1.5 bg-red-100/50 rounded-lg group-hover/logout:bg-white transition-colors"
-                  >
-                    <LogOut class="w-4 h-4" />
-                  </div>
-                  ĐĂNG XUẤT
-                </button>
-              </div>
-            </div>
-          </transition>
+          <div v-else class="flex items-center gap-1">
+            <router-link
+              to="/login"
+              class="px-4 py-2 text-[13px] font-bold text-slate-600 hover:text-teal-600 transition-colors"
+              >Đăng nhập</router-link
+            >
+            <router-link
+              to="/register"
+              class="flex items-center gap-2 px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white text-[13px] font-bold rounded-full transition-all shadow-md active:scale-95"
+            >
+              <UserPlus class="w-4 h-4" /> Đăng ký
+            </router-link>
+          </div>
         </div>
       </div>
     </div>

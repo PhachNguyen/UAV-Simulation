@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { Eye, EyeOff } from "lucide-vue-next";
+import { Eye, EyeOff, ArrowLeft } from "lucide-vue-next";
 const email = ref("");
 const password = ref("");
 const rememberMe = ref(false);
@@ -25,6 +25,17 @@ const bgImage = "/public/img/Login.svg"; // Thay bằng ảnh của bạn
           <span class="underline cursor-pointer text-gray-200"
             >PhachNguyen</span
           >
+        </div>
+        <div class="absolute top-6 left-6">
+          <router-link
+            to="/"
+            class="flex items-center gap-2 text-white hover:text-blue-500 transition-colors"
+          >
+            <ArrowLeft
+              class="w-4 h-4 group-hover:-translate-x-1 transition-transform"
+            />
+            Trang chủ
+          </router-link>
         </div>
       </div>
 
@@ -54,7 +65,7 @@ const bgImage = "/public/img/Login.svg"; // Thay bằng ảnh của bạn
               <input
                 v-model="email"
                 type="text"
-                placeholder="Email or phone number"
+                placeholder="Email hoặc số điện thoại"
                 class="w-full px-4 py-3 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
                 style="margin-bottom: 8px"
               />
@@ -72,9 +83,8 @@ const bgImage = "/public/img/Login.svg"; // Thay bằng ảnh của bạn
                 <input
                   v-model="password"
                   :type="showPassword ? 'text' : 'password'"
-                  placeholder="Enter password"
+                  placeholder="Nhập mật khẩu"
                   class="w-full px-4 py-3 bg-gray-100 border-transparent rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
-                  style="margin-bottom: 8px"
                 />
 
                 <button
@@ -140,8 +150,10 @@ const bgImage = "/public/img/Login.svg"; // Thay bằng ảnh của bạn
 
           <p class="mt-8 text-center text-xs text-gray-500">
             Don't have an account?
-            <a href="#" class="text-blue-600 font-bold hover:underline"
-              >Sign up now</a
+            <router-link
+              to="/register"
+              class="text-blue-600 font-bold hover:underline"
+              >Sign up now</router-link
             >
           </p>
         </div>

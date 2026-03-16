@@ -102,14 +102,19 @@ const sidebarGroups = [
   {
     title: "Vận hành",
     links: [
-      { name: "Phi đội Drone", icon: Plane, href: "/fleet" },
-      { name: "Lập trình bay", icon: Map, href: "/missions" },
-      { name: "Giám sát", icon: Activity, href: "/tracking", live: true },
+      { name: "Phi đội Drone", icon: Plane, href: "/profile/fleet" },
+      { name: "Lập trình bay", icon: Map, href: "/profile/missions" },
+      {
+        name: "Giám sát",
+        icon: Activity,
+        href: "/profile/tracking",
+        live: true,
+      },
     ],
   },
   {
     title: "Hệ thống",
-    links: [{ name: "Cài đặt", icon: Settings, href: "/settings" }],
+    links: [{ name: "Cài đặt", icon: Settings, href: "/profile/settings" }],
   },
 ];
 </script>
