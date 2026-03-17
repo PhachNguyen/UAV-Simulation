@@ -252,20 +252,31 @@ const removeMarkerById = (id) => {
   }
 };
 // Hàm này sẽ hiển thị marker tạm thời khi click, và xóa marker cũ nếu chưa "chốt" để tránh rối mắt
+// Tìm hàm này trong Uav3DViewer.vue và sửa lại
 const showTemporaryMarker = (pos) => {
   if (!currentModel) return;
 
-  // Sử dụng ID từ props để đặt tên cho Marker
   const markerId = props.currentMarkerId;
 
-  // Kiểm tra xem đã có marker cho ID này chưa (để ghi đè vị trí nếu click lại)
+  // KIỂM TRA: Nếu không có ID hoặc ID <= 0 thì không vẽ/hiện marker
+  if (!markerId || markerId <= 0) {
+    console.log("Chưa có ID hợp lệ, không vẽ Marker.");
+    return;
+  }
+
+  // Xóa marker cũ của ID này nếu có để cập nhật vị trí mới
   const existing = currentModel.children.find(
     (child) => child.name === `marker-${markerId}`,
   );
-  if (existing) currentModel.remove(existing);
+  if (existing) {
+    currentModel.remove(existing);
+    if (existing.material.map) existing.material.map.dispose();
+    existing.material.dispose();
+  }
 
+  // Chỉ tạo marker khi đã vượt qua check ở trên
   const marker = createMarkerWithNumber(pos, markerId);
-  marker.name = `marker-${markerId}`; // Gán tên định danh
+  marker.name = `marker-${markerId}`;
 
   currentModel.add(marker);
 };
@@ -311,7 +322,7 @@ const initRaycaster = () => {
 
       showTemporaryMarker(localPos);
     } else {
-      console.warn("⚠️ Click trượt model UAV rồi Phách ơi!");
+      console.warn(" Click trượt model UAV rồi Phách ơi!");
     }
   });
 };

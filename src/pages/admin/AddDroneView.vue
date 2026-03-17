@@ -216,7 +216,9 @@
                 <Uav3DViewer
                   ref="uavViewerRef"
                   :modelSrc="previews.model3d"
-                  :currentMarkerId="form.hotspots.length"
+                  :currentMarkerId="
+                    form.hotspots.length > 0 ? form.hotspots.length : 0
+                  "
                   @pick-coords="updateLatestHotspot"
                 />
                 <div
@@ -230,7 +232,7 @@
                   <label
                     class="bg-white text-slate-900 px-4 py-1.5 rounded-lg text-[10px] font-black cursor-pointer pointer-events-auto hover:bg-teal-400 transition-colors shadow-xl"
                   >
-                    THAY ĐỔI FILE
+                    Thay đổi model
                     <input
                       type="file"
                       @change="handleFileUpload($event, 'model3d')"
@@ -280,9 +282,10 @@ import {
   Trash2,
   ChevronRight,
 } from "lucide-vue-next";
+import { useToast } from "vue-toastification";
 // Đừng quên import component 3D của bạn để xem preview
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
-//
+const toast = useToast();
 const isPickingLocation = ref(false); // Trạng thái đang chọn tọa độ trên bản đồ 3D
 const uavViewerRef = ref(null); // Ref để gọi hàm của component con
 
@@ -317,14 +320,19 @@ const addHotspot = () => {
     desc: "",
   });
 
-  // Thông báo nhỏ cho Phách đỡ quên
-  alert(
-    "Chế độ lấy tọa độ đã bật! Vui lòng click vào một vị trí trên mô hình 3D.",
-  );
+  // Thông báo cho người dùng click vào bản đồ 3D để chọn vị trí
+  toast.success(" Thêm tọa độ thành công", {
+    position: "top-right", // Hiển thị ở giữa trên cùng cho dễ thấy
+    timeout: 4000, // Tự tắt sau 4 giây
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
 };
 // Hàm nhận tọa độ từ Uav3DViewer gửi ra
 // Trong AddDroneView.vue
 const updateLatestHotspot = (coords) => {
+  if (!isPickingLocation.value) return; // Nếu không đang ở trạng thái chọn tọa độ thì bỏ qua
+  if (form.hotspots.length === 0) return; // Nếu không có điểm nào trong mảng thì cũng bỏ qua
   // Lấy hotspot cuối cùng vừa được thêm
   if (form.hotspots.length > 0) {
     const lastIndex = form.hotspots.length - 1;
@@ -376,7 +384,7 @@ const handleSave = async () => {
   // ... append các trường khác
 
   console.log("Sẵn sàng gửi FormData lên API...");
-  alert("Dữ liệu đã sẵn sàng để gửi!");
+  toast.success("Đã lưu thiết bị mới!");
 };
 </script>
 
