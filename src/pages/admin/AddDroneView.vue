@@ -344,7 +344,7 @@
             </div>
           </div>
         </section>
-
+        <!--  Preview mô hình 3D -->
         <section
           class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
         >
@@ -356,11 +356,20 @@
           <div
             class="w-[500px] h-64 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-dashed border-slate-700"
           >
-            <Uav3DViewer
-              v-if="previews.model3d"
-              :modelSrc="previews.model3d"
-              :scale="form.scale"
-            />
+            <template v-if="previews.model3d">
+              <Uav3DViewer :modelSrc="previews.model3d" :scale="form.scale" />
+
+              <button
+                class="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all"
+              >
+                Thay đổi Model
+                <input
+                  type="file"
+                  @change="handleFileUpload($event, 'model3d')"
+                  class="absolute inset-0 opacity-0 cursor-pointer"
+                />
+              </button>
+            </template>
 
             <div v-else class="text-center z-10">
               <div
@@ -378,18 +387,6 @@
                 accept=".glb"
               />
             </div>
-
-            <button
-              v-if="previews.model3d"
-              class="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all"
-            >
-              Thay đổi Model
-              <input
-                type="file"
-                @change="handleFileUpload($event, 'model3d')"
-                class="absolute inset-0 opacity-0 cursor-pointer"
-              />
-            </button>
           </div>
         </section>
       </div>
@@ -409,17 +406,50 @@ import {
   UploadCloud,
   X,
   Trash2,
+  ChevronRight,
 } from "lucide-vue-next";
 // Đừng quên import component 3D của bạn để xem preview
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
+//
+const isPickingLocation = ref(false); // Trạng thái đang chọn tọa độ trên bản đồ 3D
+// Hàm khi bấm nút "Thêm điểm"
+const addHotspot = () => {
+  isPickingLocation.value = true;
 
+  // Tạo một điểm mới với tọa độ tạm thời là 0,0,0
+  form.hotspots.push({
+    id: form.hotspots.length + 1,
+    pos: { x: 0, y: 0, z: 0 },
+    title: "",
+    desc: "",
+  });
+
+  // Thông báo nhỏ cho Phách đỡ quên
+  alert(
+    "Chế độ lấy tọa độ đã bật! Vui lòng click vào một vị trí trên mô hình 3D.",
+  );
+};
+// Hàm nhận tọa độ từ Uav3DViewer gửi ra
+const updateLatestHotspot = (coords) => {
+  if (isPickingLocation.value && form.hotspots.length > 0) {
+    const latestIndex = form.hotspots.length - 1;
+
+    // Cập nhật tọa độ cho điểm cuối cùng vừa thêm
+    form.hotspots[latestIndex].pos.x = parseFloat(coords.x);
+    form.hotspots[latestIndex].pos.y = parseFloat(coords.y);
+    form.hotspots[latestIndex].pos.z = parseFloat(coords.z);
+
+    isPickingLocation.value = false; // Tắt chế độ lấy tọa độ
+    alert(`Đã nhận tọa độ: X:${coords.x} Y:${coords.y} Z:${coords.z}`);
+  }
+};
 const form = reactive({
   name: "",
   description: "",
   category: "",
   image: null, // Lưu file thực tế
   model3d: null, // Lưu file thực tế
-  scale: 10,
+  scale: 15,
   hotspots: [],
   // ... các trường khác
 });

@@ -12,6 +12,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Cog,
+  ChevronRight,
 } from "lucide-vue-next";
 
 const drones = ref([

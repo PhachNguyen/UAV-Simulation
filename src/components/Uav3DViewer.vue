@@ -182,6 +182,66 @@ watch(
     }
   },
 );
+let tempMarker = null;
+const showTemporaryMarker = (pos) => {
+  if (!currentModel) return;
+
+  // 1. Nếu đã có marker trước đó, hãy xóa nó khỏi model để không bị loạn
+  if (tempMarker) {
+    currentModel.remove(tempMarker);
+    // Giải phóng bộ nhớ
+    tempMarker.geometry.dispose();
+    tempMarker.material.dispose();
+  }
+
+  // 2. Tạo một quả cầu nhỏ (Sphere) để làm điểm đánh dấu
+  const geometry = new THREE.SphereGeometry(0.3, 16, 16);
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xff0000, // Màu đỏ
+    transparent: true,
+    opacity: 0.8,
+  });
+
+  tempMarker = new THREE.Mesh(geometry, material);
+
+  // 3. Đặt vị trí đúng vào tọa độ local vừa click
+  tempMarker.position.set(pos.x, pos.y, pos.z);
+
+  // 4. Add vào model để nó dính chặt vào drone
+  currentModel.add(tempMarker);
+};
+//  Hàm lấy tọa độ hotspot khi click vào model (dành cho Admin)
+const initRaycaster = () => {
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  container.value.addEventListener("click", (event) => {
+    // Chỉ hoạt động khi có model (đang ở Admin hoặc Detail)
+    if (!currentModel) return;
+
+    const rect = container.value.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(currentModel, true);
+
+    if (intersects.length > 0) {
+      const worldPoint = intersects[0].point;
+      const localPos = currentModel.worldToLocal(worldPoint.clone());
+
+      // EMIT TỌA ĐỘ RA NGOÀI
+      emit("pick-coords", {
+        x: localPos.x.toFixed(3),
+        y: localPos.y.toFixed(3),
+        z: localPos.z.toFixed(3),
+      });
+
+      // Hiển thị một marker tạm thời (tùy chọn - xem bước 3)
+      showTemporaryMarker(localPos);
+    }
+  });
+};
 const handleModelSuccess = (gltf, data) => {
   currentModel = gltf.scene;
 
@@ -330,6 +390,7 @@ onMounted(() => {
   //   }
   // });
   initScene();
+  initRaycaster(); // Khởi tạo raycaster để lấy tọa độ khi click (dành cho Admin)
   animate();
   window.addEventListener("resize", handleResize);
 });
