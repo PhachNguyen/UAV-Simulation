@@ -81,6 +81,7 @@ const navLinks = [
       },
     ],
   },
+  { name: "Dịch vụ", href: "/services" },
   { name: "Cấu hình", href: "/settings" },
 ];
 </script>

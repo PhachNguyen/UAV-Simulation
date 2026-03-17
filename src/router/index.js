@@ -124,6 +124,16 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  // Thêm đoạn code scrollBehavior vào đây
+  scrollBehavior(to, from, savedPosition) {
+    // Nếu người dùng nhấn nút "Back" (Quay lại), trình duyệt sẽ quay về vị trí cũ
+    if (savedPosition) {
+      return savedPosition;
+    } else {
+      // Khi chuyển sang trang chi tiết (ví dụ: /drone/:id), luôn cuộn lên đầu trang
+      return { top: 0, left: 0 };
+    }
+  },
 });
 
 export default router;

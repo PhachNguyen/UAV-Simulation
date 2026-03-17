@@ -94,8 +94,6 @@
           {{ product.description }}
         </p>
 
-        <div class="text-3xl font-black text-orange-500 mb-8">Liên hệ</div>
-
         <hr class="border-gray-100 mb-8" />
 
         <div class="mb-10">
@@ -159,8 +157,13 @@
             Technical support 24/7
           </p>
         </div>
-
-        <div class="flex space-x-4">
+        <div
+          class="cursor-pointer text-xl font-black text-white mb-8 bg-blue-500 p-4 rounded-xl text-center select-none hover:bg-blue-600 transition-colors duration-300"
+        >
+          Liên hệ người bán
+        </div>
+        <!-- Button mua sản phẩm -->
+        <!-- <div class="flex space-x-4">
           <button
             @click="goToSimulation"
             class="cursor-pointer flex-1 bg-black text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg shadow-black/10"
@@ -185,7 +188,7 @@
               />
             </svg>
           </button>
-        </div>
+        </div> -->
       </section>
     </main>
     <section class="mx-auto px-6 mt-16">
@@ -213,7 +216,7 @@
       </div>
 
       <div
-        class="bg-white rounded-3xl border border-gray-100 p-8 md:p-16 shadow-sm"
+        class="bg-white rounded-3xl border border-gray-100 p-8 md:p-[18px] shadow-sm"
       >
         <div v-if="activeTab === 'description'" class="animate-fadeIn">
           <h2 class="text-3xl font-bold text-blue-600 mb-6 text-center">
@@ -292,32 +295,173 @@
 
         <div
           v-if="activeTab === 'specification'"
-          class="animate-fadeIn max-w-4xl mx-auto"
+          class="animate-fadeIn mx-auto py-[12px] px-6"
         >
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-6">
-            <div
-              v-for="(spec, label) in productSpecs"
-              :key="label"
-              class="flex justify-between border-b border-gray-100 pb-4 items-center"
+          <div
+            v-for="(groupContent, groupName) in productSpecs"
+            :key="groupName"
+            class="mb-12"
+          >
+            <h3
+              class="text-xl font-bold text-gray-900 mb-6 border-l-4 border-blue-600 pl-4"
             >
-              <span class="text-gray-500 font-medium">{{ label }}</span>
-              <span class="text-gray-900 font-black text-right">{{
-                spec
-              }}</span>
+              {{ groupName }}
+            </h3>
+
+            <div class="grid grid-cols-1 gap-y-0 border-t border-gray-100">
+              <div
+                v-for="(value, label) in groupContent"
+                :key="label"
+                class="flex flex-col md:flex-row py-[12px] border-b border-gray-50 items-start hover:bg-gray-50 transition-colors px-4"
+              >
+                <div class="w-full md:w-1/3 mb-1 md:mb-0">
+                  <span
+                    class="text-gray-500 font-semibold text-sm uppercase tracking-wider"
+                    >{{ label }}</span
+                  >
+                </div>
+                <div class="w-full md:w-2/3">
+                  <span
+                    class="text-gray-800 text-sm md:text-base leading-relaxed block text-justify"
+                  >
+                    {{ value }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div
-          v-if="activeTab === 'package'"
-          class="animate-fadeIn text-center py-20"
-        >
+        <div v-if="activeTab === 'simulation'" class="animate-fadeIn">
+          <div class="mx-auto px-4">
+            <div class="mb-[20px] text-center" style="margin-bottom: 20px">
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                Tương tác 3D với {{ product.name }}
+              </h2>
+              <p class="text-gray-500 text-sm">
+                Tương tác trực tiếp với mô hình để khám phá các linh kiện kỹ
+                thuật
+              </p>
+            </div>
+
+            <Uav3DViewer />
+
+            <div
+              class="mt-6 flex justify-center gap-8 text-xs text-gray-400 font-medium uppercase tracking-widest"
+              style="margin-top: 12px"
+            >
+              <span class="flex items-center gap-2">
+                <span
+                  class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"
+                ></span>
+                Click Hotspot để xem chi tiết
+              </span>
+              <span>•</span>
+              <span>Chuột trái để xoay</span>
+              <span>•</span>
+              <span>Cuộn chuột để Zoom</span>
+            </div>
+            <div
+              class="mt-6 text-center"
+              style="margin-top: 12px; font-size: 11px; color: #888"
+            >
+              Hình ảnh mô phỏng chỉ mang tính chất minh họa, không phản ánh
+              chính xác thiết kế thực tế của sản phẩm.
+            </div>
+            <!-- Thông tin linh kiện -->
+            <div
+              class="mt-8 bg-gray-50 border border-gray-100 rounded-xl p-6"
+              style="margin-top: 32px"
+            >
+              <h3 class="text-lg font-bold text-gray-900 mb-4">
+                Thông tin linh kiện
+              </h3>
+              <p class="text-gray-700 text-sm leading-relaxed">
+                Khi bạn click vào các hotspot trên mô hình 3D, thông tin chi
+                tiết về linh kiện sẽ hiển thị ở đây. Bạn có thể tìm hiểu về chức
+                năng, vị trí và cách hoạt động của từng bộ phận trong sản phẩm.
+              </p>
+            </div>
+            <div v-for="hotspot in product.hotspots" :key="hotspot.id">
+              <!-- Hotspot info content -->
+              <div
+                class="mt-4 flex gap-2 justify-start items-center bg-white border border-gray-100 rounded-lg p-4 shadow-sm"
+              >
+                <!-- Bo góc các hotspot -->
+                <div
+                  class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                >
+                  <div>{{ hotspot.id }}</div>
+                </div>
+
+                <span class="font-bold text-gray-900"
+                  >{{ hotspot.title }}:</span
+                >
+                <p class="text-gray-600 text-sm">{{ hotspot.desc }}</p>
+              </div>
+            </div>
+            <!--  -->
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="bg-white py-20 border-t border-gray-100">
+      <div class="mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div
-            class="bg-gray-50 rounded-2xl p-10 max-w-lg mx-auto border border-dashed border-gray-200"
+            class="flex flex-col items-center text-center group cursor-pointer"
           >
-            <p class="text-gray-500 italic font-medium">
-              Thông tin phụ kiện đi kèm đang được cập nhật...
-            </p>
+            <div
+              class="mb-6 text-gray-400 group-hover:text-blue-600 transition-colors duration-300"
+            >
+              <ShoppingBag :size="48" :stroke-width="1.25" />
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">Mua ở đâu</h3>
+            <router-link
+              to="/fleet/list"
+              class="flex items-center text-sm font-bold text-gray-500 hover:text-blue-600 transition-all"
+            >
+              Xem thêm
+              <ChevronRight :size="16" class="ml-1 mt-0.5" />
+            </router-link>
+          </div>
+
+          <div
+            class="flex flex-col items-center text-center group cursor-pointer border-x border-gray-50 md:px-12"
+          >
+            <div
+              class="mb-6 text-gray-400 group-hover:text-blue-600 transition-colors duration-300"
+            >
+              <Headset :size="48" :stroke-width="1.25" />
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">
+              Hỗ trợ kỹ thuật
+            </h3>
+            <router-link
+              to="/support"
+              class="flex items-center text-sm font-bold text-gray-500 hover:text-blue-600 transition-all"
+            >
+              Xem thêm
+              <ChevronRight :size="16" class="ml-1 mt-0.5" />
+            </router-link>
+          </div>
+
+          <div
+            class="flex flex-col items-center text-center group cursor-pointer"
+          >
+            <div
+              class="mb-6 text-gray-400 group-hover:text-blue-600 transition-colors duration-300"
+            >
+              <MapPin :size="48" :stroke-width="1.25" />
+            </div>
+            <h3 class="text-xl font-medium text-gray-900 mb-2">Bay an toàn</h3>
+            <router-link
+              to="/no-fly-zones"
+              class="flex items-center text-sm font-bold text-gray-500 hover:text-blue-600 transition-all"
+            >
+              Xem thêm
+              <ChevronRight :size="16" class="ml-1 mt-0.5" />
+            </router-link>
           </div>
         </div>
       </div>
@@ -327,8 +471,10 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import { useRoute, useRouter } from "vue-router";
 import { uavList } from "@/data/uavData";
+import { ShoppingBag, Headset, MapPin, ChevronRight } from "lucide-vue-next";
 const router = useRouter();
 const route = useRoute();
 const props = defineProps({
@@ -416,16 +562,59 @@ const activeTab = ref("description");
 const tabs = [
   { id: "description", name: "Mô tả", icon: DescriptionIcon },
   { id: "specification", name: "Thông số kỹ thuật", icon: SpecIcon },
-  { id: "package", name: "Phụ kiện đi kèm ", icon: PackageIcon },
+  { id: "simulation", name: "Mô phỏng sản phẩm", icon: PackageIcon },
 ];
 
 const productSpecs = {
-  "Trọng lượng": "1050g",
-  "Thời gian bay": "46 Phút",
-  "Tầm xa tối đa": "20 KM",
-  "Cảm biến": "1-inch CMOS",
-  "Kháng gió": "Cấp 7",
-  "Độ phân giải": "5.1K Video",
+  "Máy bay": {
+    "Trọng lượng cất cánh":
+      "Dưới 249 g " +
+      "Trọng lượng tiêu chuẩn của máy bay (đã bao gồm Pin bay Thông minh, cánh quạt và thẻ nhớ microSD). Trọng lượng thực tế có thể thay đổi tùy thuộc vào sự khác biệt về lô vật liệu và các yếu tố bên ngoài. Ở hầu hết các quốc gia và khu vực, bạn không cần phải qua đào tạo hay thi sát hạch để vận hành sản phẩm này. Luôn kiểm tra luật pháp và các quy định tại địa phương trước khi sử dụng. Khi sử dụng Pin bay Thông minh Plus (được bán rời và chỉ có sẵn ở một số quốc gia nhất định), trọng lượng máy bay sẽ vượt quá 249 g. Luôn kiểm tra và tuân thủ nghiêm ngặt " +
+      "các điều luật và quy định của địa phương trước khi bay.",
+    "Kích thước": "Gập: 136×62×165 mm | Mở: 233×280×79 mm",
+    "Tốc độ tăng trưởng tối đa": "5 m/s",
+    "Tốc độ ngang tối đa": "12 m/s (Môi trường không gió)",
+    "Độ cao cất cánh tối đa": "3000 m",
+    "Thời gian bay tối đa": "31 phút",
+    "Khoảng cách bay tối đa": "14 km",
+    "Kháng gió tối đa": "10.7 m/s (Cấp 5)",
+    "Hệ thống định vị": "GPS + Galileo + BeiDou",
+    "Bộ nhớ trong": "2 GB",
+  },
+  Camera: {
+    "Cảm biến hình ảnh": "1/1.3-inch CMOS",
+    "Ống kính": "FOV 82.1°, khẩu độ f/1.7",
+    "Dải ISO": "100-6400 (Video/Ảnh)",
+    "Tốc độ màn trập": "1/16000 - 2 giây",
+    "Độ phân giải video": "4K (3840×2160) @24/25/30/48/50/60/100fps",
+    "Định dạng video": "MP4 (H.264/H.265)",
+    "Chế độ màu": "Normal, D-Log M (10-bit)",
+    "Zoom kỹ thuật số": "4K: 3x | FHD: 4x",
+  },
+  "Truyền hình ảnh": {
+    "Hệ thống truyền": "DJI O4",
+    "Chất lượng xem trực tiếp": "1080p/60fps",
+    "Khoảng cách truyền tối đa": "FCC: 13 km | CE/SRRC/MIC: 8 km",
+    "Độ trễ thấp nhất": "Khoảng 120 ms",
+  },
+  "Pin ": {
+    "Dung lượng": "3110 mAh",
+    "Loại pin": "Li-ion",
+    "Năng lượng": "22.3 Wh",
+    "Thời gian sạc": "Khoảng 45 - 70 phút (tùy bộ sạc)",
+    "Nhiệt độ sạc": "5° đến 40°C (41° đến 104°F)",
+    "Thời gian bảo quản":
+      "Nếu không sử dụng trong thời gian dài, hãy sạc pin đến khoảng 50% và bảo quản ở nơi khô ráo, thoáng mát. Kiểm tra và sạc lại pin sau mỗi 3 tháng để duy trì hiệu suất tối ưu.",
+  },
+  "Điều khiển từ xa": {
+    "Loại điều khiển": "DJI RC 2 (Màn hình 5.5 inch, độ sáng 1000 nits)",
+    "Khoảng cách điều khiển tối đa": "FCC: 13 km | CE/SRRC/MIC: 8 km",
+    "Thời lượng pin điều khiển": "Khoảng 6 giờ",
+    "Cổng kết nối": "USB-C",
+    "Tương thích":
+      "Tương thích với các thiết bị iOS và Android có " +
+      " hỗ trợ ứng dụng DJI Fly",
+  },
 };
 </script>
 <style scoped>

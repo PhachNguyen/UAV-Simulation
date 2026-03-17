@@ -32,37 +32,38 @@
     </h3>
 
     <div class="grid grid-cols-3 gap-2 mb-5 border-y border-gray-50 py-3">
-      <!-- <div class="text-center">
+      <div class="text-center">
         <p class="text-[9px] text-gray-400 uppercase font-bold">Pin</p>
         <p class="text-[11px] font-black text-gray-700">
           {{ product.stats.battery || "N/A" }}
         </p>
-      </div> -->
-      <!-- <div class="text-center border-x border-gray-50">
+      </div>
+      <div class="text-center border-x border-gray-50">
         <p class="text-[9px] text-gray-400 uppercase font-bold">Tầm xa</p>
         <p class="text-[11px] font-black text-gray-700">
           {{ product.stats.range || "N/A" }}
         </p>
-      </div> -->
-      <!-- <div class="text-center">
+      </div>
+      <div class="text-center">
         <p class="text-[9px] text-gray-400 uppercase font-bold">Tốc độ</p>
         <p class="text-[11px] font-black text-gray-700">
           {{ product.stats.speed || "N/A" }}
         </p>
-      </div> -->
+      </div>
     </div>
 
     <div class="flex items-center justify-between mt-auto">
       <div class="">
-        <span
+        <!-- <span
           v-if="product.oldPrice"
           class="text-xs text-gray-400 line-through font-medium"
         >
           ${{ product.oldPrice || 0 }}
-        </span>
-        <span class="text-lg font-black text-gray-900"
+        </span> -->
+        <!-- <span class="text-lg font-black text-gray-900"
           >${{ product.price || 0 }}</span
-        >
+        > -->
+        <span class="text-sm font-black text-gray-900">Liên hệ</span>
       </div>
       <!--  Sự kiện Click ra Detail -->
       <button
