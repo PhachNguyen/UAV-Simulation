@@ -43,12 +43,12 @@
     <Transition name="slide-up">
       <div v-if="activeSpot" class="hotspot-detail-card">
         <button @click="activeSpot = null" class="close-btn">&times;</button>
-        <div class="detail-header">
+        <div class="detail-header flex items-center gap-3 mb-2">
           <div class="spot-id">{{ activeSpot.id }}</div>
           <h4 class="spot-title">{{ activeSpot.title }}</h4>
         </div>
         <p class="spot-desc">{{ activeSpot.desc }}</p>
-        <div class="detail-footer uppercase">Diagnostic: Operational</div>
+        <div class="detail-footer uppercase">Linh kiện {{ product.name }}</div>
       </div>
     </Transition>
 
@@ -236,6 +236,36 @@ const handleResize = () => {
 
 watch(product, (v) => v && scene && loadModel(v));
 onMounted(() => {
+  // const raycaster = new THREE.Raycaster();
+  // const mouse = new THREE.Vector2();
+
+  // window.addEventListener("click", (event) => {
+  //   // Tính toán vị trí chuột trong không gian 2D của container
+  //   const rect = container.value.getBoundingClientRect();
+  //   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  //   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  //   raycaster.setFromCamera(mouse, camera);
+
+  //   // Kiểm tra va chạm với currentModel
+  //   if (currentModel) {
+  //     const intersects = raycaster.intersectObject(currentModel, true);
+  //     if (intersects.length > 0) {
+  //       const p = intersects[0].point;
+  //       // Chuyển tọa độ thế giới về tọa độ local của Model (vì bạn gắn hotspot vào model)
+  //       const localPos = currentModel.worldToLocal(p.clone());
+
+  //       console.log(
+  //         `Hotspot Pos: x: ${localPos.x.toFixed(2)}, y: ${localPos.y.toFixed(2)}, z: ${localPos.z.toFixed(2)}`,
+  //       );
+
+  //       // Mẹo: Bạn có thể copy dòng này dán thẳng vào file uavData.js
+  //       alert(
+  //         `Đã copy tọa độ: x: ${localPos.x.toFixed(2)}, y: ${localPos.y.toFixed(2)}, z: ${localPos.z.toFixed(2)}`,
+  //       );
+  //     }
+  //   }
+  // });
   initScene();
   animate();
   window.addEventListener("resize", handleResize);
@@ -263,7 +293,7 @@ onUnmounted(() => {
   bottom: 1.5rem;
   right: 1.5rem;
   z-index: 40;
-  width: 280px;
+  width: 500px;
   background: rgba(37, 99, 235, 0.85);
   backdrop-filter: blur(12px);
   padding: 1.5rem;
@@ -274,8 +304,8 @@ onUnmounted(() => {
 }
 .close-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 1rem;
+  top: 0;
+  right: 0.5rem;
   font-size: 1.5rem;
   opacity: 0.5;
   cursor: pointer;
@@ -287,8 +317,8 @@ onUnmounted(() => {
   margin-bottom: 0.75rem;
 }
 .spot-id {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   background: white;
   color: #2563eb;
   border-radius: 50%;
@@ -384,7 +414,7 @@ onUnmounted(() => {
 :deep(.hotspot-pulse) {
   position: absolute;
   inset: -4px;
-  border: 2px solid #3b82f6;
+  /* border: 2px solid #3b82f6; */
   border-radius: 50%;
   animation: pulse 2s infinite;
 }

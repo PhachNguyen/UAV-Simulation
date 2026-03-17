@@ -213,7 +213,7 @@
           :key="tab.id"
           @click="activeTab = tab.id"
           :class="[
-            'flex items-center space-x-2 pb-4 text-sm font-bold transition-all relative',
+            'cursor-pointer flex items-center space-x-2 pb-4 text-sm font-bold transition-all relative',
             activeTab === tab.id
               ? 'text-blue-600'
               : 'text-gray-400 hover:text-gray-600',
@@ -434,19 +434,36 @@
             <div v-for="hotspot in product.hotspots" :key="hotspot.id">
               <!-- Hotspot info content -->
               <div
-                class="mt-4 flex gap-2 justify-start items-center bg-white border border-gray-100 rounded-lg p-4 shadow-sm"
+                class="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 bg-white border border-gray-100 rounded-xl p-5 shadow-sm items-start"
               >
-                <!-- Bo góc các hotspot -->
-                <div
-                  class="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                >
-                  <div>{{ hotspot.id }}</div>
+                <div class="row-span-2 flex items-center justify-center">
+                  <div
+                    class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-black shadow-lg shadow-blue-200"
+                  >
+                    {{ hotspot.id }}
+                  </div>
                 </div>
 
-                <span class="font-bold text-gray-900"
-                  >{{ hotspot.title }}:</span
-                >
-                <p class="text-gray-600 text-sm">{{ hotspot.desc }}</p>
+                <div class="flex items-center">
+                  <span
+                    class="font-black text-gray-900 uppercase tracking-wider text-sm"
+                  >
+                    {{ hotspot.title }}
+                  </span>
+                  <span
+                    class="ml-3 px-2 py-0.5 bg-emerald-100 text-emerald-600 text-[10px] font-bold rounded uppercase"
+                  >
+                    Active
+                  </span>
+                </div>
+
+                <div class="col-start-2">
+                  <p
+                    class="text-gray-600 text-sm leading-relaxed text-justify border-l-2 border-gray-100 pl-4 italic"
+                  >
+                    {{ hotspot.desc }}
+                  </p>
+                </div>
               </div>
             </div>
             <!--  -->

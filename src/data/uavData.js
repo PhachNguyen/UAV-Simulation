@@ -50,7 +50,6 @@ export const uavList = [
       },
     ],
   },
-  // UAV DJI Flip
 
   {
     id: 2,
@@ -115,7 +114,7 @@ export const uavList = [
       },
     ],
   },
-
+  //  DJI Flip
   {
     id: 5,
     name: "DJI Flip",
@@ -131,19 +130,31 @@ export const uavList = [
       "/public/img/drones/DJI Flip_thumbail_2.webp",
     ],
     // Model 3D
-    model3d: "/public/models/inside_drone.glb",
+    model3d: "/public/models/DJI Flip.glb",
     hotspots: [
       {
         id: 1,
-        pos: { x: 0, y: 0.02, z: 0.05 },
-        title: "Cảm biến LiDAR",
-        desc: "Quét bản đồ 3D địa hình chính xác.",
+        pos: { x: 0, y: 0.11, z: 0.6 },
+        title: "Cụm Camera Hasselblad 4K HDR & Gimbal Chống Rung 3 Trục",
+        desc: "Hệ thống quang học trung tâm được trang bị cảm biến CMOS 1/1.3 inch với độ phân giải thực 48MP. Ống kính có khẩu độ f/1.7 hỗ trợ thu sáng vượt trội trong môi trường thiếu sáng. Cụm camera được bảo vệ bởi hệ thống Gimbal cơ học 3 trục (Tilt, Roll, Pan), cho phép triệt tiêu hoàn toàn các rung động từ động cơ và gió, đảm bảo video mượt mà ngay cả khi drone đang bay ở tốc độ 16 m/s. Hỗ trợ quay 4K/60fps và chế độ màu 10-bit D-Log M để hậu kỳ chuyên nghiệp.",
       },
       {
         id: 2,
-        pos: { x: 0, y: 0.05, z: -0.05 },
-        title: "Cảm biến LiDAR",
-        desc: "Quét bản đồ 3D địa hình chính xác.",
+        pos: { x: 0.01, y: 0.34, z: 0.48 },
+        title: "Hệ Thống Cảm Biến Tránh Vật Cản Đa Hướng (APAS 5.0)",
+        desc: "Mắt thần của Drone bao gồm các cảm biến hình ảnh kép (Dual-Vision Sensors) và cảm biến hồng ngoại 3D. Hệ thống này liên tục quét môi trường xung quanh theo thời gian thực để xây dựng bản đồ 3D không gian. Khi phát hiện vật cản (cây cối, dây điện, tòa nhà) trong phạm vi 20 mét, hệ thống APAS 5.0 sẽ tự động tính toán lộ trình bay vòng qua hoặc dừng lại an toàn mà không cần sự can thiệp của người điều khiển.",
+      },
+      {
+        id: 3,
+        pos: { x: -0.43, y: 0.21, z: 0.65 },
+        title: "Động cơ Brushless Hiệu Suất Cao & Cánh Quạt Độ Ồn Thấp",
+        desc: "Hệ thống truyền động sử dụng 4 động cơ không chổi than (Brushless) thế hệ mới, tối ưu hóa từ tính để tăng 20% lực đẩy so với phiên bản cũ. Động cơ được thiết kế để chịu được nhiệt độ lên đến 80°C mà không giảm hiệu năng. Kết hợp với cánh quạt khí động học độ ồn thấp (Low-noise Propellers), giúp drone bay êm ái hơn, tránh gây chú ý và tăng khả năng kháng gió lên cấp 5 (10.7 m/s).",
+      },
+      {
+        id: 4,
+        pos: { x: 0.19, y: 0.42, z: -0.13 },
+        title: "Pin Li-ion Intelligent Flight Battery Plus",
+        desc: "Trái tim năng lượng của máy bay là viên pin Lithium-ion mật độ cao với dung lượng 3110 mAh. Pin được tích hợp chip quản lý năng lượng thông minh (BMS), tự động cân bằng điện áp giữa các cell pin và kích hoạt chế độ tự xả khi không sử dụng để bảo vệ tuổi thọ. Hệ thống liên tục truyền dữ liệu về thời gian bay còn lại dựa trên khoảng cách thực tế, giúp tự động kích hoạt tính năng RTH (Return to Home) khi pin yếu để tránh rủi ro rơi máy bay.",
       },
     ],
     video: "/public/videos/intro_drones.mp4",
