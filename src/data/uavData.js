@@ -13,6 +13,11 @@ export const uavList = [
       "/public/img/UCAV-13_0.png",
       "/public/img/UAV-100AI.png",
     ],
+    intro: [
+      "/public/videos/intro_drones.mp4",
+      "/public/videos/1080.mp4",
+      "/public/videos/1080 (1).mp4",
+    ],
     // Model 3D
     model3d: "/public/models/inside_drone.glb",
     hotspots: [
@@ -45,6 +50,8 @@ export const uavList = [
       },
     ],
   },
+  // UAV DJI Flip
+
   {
     id: 2,
     name: "Fixed Wing Mapper",
@@ -105,6 +112,58 @@ export const uavList = [
         pos: { x: 0, y: 0.5, z: 3 },
         title: "FPV Camera",
         desc: "Độ trễ cực thấp cho đua drone.",
+      },
+    ],
+  },
+
+  {
+    id: 5,
+    name: "DJI Flip",
+    description:
+      "DJI Flip với trọng lượng nhẹ dưới 249g, thiết kế nhỏ gọn nhưng không kém phần mạnh mẽ, hỗ trợ ghi hình chất lượng cao với cảm biến CMOS 1/1.3 inch, quay video HDR 4K/60fps và thời gian bay tối đa lên tới 31 phút. Ngoài ra, không chỉ nổi bật với tính năng AI Object Tracking và khả năng bảo vệ lưỡi dao toàn diện, sản phẩm còn tích hợp nhiều công nghệ tiên tiến, đáp ứng mọi nhu cầu của người dùng từ nghiệp dư đến chuyên nghiệp.",
+    image: "/public/img/drones/Test.png", // Thay bằng link ảnh thật
+    category: "Consumer",
+    // Thumbail
+    images: [
+      "/public/img/drones/Test.png",
+      "/public/img/drones/DJI Flip_thumbail.webp",
+      "/public/img/drones/DJI Flip_thumbail_1.webp",
+      "/public/img/drones/DJI Flip_thumbail_2.webp",
+    ],
+    // Model 3D
+    model3d: "/public/models/inside_drone.glb",
+    hotspots: [
+      {
+        id: 1,
+        pos: { x: 0, y: 0.02, z: 0.05 },
+        title: "Cảm biến LiDAR",
+        desc: "Quét bản đồ 3D địa hình chính xác.",
+      },
+      {
+        id: 2,
+        pos: { x: 0, y: 0.05, z: -0.05 },
+        title: "Cảm biến LiDAR",
+        desc: "Quét bản đồ 3D địa hình chính xác.",
+      },
+    ],
+    video: "/public/videos/intro_drones.mp4",
+    intro: [
+      "/public/videos/intro_drones.mp4",
+      "/public/videos/1080.mp4",
+      "/public/videos/1080 (1).mp4",
+    ],
+    scale: 0.1,
+    stats: { battery: "34 Mins", range: "15 KM", speed: "19 m/s" },
+
+    versions: [
+      { title: "DJI Mavic 4 Pro (DJI RC 2)", controller: "DJI RC 2" },
+      {
+        title: "DJI Mavic 4 Pro Fly More Combo (DJI RC 2)",
+        controller: "DJI RC 2",
+      },
+      {
+        title: "DJI Mavic 4 Pro 512GB Creator Combo",
+        controller: "DJI RC Pro 2",
       },
     ],
   },

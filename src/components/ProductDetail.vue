@@ -90,10 +90,23 @@
           {{ product.name }} ({{ selectedVersion.controller }})
         </h1>
 
-        <p class="text-gray-600 leading-relaxed mb-6 font-light text-lg">
+        <p
+          class="text-gray-600 leading-relaxed mb-6 font-light text-lg"
+          style="margin-bottom: 12px"
+        >
           {{ product.description }}
         </p>
-
+        <!-- Tính năng nổi bật -->
+        <div class="mb-8" style="margin-bottom: 12px">
+          <h3 class="text-lg font-bold text-gray-900 mb-4">
+            Tính năng nổi bật
+          </h3>
+          <ul class="list-disc list-inside text-gray-600 space-y-2">
+            <li>Thiết kế hiện đại, sang trọng</li>
+            <li>Chức năng đa dạng, tiện lợi</li>
+            <li>Chất lượng cao, bền bỉ</li>
+          </ul>
+        </div>
         <hr class="border-gray-100 mb-8" />
 
         <div class="mb-10">
@@ -219,24 +232,27 @@
         class="bg-white rounded-3xl border border-gray-100 p-8 md:p-[18px] shadow-sm"
       >
         <div v-if="activeTab === 'description'" class="animate-fadeIn">
-          <h2 class="text-3xl font-bold text-blue-600 mb-6 text-center">
-            Modern Design – Durable & Flexible
+          <h2
+            class="text-3xl font-bold text-blue-600 mb-6 text-center"
+            style="margin-bottom: 12px"
+          >
+            Thiết kế sang trọng và tính năng đột phá của {{ product.name }}
           </h2>
 
           <p
             class="text-gray-600 leading-[1.8] text-lg mb-12 mx-auto font-light indent-8 pb-[10px]"
           >
-            The DJI Mavic 4 Pro features a foldable design that balances
-            portability with durability. Weighing just over 1 kg, its
-            aerodynamic structure ensures stable flight even in strong winds.
-            When folded, it is compact enough to fit into a backpack, while the
-            DJI RC 2 remote controller with a built-in screen provides a more
-            intuitive and convenient control experience in all environments.
+            {{ product.name }} có thiết kế có thể gập lại cân bằng giữa tính di
+            động và độ bền. Chỉ nặng hơn 1 kg, cấu trúc khí động học của nó đảm
+            bảo chuyến bay ổn định ngay cả khi có gió mạnh. Khi gập lại, nó đủ
+            nhỏ gọn để nhét vào ba lô, trong khi bộ điều khiển từ xa DJI RC 2
+            với màn hình tích hợp mang lại trải nghiệm điều khiển trực quan và
+            thuận tiện hơn trong mọi môi trường.
           </p>
 
           <div class="rounded-3xl overflow-hidden flex justify-center">
             <img
-              src="/public/img/UCAV-13_0.png"
+              :src="product.image"
               alt="Mavic 4 Pro"
               class="max-w-4xl max-h-[500px] object-cover mx-auto"
             />
@@ -244,25 +260,33 @@
           <p
             class="text-gray-600 leading-[1.8] text-lg mb-12 mx-auto font-light indent-8 pb-[10px]"
           >
-            The drone is equipped with a powerful triple-camera system. The main
-            Hasselblad camera uses a 4/3 CMOS 100MP sensor with an adjustable
-            aperture ranging from f/2.0 to f/11, capturing highly detailed
-            images with wide dynamic range. The medium-tele camera features a
-            1/1.3" 48MP sensor with a 70 mm equivalent focal length, ideal for
-            mid-range framing and portraits. The telephoto camera comes with a
-            1/1.5" 50MP sensor at 166 mm focal length, allowing long-distance
-            shots with excellent detail. All cameras support Dual Native ISO
-            Fusion technology, optimizing low-light performance.
+            Máy bay không người lái được trang bị hệ thống ba camera mạnh mẽ.
+            Camera chính của Hasselblad sử dụng cảm biến 4/3 CMOS 100MP với khẩu
+            độ có thể điều chỉnh từ f/2.0 đến f/11, chụp được những bức ảnh có
+            độ chi tiết cao với dải động rộng. Camera tele tầm trung có cảm biến
+            1/1.3" 48MP với tiêu cự tương đương 70 mm, lý tưởng để chụp khung
+            hình và chân dung tầm trung. Camera tele đi kèm cảm biến 1/1.5" 50MP
+            ở tiêu cự 166 mm, cho phép chụp ảnh ở khoảng cách xa với độ chi tiết
+            tuyệt vời. Tất cả các máy ảnh đều hỗ trợ công nghệ Dual Native ISO
+            Fusion, tối ưu hóa hiệu suất chụp thiếu sáng.
           </p>
+          <div class="rounded-3xl overflow-hidden flex justify-center">
+            <img
+              :src="product.images[2]"
+              alt="Mavic 4 Pro"
+              class="max-w-4xl max-h-[500px] object-cover mx-auto"
+            />
+          </div>
           <p
             class="text-gray-600 leading-[1.8] text-lg mb-12 mx-auto font-light indent-8 pb-[10px]"
           >
-            The Mavic 4 Pro supports HDR video recording in 6K at 60fps with its
-            main camera, and up to 4K at 120fps for smooth slow-motion shots.
-            Both telephoto and medium-tele cameras also record in 4K/60fps HDR,
-            ensuring consistent quality across the system. It supports 10-bit
-            video capture and advanced color profiles such as D-Log, D-Log M,
-            and HLG, offering great flexibility in post-production.
+            {{ product.name }} hỗ trợ quay video HDR ở 6K ở tốc độ 60 khung hình
+            / giây với camera chính và lên tới 4K ở tốc độ 120 khung hình / giây
+            để có những bức ảnh chuyển động chậm mượt mà. Cả máy ảnh tele và
+            tele trung bình đều ghi ở 4K/60fps HDR, đảm bảo chất lượng nhất quán
+            trên toàn hệ thống. Nó hỗ trợ quay video 10 bit và các cấu hình màu
+            nâng cao như D-Log, D-Log M và HLG, mang lại sự linh hoạt cao trong
+            khâu hậu kỳ.
           </p>
           <video
             controls
@@ -275,21 +299,46 @@
           <p
             class="text-gray-600 leading-[1.8] text-lg mb-12 mx-auto font-light indent-8 pb-[10px]"
           >
-            The Mavic 4 Pro supports HDR video recording in 6K at 60fps with its
-            main camera, and up to 4K at 120fps for smooth slow-motion shots.
-            Both telephoto and medium-tele cameras also record in 4K/60fps HDR,
-            ensuring consistent quality across the system. It supports 10-bit
-            video capture and advanced color profiles such as D-Log, D-Log M,
-            and HLG, offering great flexibility in post-production.The drone is
-            equipped with a powerful triple-camera system. The main Hasselblad
-            camera uses a 4/3 CMOS 100MP sensor with an adjustable aperture
-            ranging from f/2.0 to f/11, capturing highly detailed images with
-            wide dynamic range. The medium-tele camera features a 1/1.3" 48MP
-            sensor with a 70 mm equivalent focal length, ideal for mid-range
-            framing and portraits. The telephoto camera comes with a 1/1.5" 50MP
-            sensor at 166 mm focal length, allowing long-distance shots with
-            excellent detail. All cameras support Dual Native ISO Fusion
-            technology, optimizing low-light performance.
+            {{ product.name }} hỗ trợ quay video HDR ở 6K ở tốc độ 60 khung hình
+            / giây với camera chính và lên tới 4K ở tốc độ 120 khung hình / giây
+            để có những bức ảnh chuyển động chậm mượt mà. Cả máy ảnh tele và
+            tele trung bình đều ghi ở 4K/60fps HDR, đảm bảo chất lượng nhất quán
+            trên toàn hệ thống. Nó hỗ trợ quay video 10 bit và các cấu hình màu
+            nâng cao như D-Log, D-Log M và HLG, mang lại sự linh hoạt cao trong
+            khâu hậu kỳ. Máy bay không người lái được trang bị hệ thống ba
+            camera mạnh mẽ. Camera chính của Hasselblad sử dụng cảm biến 4/3
+            CMOS 100MP với khẩu độ có thể điều chỉnh từ f/2.0 đến f/11, chụp
+            được những bức ảnh có độ chi tiết cao với dải động rộng. Camera tele
+            tầm trung có cảm biến 1/1.3" 48MP với tiêu cự tương đương 70 mm, lý
+            tưởng để chụp khung hình và chân dung tầm trung. Camera tele đi kèm
+            cảm biến 1/1.5" 50MP ở tiêu cự 166 mm, cho phép chụp ảnh ở khoảng
+            cách xa với độ chi tiết tuyệt vời. Tất cả các máy ảnh đều hỗ trợ
+            công nghệ Dual Native ISO Fusion, tối ưu hóa hiệu suất chụp thiếu
+            sáng.
+          </p>
+          <video
+            controls
+            class="w-full rounded-2xl"
+            style="margin-bottom: 16px"
+          >
+            <source :src="product.intro[1]" type="video/mp4" />
+            Trình duyệt không hỗ trợ video
+          </video>
+          <p
+            class="text-gray-600 leading-[1.8] text-lg mb-12 mx-auto font-light indent-8 pb-[10px]"
+          >
+            {{ product.name }} hỗ trợ quay video HDR ở 6K ở tốc độ 60 khung hình
+            / giây với camera chính và lên tới 4K ở tốc độ 120 khung hình / giây
+            để có những bức ảnh chuyển động chậm mượt mà. Cả máy ảnh tele và
+            tele trung bình đều ghi ở 4K/60fps HDR, đảm bảo chất lượng nhất quán
+            trên toàn hệ thống. Nó hỗ trợ quay video 10 bit và các cấu hình màu
+            nâng cao như D-Log, D-Log M và HLG, mang lại sự linh hoạt cao trong
+            khâu hậu kỳ. Máy bay không người lái được trang bị hệ thống ba
+            {{ product.name }} có thiết kế có thể gập lại cân bằng giữa tính di
+            động và độ bền. Chỉ nặng hơn 1 kg, cấu trúc khí động học của nó đảm
+            bảo chuyến bay ổn định ngay cả khi có gió mạnh. Khi gập lại, nó đủ
+            nhỏ gọn để nhét vào ba lô, trong khi bộ điều khiển từ xa DJI RC 2
+            với
           </p>
         </div>
 
@@ -405,8 +454,15 @@
         </div>
       </div>
     </section>
-    <section class="bg-white py-20 border-t border-gray-100">
+    <!-- Thông tin liên hệ -->
+    <section class="bg-white border-t border-gray-100">
       <div class="mx-auto px-6">
+        <div
+          class="text-3xl font-bold text-gray-900 mb-6"
+          style="margin-bottom: 96px"
+        >
+          Thông tin liên hệ
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div
             class="flex flex-col items-center text-center group cursor-pointer"
