@@ -1,334 +1,197 @@
 <template>
-  <div class="max-w-5xl mx-auto space-y-6 pb-20">
-    <div
-      class="flex items-center justify-between border-b border-slate-200 pb-4"
+  <div class="min-h-screen bg-slate-50/50 pb-20">
+    <header
+      class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200"
     >
-      <!-- <div>
-        <h1 class="text-2xl font-black text-slate-900 uppercase tracking-tight">
-          Thêm thiết bị UAV mới
-        </h1>
-        <p class="text-sm text-slate-500">
-          Điền đầy đủ thông tin kỹ thuật và tài nguyên đa phương tiện cho thiết
-          bị.
-        </p>
-      </div> -->
-      <!-- <div class="flex gap-3">
-        <button
-          @click="$router.back()"
-          class="px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all"
-        >
-          Hủy
-        </button>
-        <button
-          @click="handleSave"
-          class="px-6 py-2 bg-teal-500 text-slate-900 rounded-xl font-black shadow-lg shadow-teal-500/20 hover:bg-teal-600 transition-all"
-        >
-          Lưu thiết bị
-        </button>
-      </div> -->
-    </div>
+      <div
+        class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-teal-500 rounded-lg text-white">
+            <Box :size="20" />
+          </div>
+          <h1 class="text-lg font-bold text-slate-900 uppercase tracking-tight">
+            Thêm UAV mới
+          </h1>
+        </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="lg:col-span-2 space-y-6">
-        <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-        >
-          <h3
-            class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
+        <div class="flex gap-3">
+          <button
+            @click="$router.back()"
+            class="px-5 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all"
           >
-            <Info :size="16" class="text-teal-500" /> Thông tin cơ bản
-          </h3>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-1">
-              <label class="text-[10px] font-black uppercase text-slate-400"
-                >Tên sản phẩm</label
-              >
-              <input
-                v-model="form.name"
-                type="text"
-                placeholder="VD: DJI Mavic 4 Pro"
-                class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-teal-500/20 outline-none"
-              />
-            </div>
-            <div class="space-y-1">
-              <label class="text-[10px] font-black uppercase text-slate-400"
-                >Danh mục</label
-              >
-              <input
-                v-model="form.category"
-                type="text"
-                placeholder="VD: DJI Mavic"
-                class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-teal-500/20 outline-none"
-              />
-            </div>
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-black uppercase text-slate-400"
-              >Mô tả chi tiết</label
-            >
-            <textarea
-              v-model="form.description"
-              rows="5"
-              class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-teal-500/20 outline-none resize-none"
-            ></textarea>
-          </div>
-        </section>
-
-        <!-- <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6"
-        >
-          <h3
-            class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
+            Hủy
+          </button>
+          <button
+            @click="handleSave"
+            class="px-6 py-2 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 transition-all flex items-center gap-2"
           >
-            <Image :size="16" class="text-teal-500" /> Tài nguyên đa phương tiện
-          </h3>
-
-          <div class="space-y-2">
-            <label class="text-[10px] font-black uppercase text-slate-400"
-              >Danh sách hình ảnh (Thumbnail URLs)</label
-            >
-            <div
-              v-for="(img, index) in form.images"
-              :key="index"
-              class="flex gap-2"
-            >
-              <input
-                v-model="form.images[index]"
-                type="text"
-                class="flex-1 p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs"
-              />
-              <button
-                @click="removeArrayItem('images', index)"
-                class="p-2 text-red-400 hover:bg-red-50 rounded-lg"
-              >
-                <X :size="16" />
-              </button>
-            </div>
-            <button
-              @click="addArrayItem('images')"
-              class="text-xs font-bold text-teal-600 flex items-center gap-1"
-            >
-              + Thêm ảnh
-            </button>
-          </div>
-
-          <div class="space-y-2">
-            <label class="text-[10px] font-black uppercase text-slate-400"
-              >Video giới thiệu (Intro Video URLs)</label
-            >
-            <div
-              v-for="(vid, index) in form.intro"
-              :key="index"
-              class="flex gap-2"
-            >
-              <input
-                v-model="form.intro[index]"
-                type="text"
-                class="flex-1 p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs"
-              />
-              <button
-                @click="removeArrayItem('intro', index)"
-                class="p-2 text-red-400 hover:bg-red-50 rounded-lg"
-              >
-                <X :size="16" />
-              </button>
-            </div>
-            <button
-              @click="addArrayItem('intro')"
-              class="text-xs font-bold text-teal-600 flex items-center gap-1"
-            >
-              + Thêm video
-            </button>
-          </div>
-        </section> -->
-
-        <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-        >
-          <div class="flex justify-between items-center">
-            <h3
-              class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
-            >
-              <MapPin :size="16" class="text-teal-500" /> Tọa độ Hotspots (3D)
-            </h3>
-            <button
-              @click="addHotspot"
-              class="text-xs font-black uppercase bg-teal-50 text-teal-700 px-3 py-1 rounded-lg"
-            >
-              Thêm điểm
-            </button>
-          </div>
-
-          <div
-            v-for="(spot, index) in form.hotspots"
-            :key="index"
-            class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3 relative"
-          >
-            <button
-              @click="removeHotspot(index)"
-              class="absolute top-2 right-2 text-slate-300 hover:text-red-500"
-            >
-              <Trash2 :size="16" />
-            </button>
-            <div class="grid grid-cols-3 gap-3">
-              <div class="space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase"
-                  >X</label
-                >
-                <input
-                  v-model.number="spot.pos.x"
-                  type="number"
-                  step="0.01"
-                  class="w-full p-2 border rounded-lg text-xs"
-                />
-              </div>
-              <div class="space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase"
-                  >Y</label
-                >
-                <input
-                  v-model.number="spot.pos.y"
-                  type="number"
-                  step="0.01"
-                  class="w-full p-2 border rounded-lg text-xs"
-                />
-              </div>
-              <div class="space-y-1">
-                <label class="text-[9px] font-black text-slate-400 uppercase"
-                  >Z</label
-                >
-                <input
-                  v-model.number="spot.pos.z"
-                  type="number"
-                  step="0.01"
-                  class="w-full p-2 border rounded-lg text-xs"
-                />
-              </div>
-            </div>
-            <input
-              v-model="spot.title"
-              type="text"
-              placeholder="Tiêu đề điểm"
-              class="w-full p-2 border rounded-lg text-xs font-bold"
-            />
-            <textarea
-              v-model="spot.desc"
-              placeholder="Mô tả kỹ thuật cho điểm này..."
-              rows="2"
-              class="w-full p-2 border rounded-lg text-xs resize-none"
-            ></textarea>
-          </div>
-        </section>
+            <Zap :size="16" class="text-teal-400" /> Lưu thiết bị
+          </button>
+        </div>
       </div>
+    </header>
 
-      <div class="space-y-3">
-        <!-- <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-        >
-          <h3
-            class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-7 space-y-6">
+          <section
+            class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"
           >
-            <Box :size="16" class="text-teal-500" /> Cấu hình 3D
-          </h3>
-          <div class="space-y-1">
-            <label class="text-[10px] font-black uppercase text-slate-400"
-              >Đường dẫn File .GLB</label
-            >
-            <input
-              v-model="form.model3d"
-              type="text"
-              class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs"
-            />
-          </div>
-          <div class="space-y-1">
-            <label class="text-[10px] font-black uppercase text-slate-400"
-              >Tỷ lệ Scale (Ví dụ: 0.1)</label
-            >
-            <input
-              v-model.number="form.scale"
-              type="number"
-              step="0.01"
-              class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs"
-            />
-          </div>
-        </section> -->
-
-        <!-- <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-        >
-          <h3
-            class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
-          >
-            <Zap :size="16" class="text-teal-500" /> Chỉ số vận hành
-          </h3>
-          <div v-for="(val, key) in form.stats" :key="key" class="space-y-1">
-            <label class="text-[10px] font-black uppercase text-slate-400">{{
-              key
-            }}</label>
-            <input
-              v-model="form.stats[key]"
-              type="text"
-              class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs"
-            />
-          </div>
-        </section> -->
-
-        <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-        >
-          <!-- <div class="flex justify-between items-center">
             <h3
-              class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
+              class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-slate-50 pb-4"
             >
-              <Layers :size="16" class="text-teal-500" /> Phiên bản & Combo
+              <Info :size="16" class="text-teal-500" /> Thông tin cơ bản
             </h3>
-            <button @click="addVersion" class="text-xs text-teal-600 font-bold">
-              + Thêm
-            </button>
-          </div> -->
-          <div
-            v-for="(v, idx) in form.versions"
-            :key="idx"
-            class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2 relative"
+            <div class="grid grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label
+                  class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                  >Tên sản phẩm</label
+                >
+                <input
+                  v-model="form.name"
+                  type="text"
+                  placeholder="VD: DJI Mavic 4 Pro"
+                  class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                />
+              </div>
+              <div class="space-y-2">
+                <label
+                  class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                  >Danh mục</label
+                >
+                <input
+                  v-model="form.category"
+                  type="text"
+                  placeholder="VD: Enterprise"
+                  class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label
+                class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                >Mô tả chi tiết</label
+              >
+              <textarea
+                v-model="form.description"
+                rows="4"
+                placeholder="Nhập mô tả kỹ thuật..."
+                class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none resize-none transition-all"
+              ></textarea>
+            </div>
+          </section>
+
+          <section
+            class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"
           >
-            <button
-              @click="removeHotspot(index)"
-              class="absolute top-1 right-1 text-slate-300"
-            >
-              <X :size="14" />
-            </button>
-            <input
-              v-model="v.title"
-              type="text"
-              placeholder="Tên phiên bản"
-              class="w-full p-2 text-[11px] border-none bg-transparent font-bold outline-none"
-            />
-            <input
-              v-model="v.controller"
-              type="text"
-              placeholder="Bộ điều khiển đi kèm"
-              class="w-full p-2 text-[10px] border-none bg-transparent italic outline-none"
-            />
-          </div>
-        </section>
-        <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-        >
-          <h3
-            class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
-          >
-            <Image :size="16" class="text-teal-500" /> Hình ảnh đại diện
-          </h3>
-          <div class="flex items-center gap-6">
             <div
-              class="w-32 h-32 bg-slate-100 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden relative group"
+              class="flex justify-between items-center border-b border-slate-50 pb-4"
+            >
+              <h3
+                class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2"
+              >
+                <MapPin :size="16" class="text-teal-500" /> Hotspots Tương tác
+              </h3>
+              <button
+                @click="addHotspot"
+                class="text-[10px] font-black uppercase bg-teal-50 text-teal-700 px-4 py-2 rounded-xl hover:bg-teal-100 transition-colors"
+              >
+                + Thêm điểm
+              </button>
+            </div>
+
+            <div
+              v-if="form.hotspots.length === 0"
+              class="py-10 text-center border-2 border-dashed border-slate-100 rounded-3xl"
+            >
+              <p class="text-sm text-slate-400 italic">
+                Chưa có điểm nào. Nhấn nút thêm để bắt đầu chọn tọa độ.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                v-for="(spot, index) in form.hotspots"
+                :key="index"
+                class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 relative group transition-all hover:border-teal-200"
+              >
+                <button
+                  @click="removeHotspot(index)"
+                  class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                >
+                  <Trash2 :size="16" />
+                </button>
+                <div class="flex items-center gap-2 mb-2">
+                  <span
+                    class="w-6 h-6 bg-teal-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                    >{{ index + 1 }}</span
+                  >
+                  <input
+                    v-model="spot.title"
+                    placeholder="Tiêu đề điểm..."
+                    class="bg-transparent font-bold text-sm outline-none border-b border-transparent focus:border-teal-300 w-full"
+                  />
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div
+                    class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                  >
+                    <span class="text-slate-400">X:</span>
+                    {{ spot.pos.x.toFixed(2) }}
+                  </div>
+                  <div
+                    class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                  >
+                    <span class="text-slate-400">Y:</span>
+                    {{ spot.pos.y.toFixed(2) }}
+                  </div>
+                  <div
+                    class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                  >
+                    <span class="text-slate-400">Z:</span>
+                    {{ spot.pos.z.toFixed(2) }}
+                  </div>
+                </div>
+                <textarea
+                  v-model="spot.desc"
+                  placeholder="Mô tả kỹ thuật..."
+                  rows="2"
+                  class="w-full p-2.5 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:border-teal-300 resize-none"
+                ></textarea>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="lg:col-span-5 space-y-6">
+          <section
+            class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4"
+          >
+            <h3
+              class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-slate-50 pb-4"
+            >
+              <ImageIcon :size="16" class="text-teal-500" /> Hình ảnh đại diện
+            </h3>
+            <div
+              class="relative group aspect-video bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden transition-all hover:border-teal-400 hover:bg-teal-50/30"
             >
               <img
                 v-if="previews.image"
                 :src="previews.image"
                 class="w-full h-full object-cover"
               />
-              <ImageIcon v-else class="text-slate-300" :size="32" />
+              <div v-else class="text-center">
+                <div
+                  class="p-3 bg-white rounded-xl shadow-sm inline-block text-slate-400 mb-2"
+                >
+                  <UploadCloud :size="24" />
+                </div>
+                <p class="text-xs font-bold text-slate-500">
+                  Kéo thả hoặc click để tải ảnh
+                </p>
+              </div>
               <input
                 type="file"
                 @change="handleFileUpload($event, 'image')"
@@ -336,66 +199,70 @@
                 accept="image/*"
               />
             </div>
-            <div class="text-sm">
-              <p class="font-bold text-slate-700">Tải lên ảnh Thumbnail</p>
-              <p class="text-slate-400 text-xs">
-                Hỗ trợ JPG, PNG, WebP. Tối đa 5MB.
-              </p>
-            </div>
-          </div>
-        </section>
-        <!--  Preview mô hình 3D -->
-        <section
-          class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
-        >
-          <h3
-            class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
-          >
-            <Box :size="16" class="text-teal-500" /> File mô hình 3D (.GLB)
-          </h3>
-          <div
-            class="w-[500px] h-64 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-dashed border-slate-700"
-          >
-            <template v-if="previews.model3d">
-              <Uav3DViewer
-                ref="uavViewerRef"
-                :modelSrc="previews.model3d"
-                :currentMarkerId="form.hotspots.length"
-                @pick-coords="updateLatestHotspot"
-              />
+          </section>
 
-              <button
-                class="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all"
-              >
-                Thay đổi Model
+          <section
+            class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4"
+          >
+            <h3
+              class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-slate-50 pb-4"
+            >
+              <Box :size="16" class="text-teal-500" /> Mô hình 3D (.GLB)
+            </h3>
+            <div
+              class="h-80 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-slate-800 shadow-inner group"
+            >
+              <template v-if="previews.model3d">
+                <Uav3DViewer
+                  ref="uavViewerRef"
+                  :modelSrc="previews.model3d"
+                  :currentMarkerId="form.hotspots.length"
+                  @pick-coords="updateLatestHotspot"
+                />
+                <div
+                  class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none"
+                >
+                  <div
+                    class="bg-black/50 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest"
+                  >
+                    Preview Mode
+                  </div>
+                  <label
+                    class="bg-white text-slate-900 px-4 py-1.5 rounded-lg text-[10px] font-black cursor-pointer pointer-events-auto hover:bg-teal-400 transition-colors shadow-xl"
+                  >
+                    THAY ĐỔI FILE
+                    <input
+                      type="file"
+                      @change="handleFileUpload($event, 'model3d')"
+                      class="hidden"
+                      accept=".glb"
+                    />
+                  </label>
+                </div>
+              </template>
+
+              <div v-else class="text-center">
+                <div
+                  class="p-4 bg-slate-800 rounded-full inline-block mb-3 text-teal-400 shadow-lg"
+                >
+                  <UploadCloud :size="32" />
+                </div>
+                <p class="text-white font-bold text-sm">Chưa có mô hình 3D</p>
+                <p class="text-slate-500 text-[10px] mt-1">
+                  Hỗ trợ định dạng .GLB
+                </p>
                 <input
                   type="file"
                   @change="handleFileUpload($event, 'model3d')"
                   class="absolute inset-0 opacity-0 cursor-pointer"
+                  accept=".glb"
                 />
-              </button>
-            </template>
-
-            <div v-else class="text-center z-10">
-              <div
-                class="p-4 bg-slate-800 rounded-full inline-block mb-3 text-teal-400"
-              >
-                <UploadCloud :size="32" />
               </div>
-              <p class="text-white font-bold text-sm">
-                Kéo thả hoặc click để tải lên file .GLB
-              </p>
-              <input
-                type="file"
-                @change="handleFileUpload($event, 'model3d')"
-                class="absolute inset-0 opacity-0 cursor-pointer"
-                accept=".glb"
-              />
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -512,3 +379,20 @@ const handleSave = async () => {
   alert("Dữ liệu đã sẵn sàng để gửi!");
 };
 </script>
+
+<style scoped>
+/* Custom Scrollbar cho đẹp hơn */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+</style>

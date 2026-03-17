@@ -69,9 +69,9 @@
 
     <div class="flex flex-col min-w-0">
       <header
-        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-40"
+        class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-[12px] flex items-center justify-between sticky top-0 z-40"
       >
-        <div class="flex items-center gap-6">
+        <div class="flex items-center">
           <button
             @click="isSidebarOpen = !isSidebarOpen"
             class="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors"
