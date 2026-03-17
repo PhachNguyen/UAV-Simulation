@@ -69,11 +69,11 @@ const routes = [
     name: "NFZ",
     component: NoFlyZones,
   },
-  {
-    path: "/fleet/drones",
-    name: "ListDrones",
-    component: () => import("@/pages/users/DroneList.vue"),
-  },
+  // {
+  //   path: "/fleet/drones",
+  //   name: "ListDrones",
+  //   component: () => import("@/pages/users/DroneList.vue"),
+  // },
   {
     path: "/fleet/battery",
     name: "Battery",
@@ -105,9 +105,9 @@ const routes = [
     component: () => import("@/pages/users/LiveMap.vue"),
   },
   {
-    path: "/monitor/live-stream",
-    name: "LiveStream",
-    component: () => import("@/pages/users/LiveStream.vue"),
+    path: "/services",
+    name: "Services",
+    component: () => import("@/pages/Service.vue"),
   },
   {
     path: "/monitor/telemetry",
