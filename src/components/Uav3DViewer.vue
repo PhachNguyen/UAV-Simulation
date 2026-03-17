@@ -77,15 +77,21 @@ const container = ref(null);
 const loading = ref(true);
 const isStatsOpen = ref(false);
 const activeSpot = ref(null); // Lưu hotspot đang chọn
-const emit = defineEmits(["select-hotspot"]);
+const props = defineProps({
+  modelSrc: String, // Dùng cho Admin Preview (Blob URL)
+  scale: { type: Number, default: 15 },
+  customHotspots: Array, // Nếu muốn truyền hotspots từ form admin vào xem thử
+});
+const emit = defineEmits(["select-hotspot", "on-load"]);
 
+// Xác định dữ liệu nguồn: Ưu tiên props (Admin), sau đó mới tới route (Detail)
 const product = computed(() => {
+  if (props.modelSrc) return null;
   const id = parseInt(route.params.id);
   return uavList.find((item) => item.id === id);
 });
-
 let scene, camera, renderer, labelRenderer, controls, animationId, currentModel;
-
+//  Props nhận
 const initScene = () => {
   if (!container.value) return;
 
@@ -135,50 +141,103 @@ const initScene = () => {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
 
-  if (product.value) loadModel(product.value);
+  // Sửa dòng cuối thành:
+  // debugger;
+  loadModel(product.value);
 };
+const cleanupExistingModel = () => {
+  if (!currentModel) return;
 
+  scene.remove(currentModel);
+  currentModel.traverse((node) => {
+    if (node.isMesh) {
+      node.geometry.dispose();
+      // Xử lý nếu material là mảng hoặc đơn lẻ
+      if (Array.isArray(node.material)) {
+        node.material.forEach((m) => m.dispose());
+      } else {
+        node.material.dispose();
+      }
+    }
+  });
+  currentModel = null;
+};
+const playEntryAnimation = () => {
+  gsap.from(camera.position, {
+    x: camera.position.x + 20,
+    y: camera.position.y + 20,
+    z: camera.position.z + 20,
+    duration: 2,
+    ease: "power2.out",
+    onUpdate: () => controls.update(),
+  });
+};
+// Thêm watcher này vào phần script setup
+watch(
+  () => props.modelSrc,
+  (newSrc) => {
+    if (newSrc && scene) {
+      // Gọi loadModel với tham số rỗng vì source sẽ được lấy ưu tiên từ props
+      loadModel();
+    }
+  },
+);
+const handleModelSuccess = (gltf, data) => {
+  currentModel = gltf.scene;
+
+  // 1. Tính toán bounding box
+  const box = new THREE.Box3().setFromObject(currentModel);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+
+  // 2. Quyết định Scale:
+  // Nếu là Admin thì dùng props.scale để Phách dễ điều chỉnh
+  // Nếu là Detail thì tự động fit vào khung (15 units)
+  const finalScale = props.modelSrc
+    ? props.scale
+    : 15 / Math.max(size.x, size.y, size.z);
+
+  // 3. Thiết lập vị trí & tỷ lệ
+  currentModel.scale.set(finalScale, finalScale, finalScale);
+  currentModel.position.set(
+    -center.x * finalScale,
+    -center.y * finalScale + 3, // Nâng lên 3 đơn vị so với mặt lưới
+    -center.z * finalScale,
+  );
+
+  scene.add(currentModel);
+
+  // 4. Setup Hotspots (Chỉ khi có data và không phải đang preview file thô)
+  const hotspots = props.customHotspots || data?.hotspots;
+  if (hotspots) {
+    setupHotspots(hotspots);
+  }
+
+  loading.value = false;
+
+  // 5. Hiệu ứng Camera vào cuộc
+  playEntryAnimation();
+};
 const loadModel = (data) => {
-  if (!data?.model3d) return;
+  // Ưu tiên modelSrc từ props (dành cho Admin Preview), nếu không có thì lấy từ data
+  const source = props.modelSrc || data?.model3d;
+
+  if (!source) return;
+
   loading.value = true;
   activeSpot.value = null;
 
-  if (currentModel) {
-    scene.remove(currentModel);
-    currentModel.traverse((o) => {
-      if (o.isMesh) {
-        o.geometry.dispose();
-        o.material.dispose();
-      }
-    });
-  }
+  // 1. Dọn dẹp bộ nhớ (Memory Cleanup)
+  cleanupExistingModel();
 
-  new GLTFLoader().load(data.model3d, (gltf) => {
-    currentModel = gltf.scene;
-    const box = new THREE.Box3().setFromObject(currentModel);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const scale = 15 / Math.max(size.x, size.y, size.z);
-
-    currentModel.scale.set(scale, scale, scale);
-    currentModel.position.set(
-      -center.x * scale,
-      -center.y * scale + 3,
-      -center.z * scale,
-    );
-
-    scene.add(currentModel);
-    if (data.hotspots) setupHotspots(data.hotspots);
-
-    loading.value = false;
-    gsap.from(camera.position, {
-      x: 50,
-      y: 40,
-      z: 50,
-      duration: 2,
-      ease: "power2.out",
-    });
-  });
+  // 2. Tải Model mới
+  const loader = new GLTFLoader();
+  loader.load(
+    source,
+    (gltf) => handleModelSuccess(gltf, data),
+    undefined, // Progress callback (có thể thêm nếu muốn hiện % load)
+    (error) => console.error("Lỗi khi tải model UAV:", error),
+  );
 };
 
 const setupHotspots = (hotspots) => {

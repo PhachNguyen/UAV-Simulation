@@ -9,13 +9,14 @@ import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import Login from "@/pages/auth/Login.vue";
 import Register from "@/pages/auth/Register.vue";
 import MainLayoutUser from "@/layout/MainLayoutUser.vue";
+import MainLayoutAdmin from "@/layout/MainLayoutAdmin.vue";
 const routes = [
   // history: createWebHistory(),
   //   {
   //     path: "/",
   //     redirect: "/dashboard",
   //   },
-
+  // User routes
   {
     path: "/profile",
     component: MainLayoutUser,
@@ -27,6 +28,26 @@ const routes = [
       {
         path: "fleet",
         component: () => import("../pages/users/DroneFleetView.vue"),
+      },
+    ],
+    meta: { hideHeaderFooter: true },
+  },
+  // Admin routes
+  {
+    path: "/admin",
+    component: MainLayoutAdmin,
+    children: [
+      // {
+      //   path: "dashboard",
+      //   component: () => import("../pages/admin/DashboardView.vue"),
+      // },
+      {
+        path: "drones",
+        component: () => import("../pages/admin/DroneManagement.vue"),
+      },
+      {
+        path: "drones/add",
+        component: () => import("../pages/admin/AddDroneView.vue"),
       },
     ],
     meta: { hideHeaderFooter: true },
