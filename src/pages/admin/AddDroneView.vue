@@ -3,7 +3,7 @@
     <div
       class="flex items-center justify-between border-b border-slate-200 pb-4"
     >
-      <div>
+      <!-- <div>
         <h1 class="text-2xl font-black text-slate-900 uppercase tracking-tight">
           Thêm thiết bị UAV mới
         </h1>
@@ -11,8 +11,8 @@
           Điền đầy đủ thông tin kỹ thuật và tài nguyên đa phương tiện cho thiết
           bị.
         </p>
-      </div>
-      <div class="flex gap-3">
+      </div> -->
+      <!-- <div class="flex gap-3">
         <button
           @click="$router.back()"
           class="px-6 py-2 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all"
@@ -25,7 +25,7 @@
         >
           Lưu thiết bị
         </button>
-      </div>
+      </div> -->
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -74,7 +74,7 @@
           </div>
         </section>
 
-        <section
+        <!-- <section
           class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6"
         >
           <h3
@@ -140,7 +140,7 @@
               + Thêm video
             </button>
           </div>
-        </section>
+        </section> -->
 
         <section
           class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
@@ -221,8 +221,8 @@
         </section>
       </div>
 
-      <div class="space-y-6">
-        <section
+      <div class="space-y-3">
+        <!-- <section
           class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
         >
           <h3
@@ -251,9 +251,9 @@
               class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs"
             />
           </div>
-        </section>
+        </section> -->
 
-        <section
+        <!-- <section
           class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
         >
           <h3
@@ -271,12 +271,12 @@
               class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs"
             />
           </div>
-        </section>
+        </section> -->
 
         <section
           class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4"
         >
-          <div class="flex justify-between items-center">
+          <!-- <div class="flex justify-between items-center">
             <h3
               class="font-black text-slate-800 uppercase text-xs tracking-widest flex items-center gap-2"
             >
@@ -285,7 +285,7 @@
             <button @click="addVersion" class="text-xs text-teal-600 font-bold">
               + Thêm
             </button>
-          </div>
+          </div> -->
           <div
             v-for="(v, idx) in form.versions"
             :key="idx"
@@ -354,7 +354,7 @@
             <Box :size="16" class="text-teal-500" /> File mô hình 3D (.GLB)
           </h3>
           <div
-            class="w-full h-64 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-dashed border-slate-700"
+            class="w-[500px] h-64 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-dashed border-slate-700"
           >
             <Uav3DViewer
               v-if="previews.model3d"
@@ -419,7 +419,7 @@ const form = reactive({
   category: "",
   image: null, // Lưu file thực tế
   model3d: null, // Lưu file thực tế
-  scale: 0.1,
+  scale: 10,
   hotspots: [],
   // ... các trường khác
 });

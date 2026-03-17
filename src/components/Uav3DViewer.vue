@@ -185,37 +185,41 @@ watch(
 const handleModelSuccess = (gltf, data) => {
   currentModel = gltf.scene;
 
-  // 1. Tính toán bounding box
+  // 1. Tạo một Bounding Box để bao quanh toàn bộ model
   const box = new THREE.Box3().setFromObject(currentModel);
-  const center = box.getCenter(new THREE.Vector3());
+
+  // 2. Lấy kích thước (size) và tâm (center) của model
   const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
 
-  // 2. Quyết định Scale:
-  // Nếu là Admin thì dùng props.scale để Phách dễ điều chỉnh
-  // Nếu là Detail thì tự động fit vào khung (15 units)
-  const finalScale = props.modelSrc
-    ? props.scale
-    : 15 / Math.max(size.x, size.y, size.z);
+  // 3. TỰ ĐỘNG TÍNH TOÀN SCALE
+  // Chúng ta muốn cạnh lớn nhất của drone sẽ dài khoảng 18 đơn vị trong Scene
+  const desiredSize = 18;
+  const maxDimension = Math.max(size.x, size.y, size.z);
+  const autoScale = desiredSize / maxDimension;
 
-  // 3. Thiết lập vị trí & tỷ lệ
-  currentModel.scale.set(finalScale, finalScale, finalScale);
+  // 4. Áp dụng scale
+  // Nếu là Admin và bạn vẫn muốn can thiệp thủ công, có thể nhân thêm props.scale
+  // Nhưng ở đây mình ưu tiên tự động hoàn toàn:
+  currentModel.scale.set(autoScale, autoScale, autoScale);
+
+  // 5. CĂN GIỮA MODEL (Quan trọng để xoay không bị lệch)
+  // Đưa model về tâm (0,0,0) và nâng lên một chút để nằm trên mặt lưới (Grid)
   currentModel.position.set(
-    -center.x * finalScale,
-    -center.y * finalScale + 3, // Nâng lên 3 đơn vị so với mặt lưới
-    -center.z * finalScale,
+    -center.x * autoScale,
+    -center.y * autoScale + 2, // Nâng nhẹ lên khỏi mặt đất
+    -center.z * autoScale,
   );
 
   scene.add(currentModel);
 
-  // 4. Setup Hotspots (Chỉ khi có data và không phải đang preview file thô)
+  // 6. Hiển thị Hotspots
   const hotspots = props.customHotspots || data?.hotspots;
   if (hotspots) {
     setupHotspots(hotspots);
   }
 
   loading.value = false;
-
-  // 5. Hiệu ứng Camera vào cuộc
   playEntryAnimation();
 };
 const loadModel = (data) => {
