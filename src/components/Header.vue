@@ -76,7 +76,7 @@ const navLinks = [
     href: "/blog",
   },
   { name: "Dịch vụ", href: "/services" },
-  { name: "Cấu hình", href: "/settings" },
+  // { name: "Cấu hình", href: "/settings" },
 ];
 </script>
 <template>

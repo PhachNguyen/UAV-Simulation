@@ -90,7 +90,7 @@ const routes = [
     component: () => import("@/pages/users/Stations.vue"),
   },
   {
-    path: "/missions/planner",
+    path: "/operation/planner",
     name: "Planner",
     component: () => import("@/pages/users/Planner.vue"),
   },
