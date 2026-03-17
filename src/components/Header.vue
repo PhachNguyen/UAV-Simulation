@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, h } from "vue";
 import { useRoute } from "vue-router"; // Thêm useRoute để quản lý trạng thái active
 import {
   Search,
@@ -61,15 +61,19 @@ const navLinks = [
     ],
   },
   { name: "Sản Phẩm", href: "/products" },
+  // {
+  //   name: "Dữ liệu",
+  //   subLinks: [
+  //     {
+  //       name: "Lịch sử chuyến bay",
+  //       href: "/data/history",
+  //       desc: "Xem lại quỹ đạo bay",
+  //     },
+  //   ],
+  // },
   {
-    name: "Dữ liệu",
-    subLinks: [
-      {
-        name: "Lịch sử chuyến bay",
-        href: "/data/history",
-        desc: "Xem lại quỹ đạo bay",
-      },
-    ],
+    name: "Blog",
+    href: "/blog",
   },
   { name: "Dịch vụ", href: "/services" },
   { name: "Cấu hình", href: "/settings" },
