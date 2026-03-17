@@ -144,10 +144,10 @@ const sortBy = ref("default");
 
 const categories = [
   { name: "Tất cả" },
-  { name: "Consumer" },
-  { name: "Professional" },
-  { name: "Industrial" },
-  { name: "Racing" },
+  { name: "DJI Mavic" },
+  { name: "DJI Air" },
+  { name: "DJI Flip" },
+  // { name: "Racing" },
 ];
 
 const products = ref(uavList);
