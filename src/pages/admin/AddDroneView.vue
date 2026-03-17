@@ -292,7 +292,7 @@
             class="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2 relative"
           >
             <button
-              @click="removeArrayItem('versions', idx)"
+              @click="removeHotspot(index)"
               class="absolute top-1 right-1 text-slate-300"
             >
               <X :size="14" />
@@ -357,7 +357,12 @@
             class="w-[500px] h-64 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-dashed border-slate-700"
           >
             <template v-if="previews.model3d">
-              <Uav3DViewer :modelSrc="previews.model3d" :scale="form.scale" />
+              <Uav3DViewer
+                ref="uavViewerRef"
+                :modelSrc="previews.model3d"
+                :currentMarkerId="form.hotspots.length"
+                @pick-coords="updateLatestHotspot"
+              />
 
               <button
                 class="absolute bottom-4 right-4 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-white/20 transition-all"
@@ -412,6 +417,27 @@ import {
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
 //
 const isPickingLocation = ref(false); // Trạng thái đang chọn tọa độ trên bản đồ 3D
+const uavViewerRef = ref(null); // Ref để gọi hàm của component con
+
+const removeHotspot = (index) => {
+  // 1. Lấy ID của điểm sắp xóa (thường là index + 1)
+  const targetId = form.hotspots[index].id;
+
+  // 2. Gọi hàm xóa bên trong Component 3D
+  if (uavViewerRef.value) {
+    uavViewerRef.value.removeMarkerById(targetId);
+  }
+
+  // 3. Xóa khỏi mảng dữ liệu của Form
+  form.hotspots.splice(index, 1);
+
+  // 4. (Tùy chọn) Cập nhật lại ID cho các điểm còn lại để số thứ tự luôn liên tục
+  form.hotspots.forEach((spot, idx) => {
+    const oldId = spot.id;
+    spot.id = idx + 1;
+    // Nếu muốn marker trên 3D cũng đổi số theo, Phách sẽ cần một hàm update toàn bộ
+  });
+};
 // Hàm khi bấm nút "Thêm điểm"
 const addHotspot = () => {
   isPickingLocation.value = true;

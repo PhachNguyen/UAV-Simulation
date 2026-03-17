@@ -80,7 +80,7 @@ const activeSpot = ref(null); // Lưu hotspot đang chọn
 const props = defineProps({
   modelSrc: String, // Dùng cho Admin Preview (Blob URL)
   scale: { type: Number, default: 15 },
-  customHotspots: Array, // Nếu muốn truyền hotspots từ form admin vào xem thử
+  currentMarkerId: { type: Number, default: 1 }, // Nếu muốn truyền hotspots từ form admin vào xem thử
 });
 const emit = defineEmits(["select-hotspot", "on-load"]);
 
@@ -172,6 +172,14 @@ const playEntryAnimation = () => {
     onUpdate: () => controls.update(),
   });
 };
+watch(
+  () => props.currentMarkerId,
+  () => {
+    // Khi ID thay đổi (nghĩa là đã bấm nút Thêm điểm), ta "chốt" marker cũ
+    // Marker cũ lúc này đã dính vào model, ta giải phóng biến preview để click lần sau tạo marker mới
+    activePreviewMarker = null;
+  },
+);
 // Thêm watcher này vào phần script setup
 watch(
   () => props.modelSrc,
@@ -225,17 +233,45 @@ const createMarkerWithNumber = (pos, number) => {
   return sprite;
 };
 
+// Biến để lưu marker hiện tại (đang di chuyển)
+let activePreviewMarker = null;
+// Hàm xóa
+const removeMarkerById = (id) => {
+  if (!currentModel) return;
+
+  // Tìm trong các con của model, cái nào là Sprite và có name khớp với ID
+  const target = currentModel.children.find(
+    (child) => child.isSprite && child.name === `marker-${id}`,
+  );
+
+  if (target) {
+    currentModel.remove(target);
+    if (target.material.map) target.material.map.dispose();
+    target.material.dispose();
+    console.log(`--- Đã xóa Marker ID: ${id} ---`);
+  }
+};
+// Hàm này sẽ hiển thị marker tạm thời khi click, và xóa marker cũ nếu chưa "chốt" để tránh rối mắt
 const showTemporaryMarker = (pos) => {
   if (!currentModel) return;
 
-  // Tăng số thứ tự
-  markerCount++;
+  // Sử dụng ID từ props để đặt tên cho Marker
+  const markerId = props.currentMarkerId;
 
-  const marker = createMarkerWithNumber(pos, markerCount);
+  // Kiểm tra xem đã có marker cho ID này chưa (để ghi đè vị trí nếu click lại)
+  const existing = currentModel.children.find(
+    (child) => child.name === `marker-${markerId}`,
+  );
+  if (existing) currentModel.remove(existing);
 
-  // Add vào model để nó dính chặt vào drone
+  const marker = createMarkerWithNumber(pos, markerId);
+  marker.name = `marker-${markerId}`; // Gán tên định danh
+
   currentModel.add(marker);
 };
+defineExpose({
+  removeMarkerById, // Cho phép Admin gọi hàm này từ bên ngoài để xóa marker khi cần
+});
 //  Hàm lấy tọa độ hotspot khi click vào model (dành cho Admin)
 const initRaycaster = () => {
   const raycaster = new THREE.Raycaster();
