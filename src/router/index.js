@@ -55,7 +55,7 @@ const routes = [
     component: Uav3DViewer,
   },
   {
-    path: "/fleet/list",
+    path: "/products",
     name: "ProductPage",
     component: ProductPage,
   },

@@ -6,7 +6,14 @@
       <div
         class="absolute inset-0 opacity-40 bg-[radial-gradient(circle,_var(--tw-gradient-stops))] from-gray-800 via-transparent to-transparent"
       ></div>
-      <div class="flex" style="justify-content: space-between; width: stretch">
+      <div
+        class="flex"
+        style="
+          justify-content: space-between;
+          width: stretch;
+          align-items: center;
+        "
+      >
         <div class="relative z-10">
           <h1
             class="text-white text-4xl md:text-5xl font-medium mb-4 tracking-tight py-[8px]"
@@ -29,7 +36,7 @@
         </div>
         <div class="relative z-10 mt-12">
           <img
-            src=""
+            src="/public/img/UAV-50_1.png"
             alt="White Drone"
             class="w-[450px] drop-shadow-[0_20px_50px_rgba(255,255,255,0.2)]"
           />

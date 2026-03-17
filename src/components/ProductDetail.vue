@@ -491,7 +491,7 @@
             </div>
             <h3 class="text-xl font-medium text-gray-900 mb-2">Mua ở đâu</h3>
             <router-link
-              to="/fleet/list"
+              to="/"
               class="flex items-center text-sm font-bold text-gray-500 hover:text-blue-600 transition-all"
             >
               Xem thêm

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRoute } from "vue-router"; // Thêm useRoute để quản lý trạng thái active
 import {
   Search,
   ChevronDown,
@@ -13,26 +14,23 @@ import {
   LogIn,
 } from "lucide-vue-next";
 
-// --- Quản lý Auth (Sau này hãy mang logic này vào Pinia) ---
-const user = ref(null); // Nếu user != null nghĩa là đã đăng nhập
-const isLoggedIn = computed(() => !!user.value);
+const route = useRoute();
 
-// Giả lập dữ liệu user sau khi login
-const mockLogin = () => {
-  user.value = {
-    name: "PhachNguyen",
-    email: "phachnguyen@sky.link",
-    role: "Operator",
-    avatar: "OP",
-  };
-};
-
+// --- Auth Logic ---
+const user = ref({
+  name: "PhachNguyen",
+  email: "phachnguyen@sky.link",
+  role: "Operator",
+  avatar: "OP",
+}); // Giả lập đã login
+// const isLoggedIn = computed(() => !!user.value);
+const isLoggedIn = computed(() => false); // Tạm thời luôn trả về true để hiển thị menu profile
 const logout = () => {
   user.value = null;
   isProfileOpen.value = false;
 };
 
-// --- Quản lý UI ---
+// --- UI Logic ---
 const isProfileOpen = ref(false);
 const profileRef = ref(null);
 
@@ -44,12 +42,11 @@ const handleClickOutside = (e) => {
 onMounted(() => document.addEventListener("click", handleClickOutside));
 onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 
-// --- Menu Data ---
+// --- Nav Data ---
 const navLinks = [
   { name: "Tổng quan", href: "/" },
   {
     name: "Vận hành",
-    href: "/operation",
     subLinks: [
       {
         name: "Các vùng cấm bay",
@@ -63,16 +60,9 @@ const navLinks = [
       },
     ],
   },
-  {
-    name: "Thiết bị",
-    href: "/fleet",
-    subLinks: [
-      { name: "Sản phẩm", href: "/fleet/list", desc: "Thông số & Firmware" },
-    ],
-  },
+  { name: "Sản Phẩm", href: "/products" },
   {
     name: "Dữ liệu",
-    href: "/data",
     subLinks: [
       {
         name: "Lịch sử chuyến bay",
@@ -109,35 +99,27 @@ const navLinks = [
             >
           </div>
         </router-link>
-
-        <div
-          v-if="isLoggedIn"
-          class="hidden xl:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full select-none"
-        >
-          <span class="relative flex h-2 w-2">
-            <span
-              class="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"
-            ></span>
-            <span class="relative rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span class="text-[10px] font-bold text-emerald-700 uppercase"
-            >Tín hiệu: Sẵn sàng</span
-          >
-        </div>
       </div>
 
       <nav class="hidden lg:flex items-center gap-1">
         <div v-for="link in navLinks" :key="link.name" class="relative group">
+          <div
+            v-if="link.subLinks"
+            class="flex items-center gap-1.5 py-2 px-4 text-[13px] font-bold uppercase tracking-wide text-slate-600 cursor-default transition-all rounded-lg group-hover:bg-slate-50 group-hover:text-teal-600"
+          >
+            {{ link.name }}
+            <ChevronDown
+              class="w-3.5 h-3.5 opacity-40 group-hover:rotate-180 transition-transform"
+            />
+          </div>
+
           <router-link
+            v-else
             :to="link.href"
             class="flex items-center gap-1.5 py-2 px-4 text-[13px] font-bold uppercase tracking-wide text-slate-600 transition-all rounded-lg hover:bg-slate-50 hover:text-teal-600"
             active-class="!text-teal-600 bg-teal-50/50"
           >
             {{ link.name }}
-            <ChevronDown
-              v-if="link.subLinks"
-              class="w-3.5 h-3.5 opacity-40 group-hover:rotate-180 transition-transform"
-            />
           </router-link>
 
           <div
@@ -149,6 +131,7 @@ const navLinks = [
               :key="sub.name"
               :to="sub.href"
               class="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 rounded-lg group/item transition-all"
+              active-class="!text-teal-600 bg-teal-50/50"
             >
               <div class="flex flex-col">
                 <span
@@ -190,7 +173,7 @@ const navLinks = [
           <template v-if="isLoggedIn">
             <button
               @click="isProfileOpen = !isProfileOpen"
-              class="flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all active:scale-95 shadow-md shadow-slate-200 border border-slate-700/50"
+              class="flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all active:scale-95 shadow-md border border-slate-700/50"
               :class="{ 'ring-2 ring-teal-500/50': isProfileOpen }"
             >
               <div
@@ -208,61 +191,15 @@ const navLinks = [
                 >
               </div>
             </button>
-
-            <transition
-              enter-active-class="transition duration-200 ease-out"
-              enter-from-class="transform scale-95 opacity-0 -translate-y-2"
-              enter-to-class="transform scale-100 opacity-100 translate-y-0"
-              leave-active-class="transition duration-150 ease-in"
-              leave-from-class="transform scale-100 opacity-100 translate-y-0"
-              leave-to-class="transform scale-95 opacity-0 -translate-y-2"
-            >
-              <div
-                v-if="isProfileOpen"
-                class="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[60] overflow-hidden"
-              >
-                <div
-                  class="px-4 py-3 bg-slate-50/50 border-b border-slate-100 mb-1"
-                >
-                  <p
-                    class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1"
-                  >
-                    Hệ thống
-                  </p>
-                  <p class="text-xs font-bold text-slate-700 truncate">
-                    {{ user.email }}
-                  </p>
-                </div>
-                <div class="px-1.5 space-y-0.5">
-                  <router-link
-                    to="/profile"
-                    class="flex items-center gap-3 px-3 py-2 text-[13px] font-bold text-slate-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl transition-all"
-                    ><User class="w-4 h-4" /> Bảng điều khiển</router-link
-                  >
-                  <router-link
-                    to="/settings"
-                    class="flex items-center gap-3 px-3 py-2 text-[13px] font-bold text-slate-600 hover:bg-teal-50 hover:text-teal-700 rounded-xl transition-all"
-                    ><Settings class="w-4 h-4" /> Cài đặt</router-link
-                  >
-                </div>
-                <div class="mt-2 pt-1 border-t border-slate-100 px-1.5">
-                  <button
-                    @click="logout"
-                    class="w-full flex items-center gap-3 px-3 py-2 text-[13px] font-black text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                  >
-                    <LogOut class="w-4 h-4" /> ĐĂNG XUẤT
-                  </button>
-                </div>
-              </div>
-            </transition>
           </template>
 
           <div v-else class="flex items-center gap-1">
             <router-link
               to="/login"
               class="px-4 py-2 text-[13px] font-bold text-slate-600 hover:text-teal-600 transition-colors"
-              >Đăng nhập</router-link
             >
+              Đăng nhập
+            </router-link>
             <router-link
               to="/register"
               class="flex items-center gap-2 px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white text-[13px] font-bold rounded-full transition-all shadow-md active:scale-95"
