@@ -182,63 +182,100 @@ watch(
     }
   },
 );
-let tempMarker = null;
+// Thêm biến đếm số thứ tự
+let markerCount = 0;
+
+const createMarkerWithNumber = (pos, number) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128; // Tăng độ phân giải cho nét
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+
+  // Vẽ nền hình tròn Glow
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = "#00f2ff";
+  ctx.fillStyle = "#00f2ff";
+  ctx.beginPath();
+  ctx.arc(64, 64, 50, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Vẽ số thứ tự
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 60px Orbitron, Arial"; // Font công nghệ nếu có
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(number, 64, 64);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const spriteMaterial = new THREE.SpriteMaterial({
+    map: texture,
+    depthTest: false, // Luôn hiện đè lên Model để dễ nhìn
+    sizeAttenuation: true,
+  });
+
+  const sprite = new THREE.Sprite(spriteMaterial);
+
+  // --- QUAN TRỌNG: KHỬ SCALE CỦA MODEL ---
+  // Giả sử autoScale của bạn là 15, ta chia 1.2 cho 15 để Marker luôn có kích thước ~1.2 đơn vị
+  const s = 1.2 / currentModel.scale.x;
+  sprite.scale.set(s, s, 1);
+
+  sprite.position.set(pos.x, pos.y, pos.z);
+  return sprite;
+};
+
 const showTemporaryMarker = (pos) => {
   if (!currentModel) return;
 
-  // 1. Nếu đã có marker trước đó, hãy xóa nó khỏi model để không bị loạn
-  if (tempMarker) {
-    currentModel.remove(tempMarker);
-    // Giải phóng bộ nhớ
-    tempMarker.geometry.dispose();
-    tempMarker.material.dispose();
-  }
+  // Tăng số thứ tự
+  markerCount++;
 
-  // 2. Tạo một quả cầu nhỏ (Sphere) để làm điểm đánh dấu
-  const geometry = new THREE.SphereGeometry(0.3, 16, 16);
-  const material = new THREE.MeshBasicMaterial({
-    color: 0xff0000, // Màu đỏ
-    transparent: true,
-    opacity: 0.8,
-  });
+  const marker = createMarkerWithNumber(pos, markerCount);
 
-  tempMarker = new THREE.Mesh(geometry, material);
-
-  // 3. Đặt vị trí đúng vào tọa độ local vừa click
-  tempMarker.position.set(pos.x, pos.y, pos.z);
-
-  // 4. Add vào model để nó dính chặt vào drone
-  currentModel.add(tempMarker);
+  // Add vào model để nó dính chặt vào drone
+  currentModel.add(marker);
 };
 //  Hàm lấy tọa độ hotspot khi click vào model (dành cho Admin)
 const initRaycaster = () => {
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
 
-  container.value.addEventListener("click", (event) => {
-    // Chỉ hoạt động khi có model (đang ở Admin hoặc Detail)
+  // Lắng nghe trên canvas của WebGL thay vì container div
+  renderer.domElement.addEventListener("click", (event) => {
     if (!currentModel) return;
 
-    const rect = container.value.getBoundingClientRect();
+    // Tính toán lại tọa độ chuột chuẩn xác theo Canvas
+    const rect = renderer.domElement.getBoundingClientRect();
     mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
+
+    // Kiểm tra va chạm (intersect)
     const intersects = raycaster.intersectObject(currentModel, true);
 
     if (intersects.length > 0) {
-      const worldPoint = intersects[0].point;
-      const localPos = currentModel.worldToLocal(worldPoint.clone());
+      // Lấy điểm va chạm và chuyển sang Local của Drone
+      const localPos = currentModel.worldToLocal(intersects[0].point.clone());
 
-      // EMIT TỌA ĐỘ RA NGOÀI
+      // LOG RA CONSOLE ĐỂ KIỂM TRA
+      console.log(`✅ Đã lấy tọa độ (ID: ${markerCount + 1}):`, {
+        x: localPos.x.toFixed(3),
+        y: localPos.y.toFixed(3),
+        z: localPos.z.toFixed(3),
+      });
+
+      // Gửi tọa độ về trang Admin
       emit("pick-coords", {
         x: localPos.x.toFixed(3),
         y: localPos.y.toFixed(3),
         z: localPos.z.toFixed(3),
       });
 
-      // Hiển thị một marker tạm thời (tùy chọn - xem bước 3)
       showTemporaryMarker(localPos);
+    } else {
+      console.warn("⚠️ Click trượt model UAV rồi Phách ơi!");
     }
   });
 };

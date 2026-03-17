@@ -430,17 +430,17 @@ const addHotspot = () => {
   );
 };
 // Hàm nhận tọa độ từ Uav3DViewer gửi ra
+// Trong AddDroneView.vue
 const updateLatestHotspot = (coords) => {
-  if (isPickingLocation.value && form.hotspots.length > 0) {
-    const latestIndex = form.hotspots.length - 1;
-
-    // Cập nhật tọa độ cho điểm cuối cùng vừa thêm
-    form.hotspots[latestIndex].pos.x = parseFloat(coords.x);
-    form.hotspots[latestIndex].pos.y = parseFloat(coords.y);
-    form.hotspots[latestIndex].pos.z = parseFloat(coords.z);
-
-    isPickingLocation.value = false; // Tắt chế độ lấy tọa độ
-    alert(`Đã nhận tọa độ: X:${coords.x} Y:${coords.y} Z:${coords.z}`);
+  // Lấy hotspot cuối cùng vừa được thêm
+  if (form.hotspots.length > 0) {
+    const lastIndex = form.hotspots.length - 1;
+    form.hotspots[lastIndex].pos = {
+      x: Number(coords.x),
+      y: Number(coords.y),
+      z: Number(coords.z),
+    };
+    console.log("Đã cập nhật tọa độ vào form:", form.hotspots[lastIndex].pos);
   }
 };
 const form = reactive({
