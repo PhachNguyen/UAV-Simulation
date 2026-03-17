@@ -165,7 +165,7 @@
             class="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-3 relative"
           >
             <button
-              @click="removeArrayItem('hotspots', index)"
+              @click="removeHotspot(index)"
               class="absolute top-2 right-2 text-slate-300 hover:text-red-500"
             >
               <Trash2 :size="16" />
