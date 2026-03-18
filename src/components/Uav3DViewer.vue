@@ -79,6 +79,8 @@ const isStatsOpen = ref(false);
 const activeSpot = ref(null); // Lưu hotspot đang chọn
 const props = defineProps({
   modelSrc: String, // Dùng cho Admin Preview (Blob URL)
+  // Admin
+  admin: { type: Boolean, default: false },
   scale: { type: Number, default: 15 },
   currentMarkerId: { type: Number, default: 1 }, // Nếu muốn truyền hotspots từ form admin vào xem thử
 });
@@ -94,31 +96,43 @@ let scene, camera, renderer, labelRenderer, controls, animationId, currentModel;
 //  Props nhận
 const initScene = () => {
   if (!container.value) return;
+  if (renderer) return;
+  try {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x080808);
+    scene.fog = new THREE.Fog(0x080808, 20, 100);
 
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x080808);
-  scene.fog = new THREE.Fog(0x080808, 20, 100);
+    // Môi trường Grid
+    scene.add(new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a));
+    const polar = new THREE.PolarGridHelper(30, 10, 8, 64, 0x3b82f6, 0x111827);
+    polar.material.opacity = 0.1;
+    polar.material.transparent = true;
+    scene.add(polar);
 
-  // Môi trường Grid
-  scene.add(new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a));
-  const polar = new THREE.PolarGridHelper(30, 10, 8, 64, 0x3b82f6, 0x111827);
-  polar.material.opacity = 0.1;
-  polar.material.transparent = true;
-  scene.add(polar);
+    camera = new THREE.PerspectiveCamera(
+      40,
+      container.value.clientWidth / container.value.clientHeight,
+      0.1,
+      1000,
+    );
+    camera.position.set(30, 20, 30);
 
-  camera = new THREE.PerspectiveCamera(
-    40,
-    container.value.clientWidth / container.value.clientHeight,
-    0.1,
-    1000,
-  );
-  camera.position.set(30, 20, 30);
-
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(container.value.clientWidth, container.value.clientHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  container.value.appendChild(renderer.domElement);
-
+    renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance",
+    });
+    renderer.setSize(container.value.clientWidth, container.value.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.value.appendChild(renderer.domElement);
+  } catch (error) {
+    console.error(
+      "Trình duyệt của bạn có vẻ đã hết tài nguyên WebGL. Hãy thử reload trang.",
+      e,
+    );
+    loading.value = false;
+    return;
+  }
   labelRenderer = new CSS2DRenderer();
   labelRenderer.setSize(
     container.value.clientWidth,
@@ -252,7 +266,6 @@ const removeMarkerById = (id) => {
   }
 };
 // Hàm này sẽ hiển thị marker tạm thời khi click, và xóa marker cũ nếu chưa "chốt" để tránh rối mắt
-// Tìm hàm này trong Uav3DViewer.vue và sửa lại
 const showTemporaryMarker = (pos) => {
   if (!currentModel) return;
 
@@ -344,7 +357,6 @@ const handleModelSuccess = (gltf, data) => {
 
   // 4. Áp dụng scale
   // Nếu là Admin và bạn vẫn muốn can thiệp thủ công, có thể nhân thêm props.scale
-  // Nhưng ở đây mình ưu tiên tự động hoàn toàn:
   currentModel.scale.set(autoScale, autoScale, autoScale);
 
   // 5. CĂN GIỮA MODEL (Quan trọng để xoay không bị lệch)
@@ -474,7 +486,11 @@ onMounted(() => {
   //   }
   // });
   initScene();
-  initRaycaster(); // Khởi tạo raycaster để lấy tọa độ khi click (dành cho Admin)
+  if (props.admin) {
+    // Khởi tạo raycaster để lấy tọa độ khi click (dành cho Admin)
+    initRaycaster();
+  }
+
   animate();
   window.addEventListener("resize", handleResize);
 });
@@ -483,34 +499,36 @@ onUnmounted(() => {
   cancelAnimationFrame(animationId);
 
   if (renderer) {
-    // 1. Dừng renderer
+    // Dọn dẹp canvas
     renderer.dispose();
-
-    // 2. Ép trình duyệt giải phóng context ngay lập tức
-    renderer.forceContextLoss();
-
-    // 3. Xóa DOM element để tránh memory leak
     if (renderer.domElement && renderer.domElement.parentNode) {
       renderer.domElement.parentNode.removeChild(renderer.domElement);
     }
-
+    // Không nên gọi forceContextLoss() trừ khi bạn thực sự muốn khóa GPU
+    // renderer.forceContextLoss();
     renderer = null;
   }
 
-  if (labelRenderer && labelRenderer.domElement.parentNode) {
+  // Dọn dẹp LabelRenderer
+  if (
+    labelRenderer &&
+    labelRenderer.domElement &&
+    labelRenderer.domElement.parentNode
+  ) {
     labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement);
     labelRenderer = null;
   }
 
-  // 4. Giải phóng toàn bộ Scene
+  // Giải phóng Scene
   if (scene) {
     scene.traverse((object) => {
-      if (!object.isMesh) return;
-      object.geometry.dispose();
-      if (object.material.isMaterial) {
-        cleanMaterial(object.material);
-      } else {
-        for (const material of object.material) cleanMaterial(material);
+      if (object.isMesh) {
+        object.geometry.dispose();
+        if (Array.isArray(object.material)) {
+          object.material.forEach((m) => cleanMaterial(m));
+        } else {
+          cleanMaterial(object.material);
+        }
       }
     });
     scene.clear();

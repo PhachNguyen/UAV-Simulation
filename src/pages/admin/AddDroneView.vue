@@ -338,6 +338,7 @@
               <template v-if="previews.model3d">
                 <Uav3DViewer
                   ref="uavViewerRef"
+                  :admin="true"
                   :modelSrc="previews.model3d"
                   :currentMarkerId="
                     form.hotspots.length > 0 ? form.hotspots.length : 0
