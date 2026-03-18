@@ -76,6 +76,7 @@ const navLinks = [
     href: "/blog",
   },
   { name: "Dịch vụ", href: "/services" },
+  { name: "Mô phỏng lái", href: "/simulation" },
   { name: "Khóa học", href: "/courses" },
   // { name: "Cấu hình", href: "/settings" },
 ];

@@ -59,6 +59,12 @@ const routes = [
     meta: { hideHeaderFooter: true },
   },
   {
+    path: "/simulation",
+    name: "Simulation",
+    component: () => import("../pages/DroneSimulator.vue"),
+    meta: { hideHeaderFooter: true },
+  },
+  {
     path: "/",
     name: "Home",
     component: Dashboard,
@@ -70,11 +76,11 @@ const routes = [
     component: Register,
     meta: { hideHeaderFooter: true }, // Ẩn header/footer
   },
-  {
-    path: "/simulation/:id",
-    name: "Simulation",
-    component: Uav3DViewer,
-  },
+  // {
+  //   path: "/simulation/:id",
+  //   name: "Simulation",
+  //   component: Uav3DViewer,
+  // },
   {
     path: "/products",
     name: "ProductPage",
