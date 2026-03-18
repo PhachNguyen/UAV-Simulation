@@ -63,7 +63,7 @@
         <!-- <span class="text-lg font-black text-gray-900"
           >${{ product.price || 0 }}</span
         > -->
-        <span class="text-sm font-black text-gray-900">Liên hệ</span>
+        <span class="text-sm font-black text-gray-900">Liên hệ ngay</span>
       </div>
       <!--  Sự kiện Click ra Detail -->
       <button

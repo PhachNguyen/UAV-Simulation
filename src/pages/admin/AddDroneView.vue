@@ -32,9 +32,10 @@
       </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8">
+    <main class="max-w-6xl mx-auto px-4 py-8" style="min-height: 80vh">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-7 space-y-6">
+          <!-- Thông tin cơ bản -->
           <section
             class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"
           >
@@ -108,7 +109,55 @@
               ></textarea>
             </div>
           </section>
-
+          <!-- Thông số kỹ thuật -->
+          <section
+            class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"
+          >
+            <h3
+              class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-slate-50 pb-4"
+            >
+              <Info :size="16" class="text-teal-500" /> Thông số kỹ thuật
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="space-y-2">
+                <label
+                  class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                  >Tầm bay tối đa (km)</label
+                >
+                <input
+                  v-model="form.maxRange"
+                  type="number"
+                  placeholder="VD: 10"
+                  class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                />
+              </div>
+              <div class="space-y-2">
+                <label
+                  class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                  >Tốc độ tối đa (km/h)</label
+                >
+                <input
+                  v-model="form.maxSpeed"
+                  type="number"
+                  placeholder="VD: 60"
+                  class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                />
+              </div>
+              <div class="space-y-2">
+                <label
+                  class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                  >Độ cao tối đa (m)</label
+                >
+                <input
+                  v-model="form.maxAltitude"
+                  type="number"
+                  placeholder="VD: 120"
+                  class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+          </section>
+          <!-- Gán tọa độ cho mô hình -->
           <section
             class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"
           >
@@ -118,7 +167,8 @@
               <h3
                 class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2"
               >
-                <MapPin :size="16" class="text-teal-500" /> Hotspots Tương tác
+                <MapPin :size="16" class="text-teal-500" /> Gán tọa độ cho mô
+                hình
               </h3>
               <button
                 @click="addHotspot"
@@ -431,7 +481,8 @@ const removeHotspot = (index) => {
   form.hotspots.forEach((spot, idx) => {
     const oldId = spot.id;
     spot.id = idx + 1;
-    // Nếu muốn marker trên 3D cũng đổi số theo, Phách sẽ cần một hàm update toàn bộ
+    // Nếu muốn marker trên 3D cũng đổi số theo
+    toast.error(`Xóa tọa độ thành công.`);
   });
 };
 // Hàm khi bấm nút "Thêm điểm"
