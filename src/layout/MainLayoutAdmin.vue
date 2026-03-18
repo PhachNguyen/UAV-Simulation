@@ -74,7 +74,7 @@
         <div class="flex items-center">
           <button
             @click="isSidebarOpen = !isSidebarOpen"
-            class="p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors"
+            class="cursor-pointer p-2.5 hover:bg-slate-100 rounded-xl text-slate-500 transition-colors"
           >
             <Menu v-if="!isSidebarOpen" />
             <ChevronLeft v-else />
@@ -155,7 +155,6 @@ const isSidebarOpen = ref(true);
 const menuItems = [
   { name: "Bảng điều khiển", path: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Quản lý UAV", path: "/admin/drones", icon: Box },
-  // Thêm các item khác ở đây...
 ];
 
 const currentPageName = computed(() => {

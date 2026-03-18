@@ -37,10 +37,10 @@ const routes = [
     path: "/admin",
     component: MainLayoutAdmin,
     children: [
-      // {
-      //   path: "dashboard",
-      //   component: () => import("../pages/admin/DashboardView.vue"),
-      // },
+      {
+        path: "dashboard",
+        component: () => import("../pages/admin/DashboardAdmin.vue"),
+      },
       {
         path: "drones",
         component: () => import("../pages/admin/DroneManagement.vue"),

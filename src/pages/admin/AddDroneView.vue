@@ -69,6 +69,32 @@
                 />
               </div>
             </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label
+                  class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                  >Trọng tải tối đa (kg)</label
+                >
+                <input
+                  v-model="form.maxPayload"
+                  type="number"
+                  placeholder="VD: 5"
+                  class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                />
+              </div>
+              <div class="space-y-2">
+                <label
+                  class="text-[10px] font-black uppercase text-slate-400 ml-1"
+                  >Thời gian bay tối đa (phút)</label
+                >
+                <input
+                  v-model="form.maxFlightTime"
+                  type="number"
+                  placeholder="VD: 30"
+                  class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 outline-none transition-all"
+                />
+              </div>
+            </div>
             <div class="space-y-2">
               <label
                 class="text-[10px] font-black uppercase text-slate-400 ml-1"
@@ -166,6 +192,7 @@
         </div>
 
         <div class="lg:col-span-5 space-y-6">
+          <!-- Ảnh đại diện -->
           <section
             class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4"
           >
@@ -200,7 +227,103 @@
               />
             </div>
           </section>
+          <section
+            class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4"
+          >
+            <div
+              class="flex justify-between items-center border-b border-slate-50 pb-4"
+            >
+              <h3
+                class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2"
+              >
+                <Layers :size="16" class="text-teal-500" /> Thư viện hình ảnh
+              </h3>
+              <label
+                class="text-[10px] font-black uppercase bg-teal-50 text-teal-700 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-teal-100 transition-colors"
+              >
+                + Thêm ảnh
+                <input
+                  type="file"
+                  multiple
+                  @change="handleMultipleImages"
+                  class="hidden"
+                  accept="image/*"
+                />
+              </label>
+            </div>
 
+            <div class="grid grid-cols-3 gap-3">
+              <div
+                v-for="(img, index) in previews.thumbnails"
+                :key="index"
+                class="relative aspect-square rounded-xl overflow-hidden group border border-slate-100"
+              >
+                <img :src="img" class="w-full h-full object-cover" />
+                <button
+                  @click="removeThumbnail(index)"
+                  class="cursor-pointer absolute inset-0 bg-gray-400/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                >
+                  <Trash2 :size="16" />
+                </button>
+              </div>
+              <div
+                v-if="previews.thumbnails.length === 0"
+                class="col-span-3 py-8 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100"
+              >
+                <p
+                  class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"
+                >
+                  Chưa có ảnh thư viện
+                </p>
+              </div>
+            </div>
+          </section>
+          <!-- Video -->
+          <!-- <section
+            class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4"
+          >
+            <h3
+              class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-slate-50 pb-4"
+            >
+              <Video :size="16" class="text-teal-500" /> Video giới thiệu
+            </h3>
+
+            <div class="space-y-3">
+              <div
+                class="relative aspect-video bg-slate-900 rounded-2xl overflow-hidden flex items-center justify-center group border-2 border-slate-800"
+              >
+                <video
+                  v-if="previews.video"
+                  :src="previews.video"
+                  controls
+                  class="w-full h-full object-contain"
+                ></video>
+                <div v-else class="text-center">
+                  <div
+                    class="p-3 bg-slate-800 rounded-xl inline-block text-slate-500 mb-2"
+                  >
+                    <Play :size="20" />
+                  </div>
+                  <p
+                    class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
+                  >
+                    Tải lên video giới thiệu
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  @change="handleFileUpload($event, 'video')"
+                  class="absolute inset-0 opacity-0 cursor-pointer"
+                  accept="video/*"
+                />
+              </div>
+              <p
+                class="text-[9px] text-slate-400 text-center uppercase tracking-tight italic"
+              >
+                Hỗ trợ định dạng MP4, WebM. Tối đa 20MB
+              </p>
+            </div>
+          </section> -->
           <section
             class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4"
           >
@@ -277,6 +400,8 @@ import {
   MapPin,
   Zap,
   Layers,
+  Video,
+  Play,
   UploadCloud,
   X,
   Trash2,
@@ -352,15 +477,37 @@ const form = reactive({
   model3d: null, // Lưu file thực tế
   scale: 15,
   hotspots: [],
-  // ... các trường khác
+  thumbnails: [], // Lưu File thực tế
+  video: null, // Lưu File video thực tế
 });
 
 // Chứa link tạm thời để hiển thị Preview
 const previews = reactive({
   image: null,
   model3d: null,
+  thumbnails: [], // Lưu URL tạm thời cho ảnh thư viện
+  video: null, // Lưu URL tạm thời cho video
 });
+// Hàm xử lý upload nhiều ảnh cùng lúc
+const handleMultipleImages = (event) => {
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
 
+  files.forEach((file) => {
+    form.thumbnails.push(file);
+    previews.thumbnails.push(URL.createObjectURL(file));
+  });
+
+  toast.success(`Đã thêm ${files.length} ảnh vào thư viện!`);
+};
+
+// Xóa ảnh thumbnail
+const removeThumbnail = (index) => {
+  URL.revokeObjectURL(previews.thumbnails[index]);
+  form.thumbnails.splice(index, 1);
+  previews.thumbnails.splice(index, 1);
+  toast.error("Đã xóa ảnh khỏi thư viện.");
+};
 const handleFileUpload = (event, type) => {
   const file = event.target.files[0];
   if (!file) return;

@@ -13,9 +13,10 @@
       </div>
       <button
         @click="$router.push('/admin/drones/add')"
-        class="cursor-pointer flex items-center gap-2 bg-teal-500 hover:bg-teal-600 text-slate-900 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-teal-500/20 active:scale-95"
+        class="cursor-pointer flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-teal-400 px-6 py-2.5 rounded-xl font-black transition-all shadow-xl shadow-slate-900/10 active:scale-95 border border-slate-800"
       >
-        <Plus :size="20" /> Thêm UAV mới
+        <Plus :size="20" class="text-white" />
+        <span class="tracking-tight text-white">THÊM UAV MỚI</span>
       </button>
     </div>
 

@@ -481,8 +481,52 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
   cancelAnimationFrame(animationId);
-  renderer?.dispose();
+
+  if (renderer) {
+    // 1. Dừng renderer
+    renderer.dispose();
+
+    // 2. Ép trình duyệt giải phóng context ngay lập tức
+    renderer.forceContextLoss();
+
+    // 3. Xóa DOM element để tránh memory leak
+    if (renderer.domElement && renderer.domElement.parentNode) {
+      renderer.domElement.parentNode.removeChild(renderer.domElement);
+    }
+
+    renderer = null;
+  }
+
+  if (labelRenderer && labelRenderer.domElement.parentNode) {
+    labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement);
+    labelRenderer = null;
+  }
+
+  // 4. Giải phóng toàn bộ Scene
+  if (scene) {
+    scene.traverse((object) => {
+      if (!object.isMesh) return;
+      object.geometry.dispose();
+      if (object.material.isMaterial) {
+        cleanMaterial(object.material);
+      } else {
+        for (const material of object.material) cleanMaterial(material);
+      }
+    });
+    scene.clear();
+    scene = null;
+  }
 });
+
+// Hàm phụ trợ để dọn dẹp Material (Texture ngốn rất nhiều RAM)
+const cleanMaterial = (material) => {
+  material.dispose();
+  for (const key of Object.keys(material)) {
+    if (material[key] && typeof material[key].dispose === "function") {
+      material[key].dispose();
+    }
+  }
+};
 </script>
 
 <style scoped>
