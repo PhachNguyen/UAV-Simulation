@@ -61,7 +61,7 @@ const routes = [
   {
     path: "/simulation",
     name: "Simulation",
-    component: () => import("../pages/DroneSimulator.vue"),
+    component: () => import("../components/UnityPlayer.vue"),
     meta: { hideHeaderFooter: true },
   },
   {
