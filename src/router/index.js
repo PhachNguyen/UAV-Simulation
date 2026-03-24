@@ -87,6 +87,11 @@ const routes = [
     component: ProductPage,
   },
   {
+    path: "/course",
+    name: "Course",
+    component: () => import("@/pages/Course.vue"),
+  },
+  {
     path: "/blog",
     name: "Blog",
     component: () => import("@/pages/Blog.vue"),
