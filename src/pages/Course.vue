@@ -1,5 +1,6 @@
 <template>
-  <div class="flex h-screen bg-slate-50 overflow-hidden font-sans">
+  <!-- h-screen : Set height component bằng với height màn hình -->
+  <div class="flex bg-slate-50 overflow-hidden font-sans">
     <CourseSidebar
       :is-collapsed="isSidebarCollapsed"
       :course-data="courseData"
@@ -8,13 +9,14 @@
       @select="handleSelectLesson"
     />
 
-    <main
-      ref="mainContent"
-      class="flex-1 overflow-y-auto custom-scrollbar bg-white flex justify-start pt-[10px] pl-[12px] scroll-smooth"
-    >
+    <main ref="mainContent" class="h-full flex-1 bg-white flex justify-center">
       <div
-        class="w-full transition-all duration-500 ease-in-out px-6 md:px-12 py-10"
-        :class="isSidebarCollapsed ? 'max-w-6xl' : 'max-w-4xl'"
+        class="w-full h-full transition-all duration-500 ease-in-out py-10"
+        :class="
+          isSidebarCollapsed
+            ? 'max-w-none px-4 md:px-20'
+            : 'max-w-5xl px-6 md:px-12'
+        "
       >
         <CourseDetail
           v-if="activeLesson"
@@ -23,13 +25,11 @@
         />
       </div>
     </main>
-
-    <!-- <CourseWidgets :downloads="downloadFiles" /> -->
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import CourseSidebar from "@/layout/CourseSidebar.vue";
 import CourseDetail from "@/components/CourseDetail.vue";
 import CourseWidgets from "@/components/CourseWidgets.vue";
@@ -64,4 +64,16 @@ const handleSelectLesson = (lesson) => {
     }
   }
 };
+// onMounted(() => {
+//   // Khi component được mount, ẩn scroll của cả trang
+//   document.documentElement.style.overflow = "hidden";
+//   // Nếu chắc chắn hơn, bạn có thể set cho cả body
+//   document.body.style.overflow = "hidden";
+// });
+
+// onUnmounted(() => {
+//   // QUAN TRỌNG: Khi rời khỏi trang, phải trả lại trạng thái cũ
+//   document.documentElement.style.overflow = "auto";
+//   document.body.style.overflow = "auto";
+// });
 </script>

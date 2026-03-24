@@ -49,6 +49,14 @@ const routes = [
         path: "drones/add",
         component: () => import("../pages/admin/AddDroneView.vue"),
       },
+      {
+        path: "course",
+        component: () => import("../pages/admin/AdminCourseManager.vue"),
+      },
+      {
+        path: "course/add",
+        component: () => import("../pages/admin/AdminAddLesson.vue"),
+      },
     ],
     meta: { hideHeaderFooter: true },
   },

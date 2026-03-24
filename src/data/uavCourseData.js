@@ -1,6 +1,6 @@
 export const courseData = [
   {
-    title: "Chương 1: Nhập môn UAV",
+    title: "Chương 1: Tổng quan",
     icon: "BookOpen",
     isOpen: true,
     lessons: [
@@ -19,7 +19,7 @@ export const courseData = [
     ],
   },
   {
-    title: "Chương 2: Phần cứng UAV",
+    title: "Chương 2: Cấu trúc về UAV",
     icon: "Cpu",
     isOpen: true,
     lessons: [
@@ -61,26 +61,81 @@ export const courseData = [
 // Chứa nội dung chi tiết cho từng ID bài học
 export const lessonContentMap = {
   // --- CHƯƠNG 1 ---
+  //    Chương 1 tổng quan sẽ là web tĩnh
   101: {
     id: 101,
     title: "UAV là gì? Phân loại và ứng dụng",
     instructor: "Phách Admin",
-    duration: "35",
-    notesCount: "8",
+    duration: "45", // Tăng thời gian vì nội dung dài hơn
+    notesCount: "15",
+    // Image
+    // images: [
+    //   "/public/img/phantom_drone 1.svg",
+    //   "/public/img/phantom_drone 1.svg",
+    // ],
     content: [
-      { type: "heading", text: "1. Định nghĩa UAV" },
+      {
+        type: "heading",
+        text: "1. Định nghĩa UAV: Hơn cả một chiếc máy bay đồ chơi",
+      },
       {
         type: "paragraph",
-        text: "UAV (Unmanned Aerial Vehicle) hay còn gọi là Drone, là thiết bị bay không người lái được điều khiển từ xa hoặc bay tự động theo lộ trình đã lập trình sẵn.",
+        text: "UAV (Unmanned Aerial Vehicle) – hay thường được gọi phổ biến là **Drone** – là thuật ngữ dùng để chỉ các loại phương tiện bay không người lái. Điểm khác biệt cốt lõi so với máy bay truyền thống là UAV không cần phi công ngồi trong buồng lái. Thay vào đó, chúng được vận hành thông qua các bộ điều khiển từ xa hoặc chạy bằng các hệ thống lập trình tự động dựa trên GPS và AI.",
       },
-      { type: "heading", text: "2. Phân loại theo cấu trúc" },
+      {
+        type: "image",
+        src: "/public/img/Drone cam tu.png", // Bỏ chữ /public
+        alt: "Mô phỏng DJI Phantom Drone",
+      },
+      {
+        type: "paragraph",
+        text: "Thuật ngữ 'Drone' thực chất bắt nguồn từ âm thanh tiếng rì rầm của loài ong đực, mô tả rất chính xác tiếng động phát ra từ các động cơ cánh quạt khi UAV vận hành. Ngày nay, UAV đã thoát ra khỏi cái bóng của một thiết bị quân sự để trở thành công cụ không thể thiếu trong đời sống dân dụng.",
+      },
+      {
+        type: "heading",
+        text: "2. Phân loại cấu trúc: Chọn đúng loại cho đúng việc",
+      },
+      {
+        type: "paragraph",
+        text: "Không phải mọi UAV đều giống nhau. Tùy vào mục đích sử dụng, chúng được chia thành 3 cấu trúc chính:",
+      },
+      {
+        type: "image",
+        src: "/public/img/Classification.jpg",
+        alt: "Phân loại các Drones",
+      },
       {
         type: "list",
         items: [
-          "**Fixed-wing:** Cánh cố định, bay đường dài hiệu quả nhưng cần đường băng.",
-          "**Rotary-wing:** Cánh quạt (Multicopter), linh hoạt, có thể đứng yên một chỗ.",
-          "**VTOL:** Sự kết hợp giữa cánh cố định và cất cánh thẳng đứng.",
+          "**Fixed-wing (Cánh cố định):** Có hình dáng như máy bay phản lực. Ưu điểm là thời gian bay cực dài (có thể lên tới 10-20 tiếng) và diện tích bao phủ lớn. Tuy nhiên, chúng cần đường băng để cất/hạ cánh và không thể đứng yên một chỗ.",
+          "**Rotary-wing (Cánh quạt/Multicopter):** Phổ biến nhất là Quadcopter (4 cánh). Đây là loại linh hoạt nhất, có khả năng cất cánh thẳng đứng, đứng yên (hover) để quay phim hoặc soi chiếu chi tiết. Nhược điểm lớn nhất là tiêu tốn nhiều năng lượng, thời gian bay thường chỉ từ 20-40 phút.",
+          "**VTOL (Vertical Take-Off and Landing):** 'Đứa con lai' hoàn hảo. Nó cất cánh thẳng đứng như trực thăng nhưng khi đạt độ cao nhất định, nó sẽ chuyển sang bay ngang như máy bay cánh cố định. Đây là xu hướng của tương lai trong vận chuyển hàng hóa.",
         ],
+      },
+      {
+        type: "heading",
+        text: "3. Ứng dụng thực tế: UAV đang thay đổi thế giới như thế nào?",
+      },
+      {
+        type: "paragraph",
+        text: "Hiện nay, ứng dụng của UAV không còn giới hạn ở việc quay phim (Cinematography). Chúng ta đang thấy sự bùng nổ trong các lĩnh vực:",
+      },
+      {
+        type: "list",
+        items: [
+          "**Nông nghiệp thông minh:** Phun thuốc trừ sâu tự động, sử dụng camera đa phổ để phân tích sức khỏe cây trồng từ trên cao.",
+          "**Tìm kiếm và Cứu nạn:** Sử dụng camera nhiệt để tìm người mất tích trong rừng sâu hoặc vùng thiên tai mà con người chưa thể tiếp cận.",
+          "**Xây dựng và Khảo sát:** Tạo bản đồ 3D độ chính xác cao cho các công trình xây dựng lớn hoặc khảo sát các đường dây điện cao thế.",
+          "**Vận tải (Delivery):** Các ông lớn như Amazon hay DHL đang thử nghiệm dùng Drone để giao kiện hàng nhỏ trực tiếp đến sân nhà khách hàng.",
+        ],
+      },
+      {
+        type: "heading",
+        text: "4. Kết luận",
+      },
+      {
+        type: "paragraph",
+        text: "Việc hiểu rõ định nghĩa và phân loại UAV là bước đệm quan trọng nhất để bạn bước chân vào ngành công nghiệp nghìn tỷ đô này. Trong bài học tiếp theo, chúng ta sẽ đi sâu vào nguyên lý giúp những khối kim loại và carbon này có thể thắng được trọng lực và bay lên trời.",
       },
     ],
   },

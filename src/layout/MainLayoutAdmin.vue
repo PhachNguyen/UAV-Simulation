@@ -155,6 +155,7 @@ const isSidebarOpen = ref(true);
 const menuItems = [
   { name: "Bảng điều khiển", path: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Quản lý UAV", path: "/admin/drones", icon: Box },
+  { name: "Quản lý bài giảng", path: "/admin/course", icon: Box },
 ];
 
 const currentPageName = computed(() => {

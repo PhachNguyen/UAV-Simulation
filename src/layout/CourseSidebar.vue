@@ -33,7 +33,7 @@
           v-show="!isCollapsed"
           @click="section.isOpen = !section.isOpen"
           style="cursor: pointer; margin-bottom: 12px"
-          class="w-full flex items-center justify-between mb-4 px-2 text-[10px] font-black uppercase text-slate-400 tracking-widest"
+          class="w-full flex items-center justify-between mb-4 px-2 text-[12px] font-black uppercase text-slate-900 tracking-widest"
         >
           {{ section.title }}
           <ChevronDown
