@@ -215,137 +215,171 @@
       <main
         class="flex-1 bg-[#F9FBFC] p-10 overflow-y-auto custom-scrollbar flex justify-center"
       >
-        <div class="w-full max-w-5xl space-y-12">
-          <div
-            class="bg-white rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-slate-100 flex items-center justify-between"
-          >
-            <div class="flex items-center gap-6">
-              <div class="relative group">
+        <div class="w-full max-w-7xl flex flex-col gap-8 animate-fade-in">
+          <div class="col-span-12 lg:col-span-8 space-y-10">
+            <div
+              class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100 flex items-center justify-between"
+            >
+              <div class="flex items-center gap-6">
                 <div
-                  class="w-16 h-16 rounded-[2rem] bg-slate-900 flex flex-col items-center justify-center text-white"
+                  class="w-14 h-14 rounded-2xl bg-slate-900 flex flex-col items-center justify-center text-white shadow-xl"
                 >
-                  <span
-                    class="text-[9px] font-black uppercase tracking-tighter opacity-40"
-                    >Chap</span
+                  <span class="text-[8px] font-black uppercase opacity-40"
+                    >ID</span
                   >
-                  <span class="text-2xl font-black italic leading-none">{{
-                    form.sectionIndex + 1
-                  }}</span>
+                  <span class="text-xl font-black italic">{{ form.id }}</span>
                 </div>
-                <div
-                  class="absolute -right-1 -top-1 w-5 h-5 bg-teal-500 rounded-full border-4 border-white"
-                ></div>
+                <div>
+                  <h4
+                    class="text-[10px] font-black uppercase tracking-[0.3em] text-teal-600 mb-1"
+                  >
+                    Chương {{ form.sectionIndex + 1 }}
+                  </h4>
+                  <p class="text-sm font-bold text-slate-800">
+                    {{ courseData[form.sectionIndex]?.title }}
+                  </p>
+                </div>
               </div>
-
-              <div>
-                <h4
-                  class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-1"
+              <div
+                class="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-2xl"
+              >
+                <Clock class="w-4 h-4 text-teal-500" />
+                <input
+                  v-model="form.duration"
+                  class="bg-transparent font-black w-10 text-center outline-none"
+                />
+                <span class="text-[10px] font-black uppercase text-slate-400"
+                  >Min</span
                 >
-                  Cấu trúc khóa học
-                </h4>
-                <p
-                  class="text-sm font-black text-slate-800 uppercase italic tracking-tight"
-                >
-                  {{ courseData[form.sectionIndex]?.title || "Chương mới" }}
-                </p>
               </div>
             </div>
 
-            <div class="flex gap-10 pr-4">
-              <div class="text-right">
-                <label
-                  class="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2"
-                  >Định danh ID</label
-                >
-                <input
-                  v-model="form.id"
-                  type="number"
-                  class="bg-transparent text-2xl font-black text-slate-900 outline-none w-20 text-right focus:text-teal-600 transition-colors border-b-2 border-transparent focus:border-teal-100"
+            <div class="space-y-4">
+              <textarea
+                v-model="form.title"
+                style="margin: 12px 0px"
+                placeholder="Tiêu đề bài giảng"
+                class="w-full bg-transparent text-4xl font-black text-slate-950 outline-none tracking-tight uppercase italic leading-tight resize-none"
+              ></textarea>
+
+              <div
+                class="relative bg-white rounded-[3rem] border border-slate-100 overflow-hidden shadow-2xl shadow-slate-200/40"
+              >
+                <QuillEditor
+                  v-model:content="form.content"
+                  contentType="html"
+                  theme="snow"
+                  class="min-h-[600px] border-none"
                 />
               </div>
-              <div class="text-right border-l border-slate-100 pl-10">
-                <label
-                  class="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2"
-                  >Thời lượng (m)</label
+            </div>
+          </div>
+
+          <div class="col-span-12 lg:col-span-4 space-y-8">
+            <section
+              class="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm sticky top-0"
+            >
+              <div class="flex items-center justify-between mb-6">
+                <h3
+                  class="font-black text-slate-800 text-[10px] uppercase tracking-[0.2em] flex items-center gap-2"
                 >
-                <div class="flex items-center justify-end gap-2">
-                  <input
-                    v-model="form.duration"
-                    class="bg-transparent text-2xl font-black text-slate-900 outline-none w-16 text-right focus:text-teal-600 transition-colors border-b-2 border-transparent focus:border-teal-100"
+                  <Box :size="16" class="text-teal-500" /> Mô hình 3D (.GLB)
+                </h3>
+                <Zap class="w-4 h-4 text-teal-400 animate-pulse" />
+              </div>
+
+              <div
+                class="h-96 bg-slate-900 rounded-[2rem] relative overflow-hidden flex items-center justify-center border-2 border-slate-800 shadow-inner group"
+              >
+                <template v-if="form.model3d">
+                  <Uav3DViewer
+                    ref="uavViewerRef"
+                    :admin="true"
+                    :modelSrc="form.model3d"
+                    @pick-coords="updateLatestHotspot"
                   />
-                  <Clock class="w-4 h-4 text-teal-400" />
+                  <div
+                    class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none"
+                  >
+                    <label
+                      class="bg-white/90 backdrop-blur text-slate-900 px-4 py-2 rounded-xl text-[10px] font-black cursor-pointer pointer-events-auto hover:bg-teal-400 transition-colors shadow-xl"
+                    >
+                      Thay đổi Model
+                      <input
+                        type="file"
+                        @change="handleModelUpload"
+                        class="hidden"
+                        accept=".glb"
+                      />
+                    </label>
+                  </div>
+                </template>
+
+                <div v-else class="text-center p-8">
+                  <div
+                    class="p-4 bg-slate-800 rounded-3xl inline-block mb-4 text-teal-400 shadow-lg"
+                  >
+                    <UploadCloud :size="32" />
+                  </div>
+                  <p
+                    class="text-white font-black text-xs uppercase tracking-widest"
+                  >
+                    Chưa có mô hình
+                  </p>
+                  <p class="text-slate-500 text-[9px] mt-2 mb-6">
+                    Học viên sẽ thấy mô hình này khi học bài này
+                  </p>
+                  <label
+                    class="px-6 py-3 bg-teal-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-teal-400 transition-all"
+                  >
+                    Tải lên ngay
+                    <input
+                      type="file"
+                      @change="handleModelUpload"
+                      class="hidden"
+                      accept=".glb"
+                    />
+                  </label>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div class="space-y-4 px-2">
-            <div class="flex items-center gap-3">
-              <div class="h-[2px] w-12 bg-teal-500 rounded-full"></div>
-              <span
-                style="margin: 12px 0px"
-                class="text-[10px] font-black uppercase tracking-[0.5em] text-teal-600 mb-1"
-                >Tiêu đề bài giảng</span
-              >
-              <div class="h-[2px] w-12 bg-teal-500 rounded-full"></div>
-            </div>
-            <textarea
-              v-model="form.title"
-              placeholder="Tiêu đề bài giảng"
-              style="margin: 18px 0px"
-              class="w-full bg-transparent text-3xl font-black text-slate-950 outline-none tracking-[calc(-0.04em)] uppercase leading-[0.85] resize-none placeholder:text-slate-100 focus:placeholder:opacity-0 transition-all"
-            ></textarea>
-          </div>
-
-          <div class="relative group">
-            <div class="absolute"></div>
-            <div
-              style="margin: 12px 0px"
-              class="text-[10px] font-black uppercase tracking-[0.5px] text-teal-600 mb-1"
-            >
-              Nội dung
-            </div>
-            <div
-              class="relative bg-white rounded-[3.5rem] border border-slate-100 overflow-hidden"
-            >
-              <QuillEditor
-                v-model:content="form.content"
-                contentType="html"
-                theme="snow"
-                toolbar="full"
-                placeholder="Bắt đầu viết nội dung chuyên sâu tại đây..."
-                class="min-h-[750px] border-none"
-              />
-            </div>
-          </div>
-
-          <div
-            class="flex justify-between items-center px-10 py-5 bg-white/50 rounded-3xl border border-slate-100 backdrop-blur-sm"
-          >
-            <div class="flex items-center gap-4">
-              <div class="flex items-center gap-2">
-                <div
-                  class="w-2 h-2 bg-teal-500 rounded-full animate-pulse"
-                ></div>
-                <span
-                  class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
-                  >Workspace Active</span
+              <div v-if="form.hotspots?.length > 0" class="mt-6 space-y-3">
+                <p
+                  class="text-[9px] font-black text-slate-400 uppercase tracking-widest"
                 >
+                  Điểm kỹ thuật đang gán:
+                </p>
+                <div
+                  v-for="(spot, idx) in form.hotspots"
+                  :key="idx"
+                  class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center"
+                >
+                  <span class="text-[10px] font-bold text-slate-600">{{
+                    spot.title || "Điểm chưa đặt tên"
+                  }}</span>
+                  <div class="flex gap-2">
+                    <span
+                      class="text-[8px] bg-white px-2 py-1 rounded border font-mono"
+                      >X:{{ spot.pos.x.toFixed(1) }}</span
+                    >
+                    <span
+                      class="text-[8px] bg-white px-2 py-1 rounded border font-mono"
+                      >Y:{{ spot.pos.y.toFixed(1) }}</span
+                    >
+                  </div>
+                </div>
               </div>
-              <span class="text-slate-200">|</span>
-              <span class="text-[10px] font-bold text-slate-400"
-                >Tự động lưu: 10:45 PM</span
+            </section>
+
+            <div
+              class="bg-teal-50/50 p-6 rounded-[2rem] border border-teal-100"
+            >
+              <p
+                class="text-[10px] text-teal-700 leading-relaxed font-bold italic"
               >
-            </div>
-            <div class="flex gap-6">
-              <span
-                class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
-              >
-                Ký tự:
-                <span class="text-slate-900">{{
-                  form.content?.length || 0
-                }}</span>
-              </span>
+                "Mô hình 3D giúp học viên hình dung rõ hơn về cấu tạo vật lý.
+                Hãy gán các tọa độ vào động cơ hoặc camera để minh họa."
+              </p>
             </div>
           </div>
         </div>
@@ -370,9 +404,33 @@ import {
   AlertCircle,
 } from "lucide-vue-next";
 import { QuillEditor } from "@vueup/vue-quill";
+import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import { courseData as rawData, lessonContentMap } from "@/data/uavCourseData";
+// Thêm vào cùng các ref khác
+const uavViewerRef = ref(null);
 
+// Hàm xử lý khi người dùng chọn file model cho bài học
+const handleModelUpload = (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Tạo URL tạm thời để hiển thị lên component 3D
+  const modelUrl = URL.createObjectURL(file);
+
+  // Lưu vào form của bài học hiện tại
+  form.value.model3d = modelUrl;
+
+  addToast("Đã cập nhật mô hình 3D cho bài giảng!");
+};
+
+// Hàm nhận tọa độ từ component 3D (nếu Phach muốn gán hotspot cho bài học)
+const updateLatestHotspot = (coords) => {
+  if (!form.value.hotspots) form.value.hotspots = [];
+
+  // Logic này tùy thuộc vào việc Phach muốn thêm điểm như thế nào
+  console.log("Tọa độ click trên 3D:", coords);
+};
 // --- STATE ---
 const courseData = ref(rawData);
 const expandedSections = ref([0]);
