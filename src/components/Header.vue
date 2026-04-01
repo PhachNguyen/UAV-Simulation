@@ -1,33 +1,31 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, h } from "vue";
-import { useRoute } from "vue-router"; // Thêm useRoute để quản lý trạng thái active
+import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useRoute } from "vue-router";
+import { useAuthStore } from "@/stores/auth"; // 1. Import store của bạn
 import {
   Search,
   ChevronDown,
   Bell,
   Radio,
   ArrowRight,
-  User,
-  Settings,
-  LogOut,
   UserPlus,
-  LogIn,
+  LogOut,
+  Settings,
+  User as UserIcon, // Đổi tên để tránh trùng với biến user
 } from "lucide-vue-next";
 
 const route = useRoute();
+const authStore = useAuthStore(); // 2. Khởi tạo store
 
 // --- Auth Logic ---
-const user = ref({
-  name: "PhachNguyen",
-  email: "phachnguyen@sky.link",
-  role: "Operator",
-  avatar: "OP",
-}); // Giả lập đã login
-// const isLoggedIn = computed(() => !!user.value);
-const isLoggedIn = computed(() => false); // Tạm thời luôn trả về true để hiển thị menu profile
+// 3. Sử dụng computed để tự động cập nhật UI khi trạng thái store thay đổi
+const isLoggedIn = computed(() => !!authStore.token);
+const user = computed(() => authStore.user);
+
 const logout = () => {
-  user.value = null;
+  authStore.logout(); // Gọi hàm logout từ store để xóa localStorage/token
   isProfileOpen.value = false;
+  // Có thể dùng router.push('/') để về trang chủ
 };
 
 // --- UI Logic ---
@@ -51,7 +49,7 @@ const navLinks = [
       {
         name: "Các vùng cấm bay",
         href: "/no-fly-zones",
-        desc: "Kiểm tra khu vực trước khi bay",
+        desc: "Kiểm tra khu vực",
       },
       {
         name: "Lập trình đường bay",
@@ -61,24 +59,8 @@ const navLinks = [
     ],
   },
   { name: "Sản Phẩm", href: "/products" },
-  // {
-  //   name: "Dữ liệu",
-  //   subLinks: [
-  //     {
-  //       name: "Lịch sử chuyến bay",
-  //       href: "/data/history",
-  //       desc: "Xem lại quỹ đạo bay",
-  //     },
-  //   ],
-  // },
-  {
-    name: "Blog",
-    href: "/blog",
-  },
-  { name: "Dịch vụ", href: "/services" },
   { name: "Mô phỏng lái", href: "/simulation" },
   { name: "Khóa học", href: "/course" },
-  // { name: "Cấu hình", href: "/settings" },
 ];
 </script>
 <template>
@@ -176,7 +158,7 @@ const navLinks = [
         </div>
 
         <div class="relative" ref="profileRef">
-          <template v-if="isLoggedIn">
+          <template v-if="isLoggedIn && user">
             <button
               @click="isProfileOpen = !isProfileOpen"
               class="flex items-center gap-2.5 pl-1.5 pr-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-full transition-all active:scale-95 shadow-md border border-slate-700/50"
@@ -185,11 +167,11 @@ const navLinks = [
               <div
                 class="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-[11px] font-black ring-2 ring-slate-800"
               >
-                {{ user.avatar }}
+                {{ userAvatar }}
               </div>
               <div class="flex flex-col items-start leading-none">
                 <span class="text-[11px] font-bold tracking-wide">{{
-                  user.name
+                  user.full_name
                 }}</span>
                 <span
                   class="text-[9px] text-teal-400 font-medium uppercase mt-0.5"
@@ -197,6 +179,32 @@ const navLinks = [
                 >
               </div>
             </button>
+
+            <div
+              v-if="isProfileOpen"
+              class="absolute top-full right-0 mt-2 w-48 bg-white shadow-xl rounded-xl border border-slate-100 p-1.5 z-[60]"
+            >
+              <router-link
+                to="/profile"
+                class="flex items-center gap-2 px-3 py-2 text-[13px] text-slate-600 hover:bg-slate-50 rounded-lg"
+              >
+                <UserIcon class="w-4 h-4" /> Hồ sơ
+              </router-link>
+              <router-link
+                v-if="user.role === 'instructor'"
+                to="/cms"
+                class="flex items-center gap-2 px-3 py-2 text-[13px] text-slate-600 hover:bg-slate-50 rounded-lg"
+              >
+                <Settings class="w-4 h-4" /> Quản trị
+              </router-link>
+              <hr class="my-1 border-slate-100" />
+              <button
+                @click="logout"
+                class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                <LogOut class="w-4 h-4" /> Đăng xuất
+              </button>
+            </div>
           </template>
 
           <div v-else class="flex items-center gap-1">

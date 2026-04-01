@@ -1,12 +1,58 @@
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { Eye, EyeOff, ArrowLeft } from "lucide-vue-next";
+import { useAuthStore } from "@/stores/auth"; // Import store của bạn
+import Swal from "sweetalert2";
+
+const router = useRouter();
+const authStore = useAuthStore();
+
 const email = ref("");
 const password = ref("");
 const rememberMe = ref(false);
 const showPassword = ref(false);
+const isLoading = ref(false); // Trạng thái chờ phản hồi BE
 
-const bgImage = "/public/img/Login.svg"; // Thay bằng ảnh của bạn
+const bgImage = "/public/img/Login.svg";
+
+const handleLogin = async () => {
+  // 1. Kiểm tra nhập liệu
+  if (!email.value || !password.value) {
+    return Swal.fire("Chú ý", "Vui lòng nhập email và mật khẩu!", "warning");
+  }
+
+  try {
+    isLoading.value = true;
+
+    // 2. Gọi hàm login từ Pinia Store
+    // Hàm này đã bao gồm việc lưu Token vào LocalStorage
+    const result = await authStore.login(email.value, password.value);
+
+    if (result.success) {
+      await Swal.fire({
+        icon: "success",
+        title: "Đăng nhập thành công!",
+        text: `Chào mừng trở lại, ${authStore.user.full_name}`,
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      // 3. Chuyển hướng dựa trên vai trò (ví dụ)
+      router.push("/");
+    } else {
+      Swal.fire(
+        "Lỗi",
+        result.message || "Tài khoản hoặc mật khẩu không đúng",
+        "error",
+      );
+    }
+  } catch (error) {
+    Swal.fire("Lỗi hệ thống", "Không thể kết nối tới Server!", "error");
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -55,7 +101,7 @@ const bgImage = "/public/img/Login.svg"; // Thay bằng ảnh của bạn
             Đăng nhập
           </h2>
 
-          <form @submit.prevent class="space-y-5">
+          <form @submit.prevent="handleLogin" class="space-y-5">
             <div>
               <label
                 class="block text-xs font-medium text-gray-950 ml-1"
