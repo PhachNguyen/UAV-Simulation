@@ -1,3 +1,180 @@
+<script setup>
+import { ref, computed, watch, onMounted } from "vue";
+import {
+  ArrowLeft,
+  LayoutDashboard,
+  ChevronDown,
+  Trash2,
+  XCircle,
+  Plus,
+  Play,
+  CheckCircle2,
+  AlertCircle,
+  Box,
+  UploadCloud,
+  Zap,
+} from "lucide-vue-next";
+import { QuillEditor } from "@vueup/vue-quill";
+import "@vueup/vue-quill/dist/vue-quill.snow.css";
+import {
+  courseData as rawData,
+  lessonContentMap as rawMap,
+} from "@/data/uavCourseData";
+
+// --- CẤU HÌNH & KHỞI TẠO ---
+const STORAGE_KEY = "uav_content_manager_data";
+
+// State chính: Ưu tiên lấy từ LocalStorage, nếu không có mới dùng file raw
+const courseData = ref([]);
+const lessonContentMap = ref({});
+const activeLessonId = ref(101); // Theo dõi bài học đang chọn
+const expandedSections = ref([0]);
+const toasts = ref([]);
+
+// --- LOGIC LƯU TRỮ (LOCALSTORAGE) ---
+const loadData = () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    courseData.value = parsed.courseData;
+    lessonContentMap.value = parsed.lessonContentMap;
+  } else {
+    courseData.value = rawData;
+    lessonContentMap.value = rawMap;
+  }
+};
+
+const saveData = () => {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      courseData: courseData.value,
+      lessonContentMap: lessonContentMap.value,
+    }),
+  );
+};
+
+// Tự động lưu mỗi khi có bất kỳ thay đổi nào trong dữ liệu
+watch([courseData, lessonContentMap], () => saveData(), { deep: true });
+
+onMounted(() => loadData());
+
+// --- COMPUTED (DỮ LIỆU ĐANG EDIT) ---
+// Form này sẽ luôn phản chiếu dữ liệu trong lessonContentMap theo activeLessonId
+const currentLesson = computed({
+  get: () => lessonContentMap.value[activeLessonId.value] || {},
+  set: (val) => {
+    lessonContentMap.value[activeLessonId.value] = val;
+  },
+});
+
+const stats = computed(() => ({
+  chapters: courseData.value.length,
+  lessons: courseData.value.reduce((acc, cur) => acc + cur.lessons.length, 0),
+}));
+
+// --- HỆ THỐNG THÔNG BÁO ---
+const addToast = (msg, type = "success") => {
+  const id = Date.now();
+  toasts.value.push({ id, msg, type });
+  setTimeout(() => {
+    toasts.value = toasts.value.filter((t) => t.id !== id);
+  }, 3000);
+};
+
+// --- QUẢN LÝ CHƯƠNG (CHAPTER) ---
+const toggleSection = (idx) => {
+  const pos = expandedSections.value.indexOf(idx);
+  pos > -1
+    ? expandedSections.value.splice(pos, 1)
+    : expandedSections.value.push(idx);
+};
+
+const addNewChapter = () => {
+  courseData.value.push({
+    title: "Chương mới chưa đặt tên",
+    lessons: [],
+  });
+  addToast("Đã khởi tạo chương mới!");
+};
+
+const deleteChapter = (idx) => {
+  if (
+    confirm("Bạn có chắc muốn xóa toàn bộ chương và các bài học bên trong?")
+  ) {
+    courseData.value.splice(idx, 1);
+    addToast("Đã xóa chương!", "error");
+  }
+};
+
+// --- QUẢN LÝ BÀI HỌC (LESSON) ---
+const selectLesson = (id) => {
+  activeLessonId.value = id;
+};
+const handlePublish = () => {
+  // 1. Kiểm tra điều kiện (Ví dụ: phải có tiêu đề)
+  if (!currentLesson.value.title) {
+    return addToast("Tiêu đề không được để trống!", "error");
+  }
+
+  // 2. Đồng bộ tiêu đề từ Editor sang danh sách Sidebar (nếu chưa tự đồng bộ)
+  const allLessons = courseData.value.flatMap((s) => s.lessons);
+  const lessonInSidebar = allLessons.find((l) => l.id === activeLessonId.value);
+
+  if (lessonInSidebar) {
+    lessonInSidebar.title = currentLesson.value.title;
+    lessonInSidebar.duration = currentLesson.value.duration;
+  }
+
+  // 3. Thực hiện lưu thủ công (Dù watch đã lưu, gọi lại lần nữa cho chắc)
+  saveData();
+
+  // 4. Thông báo cho người dùng
+  addToast("Dữ liệu đã được lưu vào trình duyệt!");
+};
+const addNewLesson = (sIdx) => {
+  const newId = Date.now();
+  const newLesson = {
+    id: newId,
+    title: "Bài học mới",
+    duration: "20",
+    content: "",
+  };
+
+  courseData.value[sIdx].lessons.push({
+    id: newId,
+    title: newLesson.title,
+    duration: newLesson.duration,
+  });
+
+  lessonContentMap.value[newId] = newLesson;
+  activeLessonId.value = newId;
+  addToast("Đã thêm bài giảng mới!");
+};
+
+const deleteLesson = (sIdx, lIdx, id) => {
+  if (confirm("Xóa bài giảng này?")) {
+    courseData.value[sIdx].lessons.splice(lIdx, 1);
+    delete lessonContentMap.value[id];
+    addToast("Đã xóa bài giảng!", "error");
+  }
+};
+
+const handlePublish = () => {
+  // Đồng bộ tiêu đề từ Editor sang Sidebar trước khi báo thành công
+  const lessonInSidebar = courseData.value
+    .flatMap((s) => s.lessons)
+    .find((l) => l.id === activeLessonId.value);
+
+  if (lessonInSidebar) {
+    lessonInSidebar.title = currentLesson.value.title;
+    lessonInSidebar.duration = currentLesson.value.duration;
+  }
+
+  addToast("Hệ thống đã được cập nhật thành công!");
+};
+</script>
+
 <template>
   <div
     class="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col relative"
@@ -10,7 +187,7 @@
       <div
         v-for="toast in toasts"
         :key="toast.id"
-        class="pointer-events-auto px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px] border border-white/20 animate-slide-in"
+        class="pointer-events-auto px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 min-w-[300px] border border-white/20"
         :class="
           toast.type === 'success'
             ? 'bg-teal-600 text-white'
@@ -30,7 +207,7 @@
     >
       <div class="flex items-center gap-4">
         <button
-          @click="$router.back()"
+          @click="$router?.back()"
           class="p-2 hover:bg-slate-100 rounded-full transition-colors"
         >
           <ArrowLeft class="w-5 h-5 text-slate-500" />
@@ -41,15 +218,12 @@
           <LayoutDashboard class="w-5 h-5 text-teal-600" /> QUẢN LÝ NỘI DUNG UAV
         </h1>
       </div>
-
-      <div class="flex gap-4">
-        <button
-          @click="handlePublish"
-          class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-teal-600 transition-all shadow-xl active:scale-95"
-        >
-          CẬP NHẬT HỆ THỐNG
-        </button>
-      </div>
+      <button
+        @click="handlePublish"
+        class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-teal-600 transition-all shadow-xl active:scale-95"
+      >
+        CẬP NHẬT HỆ THỐNG
+      </button>
     </header>
 
     <div class="flex-1 overflow-hidden flex">
@@ -67,11 +241,7 @@
               <p
                 class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter"
               >
-                {{ courseData.length }} Chương •
-                {{
-                  courseData.reduce((acc, cur) => acc + cur.lessons.length, 0)
-                }}
-                Bài giảng
+                {{ stats.chapters }} Chương • {{ stats.lessons }} Bài giảng
               </p>
             </div>
             <div
@@ -80,13 +250,11 @@
               <LayoutDashboard class="w-5 h-5 text-teal-600" />
             </div>
           </div>
-
           <button
             @click="addNewChapter"
-            class="w-full py-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50/30 transition-all group flex items-center justify-center gap-2"
+            class="w-full py-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:border-teal-500 hover:text-teal-600 transition-all flex items-center justify-center gap-2"
           >
-            <Plus class="w-4 h-4 group-hover:rotate-90 transition-transform" />
-            <span>Khởi tạo chương mới</span>
+            <Plus class="w-4 h-4" /> Khởi tạo chương mới
           </button>
         </div>
 
@@ -94,12 +262,9 @@
           <div
             v-for="(section, sIdx) in courseData"
             :key="sIdx"
-            style="margin-bottom: 12px"
-            class="group/section relative rounded-[2.5rem] border border-slate-100 transition-all duration-300 bg-white shadow-sm hover:shadow-md"
+            class="group/section relative rounded-[2.5rem] border border-slate-100 bg-white shadow-sm"
             :class="
-              expandedSections.includes(sIdx)
-                ? 'ring-2 ring-teal-500/5 border-teal-100'
-                : ''
+              expandedSections.includes(sIdx) ? 'ring-2 ring-teal-500/5' : ''
             "
           >
             <button
@@ -111,7 +276,7 @@
 
             <div
               @click="toggleSection(sIdx)"
-              class="p-6 flex items-center justify-between cursor-pointer transition-colors"
+              class="p-6 flex items-center justify-between cursor-pointer"
               :class="
                 expandedSections.includes(sIdx)
                   ? 'bg-slate-50/80 rounded-t-[2.5rem]'
@@ -120,7 +285,7 @@
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-200 font-black text-xs italic"
+                  class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg font-black text-xs italic"
                 >
                   {{ sIdx + 1 < 10 ? "0" + (sIdx + 1) : sIdx + 1 }}
                 </div>
@@ -128,14 +293,13 @@
                   <input
                     v-model="section.title"
                     @click.stop
-                    class="bg-transparent text-[11px] font-black uppercase tracking-tight text-slate-800 outline-none focus:text-teal-600 w-44"
+                    class="bg-transparent text-[11px] font-black uppercase text-slate-800 outline-none w-44"
                     placeholder="Tên chương..."
                   />
                   <span
                     class="text-[9px] font-bold text-slate-400 uppercase mt-0.5"
+                    >{{ section.lessons.length }} Bài giảng</span
                   >
-                    {{ section.lessons.length }} Bài giảng
-                  </span>
                 </div>
               </div>
               <ChevronDown
@@ -155,55 +319,43 @@
               <div
                 v-for="(lesson, lIdx) in section.lessons"
                 :key="lesson.id"
-                @click="loadLesson(lesson.id, sIdx)"
+                @click="selectLesson(lesson.id)"
                 :class="[
                   'group/item p-4 rounded-2xl cursor-pointer flex items-center justify-between transition-all relative overflow-hidden',
-                  form.id === lesson.id
+                  activeLessonId === lesson.id
                     ? 'bg-white shadow-md scale-[1.02] ring-1 ring-teal-500/10'
                     : 'hover:bg-white/60',
                 ]"
               >
                 <div
-                  v-if="form.id === lesson.id"
+                  v-if="activeLessonId === lesson.id"
                   class="absolute left-0 top-0 bottom-0 w-1 bg-teal-500"
                 ></div>
-
                 <div class="flex items-center gap-4 overflow-hidden">
                   <div
-                    class="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
+                    class="w-8 h-8 rounded-xl flex items-center justify-center"
                     :class="
-                      form.id === lesson.id
+                      activeLessonId === lesson.id
                         ? 'bg-teal-500 text-white'
-                        : 'bg-slate-100 text-slate-400 group-hover/item:bg-white'
+                        : 'bg-slate-100 text-slate-400'
                     "
                   >
                     <Play class="w-3 h-3 fill-current" />
                   </div>
-                  <span
-                    class="text-[11px] font-bold text-slate-600 truncate group-hover/item:text-slate-900"
-                  >
-                    {{ lesson.title }}
-                  </span>
+                  <span class="text-[11px] font-bold text-slate-600 truncate">{{
+                    lesson.title
+                  }}</span>
                 </div>
-
-                <div class="flex items-center gap-3">
-                  <span
-                    class="text-[9px] font-black text-slate-300 uppercase group-hover/item:hidden"
-                  >
-                    {{ lesson.duration }}m
-                  </span>
-                  <button
-                    @click.stop="deleteLesson(sIdx, lIdx, lesson.id)"
-                    class="hidden group-hover/item:flex w-6 h-6 items-center justify-center text-red-400 hover:text-red-600 transition-all"
-                  >
-                    <XCircle class="w-4 h-4" />
-                  </button>
-                </div>
+                <button
+                  @click.stop="deleteLesson(sIdx, lIdx, lesson.id)"
+                  class="hidden group-hover/item:flex text-red-400 hover:text-red-600"
+                >
+                  <XCircle class="w-4 h-4" />
+                </button>
               </div>
-
               <button
                 @click="addNewLesson(sIdx)"
-                class="w-full py-3 mt-4 text-[9px] font-black text-teal-600 uppercase hover:bg-teal-100/50 rounded-xl border border-dashed border-teal-200/50 transition-all"
+                class="w-full py-3 mt-4 text-[9px] font-black text-teal-600 uppercase hover:bg-teal-100/50 rounded-xl border border-dashed border-teal-200/50"
               >
                 + Soạn thảo bài mới
               </button>
@@ -224,14 +376,13 @@
                 <div class="h-[1px] w-8 bg-teal-500"></div>
                 <span
                   class="text-[10px] font-black uppercase tracking-[0.4em] text-teal-600"
-                  >Bài giảng số {{ form.id }}</span
+                  >Bài giảng ID: {{ activeLessonId }}</span
                 >
               </div>
               <textarea
-                v-model="form.title"
+                v-model="currentLesson.title"
                 placeholder="Tên bài giảng..."
-                style="margin-bottom: 20px"
-                class="w-full bg-transparent text-3xl font-black text-slate-900 outline-none tracking-tighter uppercase leading-tight resize-none placeholder:text-slate-100"
+                class="w-full bg-transparent text-3xl font-black text-slate-900 outline-none tracking-tighter uppercase leading-tight resize-none placeholder:text-slate-100 min-h-[80px]"
               ></textarea>
             </div>
 
@@ -239,7 +390,7 @@
               class="bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden shadow-xl shadow-slate-200/50"
             >
               <QuillEditor
-                v-model:content="form.content"
+                v-model:content="currentLesson.content"
                 contentType="html"
                 theme="snow"
                 class="min-h-[600px] border-none"
@@ -263,17 +414,11 @@
                   >
                   <div class="flex items-center gap-2">
                     <input
-                      v-model="form.duration"
+                      v-model="currentLesson.duration"
                       class="bg-transparent text-right font-black w-12 outline-none text-teal-400"
                     />
                     <span class="text-[10px] text-slate-500">phút</span>
                   </div>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-[10px] font-bold text-slate-400 uppercase"
-                    >Mã bài học</span
-                  >
-                  <span class="font-mono text-xs">#{{ form.id }}</span>
                 </div>
               </div>
             </div>
@@ -310,11 +455,17 @@
                   >Mẹo nhỏ</span
                 >
               </div>
+              <button
+                @click="handlePublish"
+                class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Lưu dữ liệu
+              </button>
               <p
                 class="text-[11px] text-teal-700/70 leading-relaxed font-medium"
               >
-                Bạn nên sử dụng hình ảnh chất lượng cao và mô hình 3D tối ưu hóa
-                (dưới 5MB) để học viên có trải nghiệm tốt nhất.
+                Sử dụng Auto-save: Mọi thay đổi của bạn sẽ được lưu tự động vào
+                trình duyệt.
               </p>
             </div>
           </div>
@@ -323,123 +474,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from "vue";
-import {
-  ArrowLeft,
-  LayoutDashboard,
-  ChevronDown,
-  Trash2,
-  XCircle,
-  BookOpen,
-  Cpu,
-  Zap,
-  Play,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-vue-next";
-import { QuillEditor } from "@vueup/vue-quill";
-import "@vueup/vue-quill/dist/vue-quill.snow.css";
-import { courseData as rawData, lessonContentMap } from "@/data/uavCourseData";
-
-// --- STATE ---
-const courseData = ref(rawData);
-const expandedSections = ref([0]);
-const toasts = ref([]);
-
-const form = ref({
-  id: 101,
-  sectionIndex: 0,
-  title: "UAV là gì? Phân loại và ứng dụng",
-  duration: "45",
-  content: lessonContentMap[101]?.content || "",
-});
-
-// --- HỆ THỐNG TOAST ---
-const addToast = (msg, type = "success") => {
-  const id = Date.now();
-  toasts.value.push({ id, msg, type });
-  setTimeout(() => {
-    toasts.value = toasts.value.filter((t) => t.id !== id);
-  }, 3000);
-};
-
-// --- LOGIC CHƯƠNG ---
-const toggleSection = (idx) => {
-  const currentIdx = expandedSections.value.indexOf(idx);
-  if (currentIdx > -1) expandedSections.value.splice(currentIdx, 1);
-  else expandedSections.value.push(idx);
-};
-
-const addNewChapter = () => {
-  courseData.value.push({
-    title: "Chương mới chưa đặt tên",
-    icon: "BookOpen",
-    isOpen: true,
-    lessons: [],
-  });
-  addToast("Đã thêm chương mới!");
-};
-
-const deleteChapter = (idx) => {
-  if (confirm("Bạn có chắc chắn muốn xóa toàn bộ chương này không?")) {
-    courseData.value.splice(idx, 1);
-    addToast("Đã xóa chương!", "error");
-  }
-};
-
-// --- LOGIC BÀI HỌC ---
-const loadLesson = (lessonId, sectionIdx) => {
-  const detailed = lessonContentMap[lessonId];
-  form.value = {
-    id: lessonId,
-    sectionIndex: sectionIdx,
-    title: detailed ? detailed.title : "Bài học mới",
-    duration: detailed ? detailed.duration : "20",
-    content: detailed ? detailed.content : "",
-  };
-  // addToast(`Đang sửa: ${form.value.title.substring(0, 15)}...`);
-};
-
-const addNewLesson = (sIdx) => {
-  const newId = Date.now().toString().slice(-4); // Tạo ID tạm
-  courseData.value[sIdx].lessons.push({
-    id: parseInt(newId),
-    title: "Bài học mới",
-    duration: "20",
-    completed: false,
-  });
-  loadLesson(parseInt(newId), sIdx);
-  addToast("Đã thêm bài học mới!");
-};
-
-const deleteLesson = (sIdx, lIdx, lessonId) => {
-  if (confirm("Xóa bài học này?")) {
-    courseData.value[sIdx].lessons.splice(lIdx, 1);
-    delete lessonContentMap[lessonId];
-    addToast("Đã xóa bài học!", "error");
-  }
-};
-
-const handlePublish = () => {
-  if (!form.value.title) return addToast("Thiếu tiêu đề bài học!", "error");
-
-  // Cập nhật dữ liệu vào Map (Giả lập lưu DB)
-  lessonContentMap[form.value.id] = { ...form.value };
-
-  // Cập nhật lại title ở sidebar
-  const lessonInSidebar = courseData.value[
-    form.value.sectionIndex
-  ].lessons.find((l) => l.id === form.value.id);
-  if (lessonInSidebar) {
-    lessonInSidebar.title = form.value.title;
-    lessonInSidebar.duration = form.value.duration;
-  }
-
-  addToast("Hệ thống đã được cập nhật!");
-};
-</script>
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {
@@ -450,7 +484,7 @@ const handlePublish = () => {
   border-radius: 10px;
 }
 
-/* Animation cho Toast */
+/* Transitions */
 .list-enter-active,
 .list-leave-active {
   transition: all 0.4s ease;
@@ -464,7 +498,7 @@ const handlePublish = () => {
   transform: scale(0.9);
 }
 
-/* Quill Styling */
+/* Quill Customization */
 :deep(.ql-toolbar.ql-snow) {
   border: none !important;
   background: #f8fafc;
