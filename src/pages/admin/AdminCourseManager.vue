@@ -766,8 +766,227 @@ const deleteLesson = (sIdx, lIdx, id) => {
               </div>
             </div>
           </section>
+          <section>
+            <div class="flex items-center gap-3 mb-6">
+              <div class="bg-emerald-100 p-2 rounded-lg text-emerald-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-800">
+                4. Cài đặt mô phỏng 2D
+              </h2>
+            </div>
+
+            <div
+              class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div>
+                  <label
+                    class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4"
+                    >Sơ đồ mạch logic (.SVG / .PDF)</label
+                  >
+                  <div
+                    class="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center text-gray-400 group hover:bg-gray-100 transition-all cursor-pointer"
+                  >
+                    <div
+                      class="bg-white p-4 rounded-2xl shadow-sm mb-4 group-hover:scale-110 transition-transform"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-8 w-8 text-emerald-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                    </div>
+                    <p class="font-bold text-gray-600 text-sm">
+                      Tải lên sơ đồ mạch
+                    </p>
+                    <p class="text-[10px] text-gray-400 mt-1 uppercase">
+                      Hỗ trợ định dạng vector sắc nét
+                    </p>
+                  </div>
+                </div>
+
+                <div class="space-y-6">
+                  <label
+                    class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4"
+                    >Thiết lập tham số mô phỏng</label
+                  >
+
+                  <div
+                    v-for="(toggle, index) in simulationSettings"
+                    :key="index"
+                    class="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                  >
+                    <span class="text-sm font-bold text-gray-700">{{
+                      toggle.label
+                    }}</span>
+                    <button
+                      @click="toggle.value = !toggle.value"
+                      :class="toggle.value ? 'bg-emerald-500' : 'bg-gray-300'"
+                      class="w-12 h-6 rounded-full relative transition-colors duration-300 focus:outline-none"
+                    >
+                      <div
+                        :class="
+                          toggle.value ? 'translate-x-6' : 'translate-x-1'
+                        "
+                        class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 shadow-sm"
+                      ></div>
+                    </button>
+                  </div>
+
+                  <div
+                    class="bg-cyan-50 border border-cyan-100 rounded-2xl p-5 flex gap-4"
+                  >
+                    <div class="bg-cyan-500 text-white p-1.5 rounded-lg h-fit">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <p class="text-[11px] text-cyan-700 leading-relaxed">
+                      <span class="font-bold block mb-0.5">Gợi ý:</span>
+                      Hãy gắn nhãn cho các điểm test (test points) trên sơ đồ để
+                      học viên dễ dàng thực hành đo đạc.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <div class="flex items-center gap-3 mb-6">
+              <div class="bg-emerald-100 p-2 rounded-lg text-emerald-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                  />
+                </svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-800">
+                5. Cài đặt xuất bản
+              </h2>
+            </div>
+
+            <div
+              class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8"
+            >
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                  <label
+                    class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1"
+                    >Trạng thái bài giảng</label
+                  >
+                  <div
+                    class="flex p-1.5 bg-gray-50 rounded-2xl border border-gray-100"
+                  >
+                    <button
+                      class="flex-1 py-3 px-4 rounded-xl text-[11px] font-black transition-all bg-white shadow-sm text-gray-500 border border-gray-100"
+                    >
+                      BẢN NHÁP
+                    </button>
+                    <button
+                      class="flex-1 py-3 px-4 rounded-xl text-[11px] font-black transition-all bg-emerald-700 text-white shadow-lg"
+                    >
+                      XUẤT BẢN NGAY
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    class="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1"
+                    >Đối tượng học viên</label
+                  >
+                  <div class="relative">
+                    <select
+                      class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 px-5 text-sm font-bold text-gray-700 appearance-none outline-none focus:ring-2 focus:ring-emerald-500"
+                    >
+                      <option>Tất cả</option>
+                      <option>Người đăng ký</option>
+                      <!-- <option>Nội bộ doanh nghiệp</option> -->
+                    </select>
+                    <ChevronDown
+                      class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <label class="flex items-start gap-3 cursor-pointer group mb-4">
+                <div
+                  class="mt-1 flex items-center justify-center w-5 h-5 border-2 border-gray-200 rounded-md group-hover:border-emerald-500 transition-colors"
+                >
+                  <input type="checkbox" class="hidden peer" />
+                  <CheckCircle2
+                    class="w-4 h-4 text-emerald-500 opacity-0 peer-checked:opacity-100 transition-opacity"
+                  />
+                </div>
+                <span class="text-xs font-bold text-gray-500 leading-normal"
+                  >Tôi xác nhận các nội dung kỹ thuật trong bài giảng này là
+                  chính xác và đã được kiểm duyệt.</span
+                >
+              </label>
+            </div>
+          </section>
         </div>
       </main>
+    </div>
+    <div
+      class="flex items-center justify-end gap-6 pt-8 border-t border-gray-100"
+    >
+      <button
+        class="text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors"
+      >
+        Hủy bỏ
+      </button>
+      <button
+        @click="handlePublish"
+        class="flex items-center gap-2 px-8 py-4 bg-emerald-800 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] hover:bg-emerald-700 transition-all shadow-xl active:scale-95"
+      >
+        <UploadCloud class="w-4 h-4" /> Lưu toàn bộ bài giảng
+      </button>
     </div>
   </div>
 </template>

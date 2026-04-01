@@ -1,15 +1,69 @@
 <script setup>
 import { ref } from "vue";
-import { Eye, EyeOff, User, Mail, Lock, ArrowLeft } from "lucide-vue-next";
+import { useRouter } from "vue-router";
+import { Eye, EyeOff, ArrowLeft } from "lucide-vue-next";
+import { useAuthStore } from "@/stores/auth"; // Import store của bạn
+import Swal from "sweetalert2"; // Để hiện thông báo đẹp
 
+const router = useRouter();
+const authStore = useAuthStore();
+
+// Form State
 const name = ref("");
 const email = ref("");
 const password = ref("");
 const confirmPassword = ref("");
 const showPassword = ref(false);
 const showConfirmPassword = ref(false);
+const isLoading = ref(false);
 
-const bgImage = "/public/img/Login.svg"; // Dùng chung ảnh cho đồng bộ
+const bgImage = "/public/img/Login.svg";
+
+// Hàm xử lý Đăng ký
+const handleRegister = async () => {
+  // 1. Kiểm tra nhập liệu cơ bản
+  if (!name.value || !email.value || !password.value) {
+    return Swal.fire("Chú ý", "Vui lòng điền đầy đủ các trường!", "warning");
+  }
+
+  // 2. Kiểm tra mật khẩu khớp nhau
+  if (password.value !== confirmPassword.value) {
+    return Swal.fire("Lỗi", "Mật khẩu xác nhận không khớp!", "error");
+  }
+
+  try {
+    isLoading.value = true;
+
+    // 3. Truyền dữ liệu lên BE thông qua Store
+    const result = await authStore.register({
+      full_name: name.value,
+      email: email.value,
+      password: password.value,
+      role: "student", // Mặc định role là student cho dự án UAV của Phach
+    });
+
+    if (result.success) {
+      await Swal.fire({
+        icon: "success",
+        title: "Đăng ký thành công!",
+        text: "Chào mừng bạn đến với hệ thống UAV",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      router.push("/login"); // Chuyển hướng sau khi đăng ký xong
+    } else {
+      Swal.fire("Lỗi", result.message || "Đăng ký thất bại", "error");
+    }
+  } catch (error) {
+    Swal.fire(
+      "Lỗi kết nối",
+      "Không thể gọi tới Backend, hãy kiểm tra Server!",
+      "error",
+    );
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -59,7 +113,7 @@ const bgImage = "/public/img/Login.svg"; // Dùng chung ảnh cho đồng bộ
           </p>
 
           <form
-            @submit.prevent
+            @submit.prevent="handleRegister"
             class="space-y-4"
             style="display: flex; flex-direction: column; gap: 10px"
           >

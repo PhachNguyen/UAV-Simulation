@@ -114,10 +114,12 @@ const bgImage = "/public/img/Login.svg"; // Thay bằng ảnh của bạn
                     class="absolute left-0 top-1 bg-white w-2 h-2 rounded-full transition-transform"
                   ></div>
                 </div>
-                <span class="ml-2 text-gray-600 font-medium">Remember me</span>
+                <span class="ml-2 text-gray-600 font-medium"
+                  >Nhớ tài khoản</span
+                >
               </label>
               <a href="#" class="text-blue-600 hover:underline font-medium"
-                >Forgot password?</a
+                >Quên mật khẩu?</a
               >
             </div>
 
