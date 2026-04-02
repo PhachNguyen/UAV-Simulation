@@ -29,8 +29,15 @@ const isLoading = ref(false);
 const fetchCourseData = async () => {
   try {
     const { data } = await api.get("/courses");
-    chapters.value = data;
-    // Tự động chọn bài đầu tiên nếu có
+    // Đảm bảo mỗi lesson đều có mảng hotspots để tránh lỗi v-for
+    chapters.value = data.map((chapter) => ({
+      ...chapter,
+      lessons: chapter.lessons.map((lesson) => ({
+        ...lesson,
+        hotspots: lesson.hotspots || [],
+      })),
+    }));
+
     if (chapters.value[0]?.lessons?.[0]) {
       activeLessonId.value = chapters.value[0].lessons[0]._id;
     }
@@ -153,8 +160,7 @@ const removeSection = async (index, sectionId) => {
 const handlePublish = async () => {
   try {
     isLoading.value = true;
-    console.log("🚀 Bắt đầu quá trình đồng bộ dữ liệu...");
-
+    // Duyệt qua từng chương
     for (const chapter of chapters.value) {
       let cId = chapter._id;
 
@@ -165,7 +171,7 @@ const handlePublish = async () => {
           order: chapter.order,
         });
         cId = res.data._id;
-        chapter._id = cId; // Cập nhật lại ID thật cho local
+        chapter._id = cId;
       } else {
         await api.put(`/courses/${cId}`, {
           title: chapter.title,
@@ -175,46 +181,43 @@ const handlePublish = async () => {
 
       // --- B. XỬ LÝ LESSONS ---
       for (const lesson of chapter.lessons) {
-        const lessonData = {
+        let lId = lesson._id; // Khai báo lId tại đây
+        const lessonPayload = {
           title: lesson.title,
           order: lesson.order,
-          model3DPath: lesson.model3DPath, // Mới thêm
-          hotspots: lesson.hotspots, // Mới thêm
+          model3DPath: lesson.model3DPath, // Truyền path 3D lên BE
+          hotspots: lesson.hotspots, // Truyền mảng tọa độ lên BE
         };
 
         if (String(lId).startsWith("temp_")) {
-          const res = await api.post(`/courses/${cId}/lessons`, lessonData);
+          const res = await api.post(`/courses/${cId}/lessons`, lessonPayload);
           lId = res.data._id;
           lesson._id = lId;
         } else {
-          await api.put(`/courses/lessons/${lId}`, lessonData);
+          await api.put(`/courses/lessons/${lId}`, lessonPayload);
         }
 
         // --- C. XỬ LÝ SECTIONS ---
         for (const section of lesson.sections) {
-          // Chỉ lấy dữ liệu sạch, không gửi _id tạm hoặc _id thật trong body
           const { _id, ...cleanData } = section;
-
           if (String(section._id).startsWith("temp_")) {
-            console.log(`+ Tạo mới Section: ${section.title}`);
             const res = await api.post(
               `/courses/lessons/${lId}/sections`,
               cleanData,
             );
-            section._id = res.data._id; // Gán lại ID thật để lần sau nó rơi vào nhánh Update
+            section._id = res.data._id;
           } else {
-            console.log(`~ Cập nhật Section: ${section.title}`);
             await api.put(`/courses/sections/${section._id}`, cleanData);
           }
         }
-      }
-    }
+      } // Đóng vòng lặp lesson
+    } // Đóng vòng lặp chapter
 
     addToast("Tất cả thay đổi đã được lưu vĩnh viễn!");
-    await fetchCourseData(); // Tải lại cây dữ liệu để đồng bộ hoàn toàn
+    await fetchCourseData();
   } catch (error) {
     console.error("❌ Lỗi hệ thống:", error.response?.data || error.message);
-    addToast("Lỗi khi đồng bộ! Kiểm tra Console.", "error");
+    addToast("Lỗi khi đồng bộ!", "error");
   } finally {
     isLoading.value = false;
   }
@@ -247,59 +250,60 @@ const isPickingLocation = ref(false); // Trạng thái đang chọn tọa độ 
 const uavViewerRef = ref(null); // Ref để gọi hàm của component con
 
 const removeHotspot = (index) => {
-  // 1. Lấy ID của điểm sắp xóa (thường là index + 1)
-  const targetId = form.hotspots[index].id;
+  if (!currentLesson.value) return;
 
-  // 2. Gọi hàm xóa bên trong Component 3D
+  const targetId = currentLesson.value.hotspots[index].id;
   if (uavViewerRef.value) {
     uavViewerRef.value.removeMarkerById(targetId);
   }
-
-  // 3. Xóa khỏi mảng dữ liệu của Form
-  form.hotspots.splice(index, 1);
-
-  // 4. (Tùy chọn) Cập nhật lại ID cho các điểm còn lại để số thứ tự luôn liên tục
-  form.hotspots.forEach((spot, idx) => {
-    const oldId = spot.id;
-    spot.id = idx + 1;
-    // Nếu muốn marker trên 3D cũng đổi số theo
-    toast.error(`Xóa tọa độ thành công.`);
-  });
+  currentLesson.value.hotspots.splice(index, 1);
 };
 // Hàm khi bấm nút "Thêm điểm"
 const addHotspot = () => {
+  if (!currentLesson.value) return;
+
   isPickingLocation.value = true;
 
-  // Tạo một điểm mới với tọa độ tạm thời là 0,0,0
-  form.hotspots.push({
-    id: form.hotspots.length + 1,
+  // Thêm trực tiếp vào bài giảng hiện tại thay vì dùng biến 'form'
+  currentLesson.value.hotspots.push({
+    id: currentLesson.value.hotspots.length + 1,
     pos: { x: 0, y: 0, z: 0 },
-    title: "",
+    title: "Điểm mới",
     desc: "",
   });
 
-  // Thông báo cho người dùng click vào bản đồ 3D để chọn vị trí
-  toast.success(" Thêm tọa độ thành công", {
-    position: "top-right", // Hiển thị ở giữa trên cùng cho dễ thấy
-    timeout: 4000, // Tự tắt sau 4 giây
-    closeOnClick: true,
-    pauseOnHover: true,
-  });
+  addToast("Click vào mô hình để chọn vị trí", "success");
 };
+
+// Cập nhật tọa độ khi click trên mô hình
+// const updateLatestHotspot = (coords) => {
+//   if (!isPickingLocation.value || !currentLesson.value) return;
+
+//   const spots = currentLesson.value.hotspots;
+//   if (spots.length > 0) {
+//     const lastIndex = spots.length - 1;
+//     spots[lastIndex].pos = {
+//       x: Number(coords.x),
+//       y: Number(coords.y),
+//       z: Number(coords.z),
+//     };
+//   }
+// };
 // Hàm nhận tọa độ từ Uav3DViewer gửi ra
 // Trong AddDroneView.vue
 const updateLatestHotspot = (coords) => {
-  if (!isPickingLocation.value) return; // Nếu không đang ở trạng thái chọn tọa độ thì bỏ qua
-  if (form.hotspots.length === 0) return; // Nếu không có điểm nào trong mảng thì cũng bỏ qua
-  // Lấy hotspot cuối cùng vừa được thêm
-  if (form.hotspots.length > 0) {
-    const lastIndex = form.hotspots.length - 1;
-    form.hotspots[lastIndex].pos = {
+  if (!isPickingLocation.value || !currentLesson.value) return;
+
+  const spots = currentLesson.value.hotspots;
+  if (spots && spots.length > 0) {
+    const lastIndex = spots.length - 1;
+    // Cập nhật tọa độ cho điểm cuối cùng vừa thêm
+    spots[lastIndex].pos = {
       x: Number(coords.x),
       y: Number(coords.y),
       z: Number(coords.z),
     };
-    console.log("Đã cập nhật tọa độ vào form:", form.hotspots[lastIndex].pos);
+    console.log("Tọa độ mới:", spots[lastIndex].pos);
   }
 };
 const form = reactive({
@@ -341,18 +345,31 @@ const removeThumbnail = (index) => {
   previews.thumbnails.splice(index, 1);
   toast.error("Đã xóa ảnh khỏi thư viện.");
 };
-const handleFileUpload = (event, type) => {
+const handleFileUpload = async (event, type) => {
   const file = event.target.files[0];
-  if (!file) return;
+  if (!file || !currentLesson.value) return;
 
-  // 1. Lưu file vào form để sau này gửi lên server (API)
-  form[type] = file;
+  // 1. Nếu là mô hình 3D, ta upload lên server luôn để lấy URL
+  if (type === "model3d") {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  // 2. Tạo URL tạm thời để xem preview
-  if (previews[type]) {
-    URL.revokeObjectURL(previews[type]); // Giải phóng bộ nhớ cũ
+    try {
+      isLoading.value = true;
+      const { data } = await api.post("/courses/upload", formData);
+
+      // Cập nhật đường dẫn vào lesson hiện tại
+      currentLesson.value.model3DPath = data.url;
+      // Cập nhật preview (nhớ cộng domain backend nếu cần)
+      previews.model3d = `http://localhost:5000${data.url}`;
+
+      addToast("Đã tải lên mô hình 3D");
+    } catch (error) {
+      addToast("Lỗi upload!", "error");
+    } finally {
+      isLoading.value = false;
+    }
   }
-  previews[type] = URL.createObjectURL(file);
 };
 
 const handleSave = async () => {
@@ -620,7 +637,7 @@ const handleSave = async () => {
               </div>
 
               <div
-                v-if="form.hotspots.length === 0"
+                v-if="currentLesson.hotspots.length === 0"
                 class="py-10 text-center border-2 border-dashed border-slate-100 rounded-3xl"
               >
                 <p class="text-sm text-slate-400 italic">
@@ -630,7 +647,7 @@ const handleSave = async () => {
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div
-                  v-for="(spot, index) in form.hotspots"
+                  v-for="(spot, index) in currentLesson.hotspots"
                   :key="index"
                   class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 relative group transition-all hover:border-teal-200"
                 >
@@ -692,13 +709,17 @@ const handleSave = async () => {
               <div
                 class="h-80 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-slate-800 shadow-inner group"
               >
-                <template v-if="previews.model3d">
+                <template v-if="currentLesson.model3DPath">
                   <Uav3DViewer
                     ref="uavViewerRef"
                     :admin="true"
-                    :modelSrc="previews.model3d"
+                    :modelSrc="
+                      'http://localhost:5000' + currentLesson.model3DPath
+                    "
                     :currentMarkerId="
-                      form.hotspots.length > 0 ? form.hotspots.length : 0
+                      currentLesson.hotspots.length > 0
+                        ? currentLesson.hotspots.length
+                        : 0
                     "
                     @pick-coords="updateLatestHotspot"
                   />
