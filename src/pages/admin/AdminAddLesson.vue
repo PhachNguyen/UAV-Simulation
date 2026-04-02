@@ -71,17 +71,55 @@ const addNewChapter = () => {
   addToast("Đã thêm chương tạm thời");
 };
 
+// --- Cập nhật hàm tạo Lesson mới ---
 const addNewLesson = (cIdx) => {
+  const newId = `temp_${Date.now()}`;
   const newLesson = {
-    _id: `temp_${Date.now()}`,
+    _id: newId,
     title: "Bài giảng mới",
     order: chapters.value[cIdx].lessons.length + 1,
-    sections: [],
+    // DỮ LIỆU 3D ĐƯỢC ĐẶT Ở ĐÂY
+    model3DPath: null,
+    hotspots: [],
+    sections: [], // Các khối văn bản bên trong
   };
   chapters.value[cIdx].lessons.push(newLesson);
-  activeLessonId.value = newLesson._id;
+  activeLessonId.value = newId;
 };
 
+// --- Logic xử lý Hotspot cho Lesson đang chọn ---
+const addHotspotToLesson = () => {
+  if (!currentLesson.value) return;
+  if (!currentLesson.value.hotspots) currentLesson.value.hotspots = [];
+
+  currentLesson.value.hotspots.push({
+    id: currentLesson.value.hotspots.length + 1,
+    title: "Linh kiện mới",
+    desc: "",
+    pos: { x: 0, y: 0, z: 0 },
+  });
+  addToast("Đã thêm điểm chạm, hãy click vào Model để lấy tọa độ", "success");
+};
+
+// --- Hàm Upload File 3D cho Lesson ---
+const handleLesson3DUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file || !currentLesson.value) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    isLoading.value = true;
+    const { data } = await api.post("/courses/upload", formData);
+    currentLesson.value.model3DPath = data.url;
+    addToast("Tải lên mô hình thành công!");
+  } catch (error) {
+    addToast("Lỗi upload 3D", "error");
+  } finally {
+    isLoading.value = false;
+  }
+};
 const addSection = (type) => {
   if (!currentLesson.value) return;
   const newSection = {
@@ -137,20 +175,19 @@ const handlePublish = async () => {
 
       // --- B. XỬ LÝ LESSONS ---
       for (const lesson of chapter.lessons) {
-        let lId = lesson._id;
+        const lessonData = {
+          title: lesson.title,
+          order: lesson.order,
+          model3DPath: lesson.model3DPath, // Mới thêm
+          hotspots: lesson.hotspots, // Mới thêm
+        };
+
         if (String(lId).startsWith("temp_")) {
-          const res = await api.post(`/courses/${cId}/lessons`, {
-            title: lesson.title,
-            order: lesson.order,
-          });
+          const res = await api.post(`/courses/${cId}/lessons`, lessonData);
           lId = res.data._id;
           lesson._id = lId;
         } else {
-          // Cập nhật tên bài giảng nếu có thay đổi
-          await api.put(`/courses/lessons/${lId}`, {
-            title: lesson.title,
-            order: lesson.order,
-          });
+          await api.put(`/courses/lessons/${lId}`, lessonData);
         }
 
         // --- C. XỬ LÝ SECTIONS ---
@@ -197,6 +234,137 @@ const toggleSection = (idx) => {
   pos > -1
     ? expandedSections.value.splice(pos, 1)
     : expandedSections.value.push(idx);
+};
+
+//  HOTSPOTS CHO MÔ HÌNH 3D
+
+import { useToast } from "vue-toastification";
+// Đừng quên import component 3D của bạn để xem preview
+import Uav3DViewer from "@/components/Uav3DViewer.vue";
+import { reactive } from "vue";
+const toast = useToast();
+const isPickingLocation = ref(false); // Trạng thái đang chọn tọa độ trên bản đồ 3D
+const uavViewerRef = ref(null); // Ref để gọi hàm của component con
+
+const removeHotspot = (index) => {
+  // 1. Lấy ID của điểm sắp xóa (thường là index + 1)
+  const targetId = form.hotspots[index].id;
+
+  // 2. Gọi hàm xóa bên trong Component 3D
+  if (uavViewerRef.value) {
+    uavViewerRef.value.removeMarkerById(targetId);
+  }
+
+  // 3. Xóa khỏi mảng dữ liệu của Form
+  form.hotspots.splice(index, 1);
+
+  // 4. (Tùy chọn) Cập nhật lại ID cho các điểm còn lại để số thứ tự luôn liên tục
+  form.hotspots.forEach((spot, idx) => {
+    const oldId = spot.id;
+    spot.id = idx + 1;
+    // Nếu muốn marker trên 3D cũng đổi số theo
+    toast.error(`Xóa tọa độ thành công.`);
+  });
+};
+// Hàm khi bấm nút "Thêm điểm"
+const addHotspot = () => {
+  isPickingLocation.value = true;
+
+  // Tạo một điểm mới với tọa độ tạm thời là 0,0,0
+  form.hotspots.push({
+    id: form.hotspots.length + 1,
+    pos: { x: 0, y: 0, z: 0 },
+    title: "",
+    desc: "",
+  });
+
+  // Thông báo cho người dùng click vào bản đồ 3D để chọn vị trí
+  toast.success(" Thêm tọa độ thành công", {
+    position: "top-right", // Hiển thị ở giữa trên cùng cho dễ thấy
+    timeout: 4000, // Tự tắt sau 4 giây
+    closeOnClick: true,
+    pauseOnHover: true,
+  });
+};
+// Hàm nhận tọa độ từ Uav3DViewer gửi ra
+// Trong AddDroneView.vue
+const updateLatestHotspot = (coords) => {
+  if (!isPickingLocation.value) return; // Nếu không đang ở trạng thái chọn tọa độ thì bỏ qua
+  if (form.hotspots.length === 0) return; // Nếu không có điểm nào trong mảng thì cũng bỏ qua
+  // Lấy hotspot cuối cùng vừa được thêm
+  if (form.hotspots.length > 0) {
+    const lastIndex = form.hotspots.length - 1;
+    form.hotspots[lastIndex].pos = {
+      x: Number(coords.x),
+      y: Number(coords.y),
+      z: Number(coords.z),
+    };
+    console.log("Đã cập nhật tọa độ vào form:", form.hotspots[lastIndex].pos);
+  }
+};
+const form = reactive({
+  name: "",
+  description: "",
+  category: "",
+  image: null, // Lưu file thực tế
+  model3d: null, // Lưu file thực tế
+  scale: 15,
+  hotspots: [],
+  thumbnails: [], // Lưu File thực tế
+  video: null, // Lưu File video thực tế
+});
+
+// Chứa link tạm thời để hiển thị Preview
+const previews = reactive({
+  image: null,
+  model3d: null,
+  thumbnails: [], // Lưu URL tạm thời cho ảnh thư viện
+  video: null, // Lưu URL tạm thời cho video
+});
+// Hàm xử lý upload nhiều ảnh cùng lúc
+const handleMultipleImages = (event) => {
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
+
+  files.forEach((file) => {
+    form.thumbnails.push(file);
+    previews.thumbnails.push(URL.createObjectURL(file));
+  });
+
+  toast.success(`Đã thêm ${files.length} ảnh vào thư viện!`);
+};
+
+// Xóa ảnh thumbnail
+const removeThumbnail = (index) => {
+  URL.revokeObjectURL(previews.thumbnails[index]);
+  form.thumbnails.splice(index, 1);
+  previews.thumbnails.splice(index, 1);
+  toast.error("Đã xóa ảnh khỏi thư viện.");
+};
+const handleFileUpload = (event, type) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // 1. Lưu file vào form để sau này gửi lên server (API)
+  form[type] = file;
+
+  // 2. Tạo URL tạm thời để xem preview
+  if (previews[type]) {
+    URL.revokeObjectURL(previews[type]); // Giải phóng bộ nhớ cũ
+  }
+  previews[type] = URL.createObjectURL(file);
+};
+
+const handleSave = async () => {
+  // Khi gửi lên C# Backend, Phách phải dùng FormData thay vì JSON thông thường
+  const formData = new FormData();
+  formData.append("name", form.name);
+  formData.append("imageFile", form.image); // Gửi file
+  formData.append("modelFile", form.model3d); // Gửi file
+  // ... append các trường khác
+
+  console.log("Sẵn sàng gửi FormData lên API...");
+  toast.success("Đã lưu thiết bị mới!");
 };
 </script>
 <template>
@@ -246,7 +414,7 @@ const toggleSection = (idx) => {
     </header>
 
     <div class="flex-1 overflow-hidden flex">
-      <aside class="w-[360px] border-r border-slate-200 bg-white flex flex-col">
+      <aside class="w-[260px] border-r border-slate-200 bg-white flex flex-col">
         <div class="p-8 border-b border-slate-100 bg-slate-50/50">
           <h3
             class="text-[10px] font-black uppercase tracking-[0.2em] text-teal-600"
@@ -372,13 +540,13 @@ const toggleSection = (idx) => {
                   @click="addSection('text')"
                   class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black hover:bg-slate-50"
                 >
-                  + VĂN BẢN
+                  Thêm chương
                 </button>
                 <button
                   @click="addSection('3d')"
                   class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black hover:bg-slate-50"
                 >
-                  + MÔ HÌNH 3D
+                  Thêm ảnh
                 </button>
               </div>
             </div>
@@ -423,20 +591,159 @@ const toggleSection = (idx) => {
                     placeholder="Nhập nội dung kiến thức chi tiết tại đây..."
                   />
                 </div>
-
-                <div v-else class="text-center py-8">
-                  <div
-                    class="aspect-video bg-slate-900 rounded-2xl flex flex-col items-center justify-center text-teal-500 gap-3 border border-slate-800"
-                  >
-                    <Box class="w-12 h-12 opacity-50" />
-                    <span class="font-bold tracking-widest text-xs"
-                      >3D PREVIEW ENGINE ACTIVE</span
-                    >
-                  </div>
-                </div>
               </div>
             </div>
           </section>
+          <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+            <Zap class="text-amber-500" /> 3. Tọa độ & Mô hình 3D
+          </h2>
+          <div class="flex gap-6 items-start">
+            <!-- Gán tọa độ -->
+            <section
+              class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"
+            >
+              <div
+                class="flex justify-between items-center border-b border-slate-50 pb-4"
+              >
+                <h3
+                  class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2"
+                >
+                  <MapPin :size="16" class="text-teal-500" /> Gán tọa độ cho mô
+                  hình
+                </h3>
+                <button
+                  @click="addHotspot"
+                  class="text-[10px] font-black uppercase bg-teal-50 text-teal-700 px-4 py-2 rounded-xl hover:bg-teal-100 transition-colors"
+                >
+                  + Thêm điểm
+                </button>
+              </div>
+
+              <div
+                v-if="form.hotspots.length === 0"
+                class="py-10 text-center border-2 border-dashed border-slate-100 rounded-3xl"
+              >
+                <p class="text-sm text-slate-400 italic">
+                  Chưa có điểm nào. Nhấn nút thêm để bắt đầu chọn tọa độ.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                  v-for="(spot, index) in form.hotspots"
+                  :key="index"
+                  class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 relative group transition-all hover:border-teal-200"
+                >
+                  <button
+                    @click="removeHotspot(index)"
+                    class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  >
+                    <Trash2 :size="16" />
+                  </button>
+                  <div class="flex items-center gap-2 mb-2">
+                    <span
+                      class="w-6 h-6 bg-teal-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                      >{{ index + 1 }}</span
+                    >
+                    <input
+                      v-model="spot.title"
+                      placeholder="Tiêu đề điểm..."
+                      class="bg-transparent font-bold text-sm outline-none border-b border-transparent focus:border-teal-300 w-full"
+                    />
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <div
+                      class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                    >
+                      <span class="text-slate-400">X:</span>
+                      {{ spot.pos.x.toFixed(2) }}
+                    </div>
+                    <div
+                      class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                    >
+                      <span class="text-slate-400">Y:</span>
+                      {{ spot.pos.y.toFixed(2) }}
+                    </div>
+                    <div
+                      class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                    >
+                      <span class="text-slate-400">Z:</span>
+                      {{ spot.pos.z.toFixed(2) }}
+                    </div>
+                  </div>
+                  <textarea
+                    v-model="spot.desc"
+                    placeholder="Mô tả kỹ thuật..."
+                    rows="2"
+                    class="w-full p-2.5 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:border-teal-300 resize-none"
+                  ></textarea>
+                </div>
+              </div>
+            </section>
+            <!-- Mô hình 3D -->
+            <section
+              class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex-1"
+            >
+              <h3
+                class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-slate-50 pb-4"
+              >
+                <Box :size="16" class="text-teal-500" /> Mô hình 3D (.GLB)
+              </h3>
+              <div
+                class="h-80 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-slate-800 shadow-inner group"
+              >
+                <template v-if="previews.model3d">
+                  <Uav3DViewer
+                    ref="uavViewerRef"
+                    :admin="true"
+                    :modelSrc="previews.model3d"
+                    :currentMarkerId="
+                      form.hotspots.length > 0 ? form.hotspots.length : 0
+                    "
+                    @pick-coords="updateLatestHotspot"
+                  />
+                  <div
+                    class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none"
+                  >
+                    <div
+                      class="bg-black/50 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest"
+                    >
+                      Preview Mode
+                    </div>
+                    <label
+                      class="bg-white text-slate-900 px-4 py-1.5 rounded-lg text-[10px] font-black cursor-pointer pointer-events-auto hover:bg-teal-400 transition-colors shadow-xl"
+                    >
+                      Thay đổi model
+                      <input
+                        type="file"
+                        @change="handleFileUpload($event, 'model3d')"
+                        class="hidden"
+                        accept=".glb"
+                      />
+                    </label>
+                  </div>
+                </template>
+
+                <div v-else class="text-center">
+                  <div
+                    class="p-4 bg-slate-800 rounded-full inline-block mb-3 text-teal-400 shadow-lg"
+                  >
+                    <UploadCloud :size="32" />
+                  </div>
+                  <p class="text-white font-bold text-sm">Chưa có mô hình 3D</p>
+                  <p class="text-slate-500 text-[10px] mt-1">
+                    Hỗ trợ định dạng .GLB
+                  </p>
+                  <input
+                    type="file"
+                    @change="handleFileUpload($event, 'model3d')"
+                    class="absolute inset-0 opacity-0 cursor-pointer"
+                    accept=".glb"
+                  />
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
       </main>
 
