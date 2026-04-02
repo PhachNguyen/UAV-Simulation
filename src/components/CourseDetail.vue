@@ -1,59 +1,46 @@
 <template>
   <section v-if="lesson" class="w-full">
     <div class="w-full">
-      <!-- Header -->
       <header class="mb-8">
         <h1
           class="text-4xl font-black text-slate-950 leading-tight mb-3 tracking-tighter uppercase"
         >
           {{ lesson.title }}
         </h1>
+        <div class="h-1 w-20 bg-teal-500 rounded-full"></div>
       </header>
-      <!-- Nội dung -->
-      <div class="space-y-6 mt-10 w-full">
+
+      <div class="space-y-12 mt-10 w-full">
         <div
-          v-for="(item, index) in lesson.content"
-          :key="index"
+          v-for="(section, index) in lesson.sections"
+          :key="section._id"
           class="w-full"
         >
-          <!-- Tiêu đề -->
           <h2
-            v-if="item.type === 'heading'"
-            style="margin: 10px 0px"
-            class="text-2xl font-black mt-8 mb-4 uppercase tracking-tighter border-l-4 border-gray-500 pl-4"
+            class="text-2xl font-black mt-8 mb-6 uppercase tracking-tighter border-l-4 border-teal-500 pl-4 text-slate-800"
           >
-            {{ item.text }}
+            {{ section.title }}
           </h2>
-          <!-- Nội dung  -->
-          <p
-            v-if="item.type === 'paragraph'"
-            class="text-lg leading-relaxed mb-4 text-justify"
+
+          <div
+            v-if="section.type === 'theory'"
+            class="prose prose-slate max-w-none"
           >
-            {{ item.text }}
-          </p>
-          <div v-if="item.type === 'image'" class="my-10 flex justify-center">
+            <div
+              v-html="section.content"
+              class="text-lg leading-relaxed text-slate-700 text-justify rich-content"
+            ></div>
+          </div>
+
+          <div
+            v-if="section.type === 'image'"
+            class="my-10 flex justify-center"
+          >
             <img
-              :src="item.src"
-              :alt="item.alt"
+              :src="'http://localhost:5000' + section.content"
               class="max-w-xl h-auto rounded-3xl shadow-xl border-4 border-white"
             />
           </div>
-          <ul v-if="item.type === 'list'" class="space-y-4 ml-6">
-            <li
-              v-for="li in item.items"
-              :key="li"
-              class="text-lg list-disc marker:text-teal-500"
-            >
-              <span
-                v-html="
-                  li.replace(
-                    /\*\*(.*?)\*\*/g,
-                    '<strong class=\'text-slate-900\'>$1</strong>',
-                  )
-                "
-              ></span>
-            </li>
-          </ul>
         </div>
       </div>
     </div>
@@ -63,3 +50,26 @@
 import { Play } from "lucide-vue-next";
 defineProps(["lesson"]);
 </script>
+<style scoped>
+/* Định dạng cho nội dung HTML từ Editor */
+.rich-content :deep(p) {
+  margin-bottom: 1.5rem;
+}
+.rich-content :deep(strong) {
+  color: #0f172a; /* slate-900 */
+  font-weight: 800;
+}
+.rich-content :deep(ul) {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.rich-content :deep(li) {
+  margin-bottom: 0.5rem;
+}
+.rich-content :deep(img) {
+  border-radius: 1.5rem;
+  margin: 2rem auto;
+  display: block;
+}
+</style>

@@ -49,6 +49,7 @@ const fetchCourseData = async () => {
 onMounted(fetchCourseData);
 
 // --- 3. COMPUTED (TRUY XUẤT NHANH) ---
+// Hiển thị bài giảng đang được chọn dựa trên activeLessonId
 const currentLesson = computed(() => {
   for (const chapter of chapters.value) {
     const lesson = chapter.lessons?.find((l) => l._id === activeLessonId.value);

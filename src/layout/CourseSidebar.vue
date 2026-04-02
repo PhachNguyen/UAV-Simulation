@@ -89,9 +89,31 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { Menu, ChevronDown, Check, Play } from "lucide-vue-next";
-defineProps(["courseData", "activeId"]);
+
+// Nhận courseData từ Component cha (Page học tập)
+const props = defineProps({
+  courseData: {
+    type: Array,
+    default: () => [],
+  },
+  activeId: String,
+});
+
 defineEmits(["select"]);
 const isCollapsed = ref(false);
+
+// Logic tự động thêm thuộc tính isOpen nếu BE chưa có
+watch(
+  () => props.courseData,
+  (newVal) => {
+    newVal.forEach((chapter) => {
+      if (chapter.isOpen === undefined) {
+        chapter.isOpen = true; // Mặc định mở các chương khi mới load
+      }
+    });
+  },
+  { immediate: true },
+);
 </script>

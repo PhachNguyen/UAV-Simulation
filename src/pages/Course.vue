@@ -29,51 +29,47 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import CourseSidebar from "@/layout/CourseSidebar.vue";
 import CourseDetail from "@/components/CourseDetail.vue";
-import CourseWidgets from "@/components/CourseWidgets.vue";
-
-// Import dữ liệu từ file data riêng
-import {
-  courseData as rawCourseData,
-  lessonContentMap, // Nhập Map chứa nội dung chi tiết
-  downloadFiles as rawDownloadFiles,
-} from "@/data/uavCourseData";
+import api from "@/utils/apis/axios"; // Đảm bảo đường dẫn axios của bạn đúng
 
 // --- STATE ---
 const isSidebarCollapsed = ref(false);
-const courseData = ref(rawCourseData);
-const downloadFiles = ref(rawDownloadFiles);
+const courseData = ref([]); // Khởi tạo mảng rỗng
+const activeLesson = ref(null); // Ban đầu chưa có bài học nào được chọn
 const mainContent = ref(null);
+const isLoading = ref(false);
 
-// Khởi tạo bài học đầu tiên (mặc định là bài 101 hoặc bài bạn muốn)
-const activeLesson = ref(lessonContentMap[101]);
+// --- LOGIC LẤY DỮ LIỆU TỪ BE ---
+const fetchData = async () => {
+  try {
+    isLoading.value = true;
+    // Gọi API lấy Chapter -> Lesson -> Section (đã populate ở BE)
+    const { data } = await api.get("/courses");
+    courseData.value = data;
 
-// --- LOGIC ---
-const handleSelectLesson = (lesson) => {
-  // 1. Tìm nội dung chi tiết dựa trên ID từ Map
-  const detailedContent = lessonContentMap[lesson.id];
-
-  if (detailedContent) {
-    activeLesson.value = detailedContent;
-
-    // 2. Tự động cuộn lên đầu trang khi đổi bài học
-    if (mainContent.value) {
-      mainContent.value.scrollTo({ top: 0, behavior: "smooth" });
+    // Tự động chọn bài học đầu tiên của chương đầu tiên nếu có
+    if (data.length > 0 && data[0].lessons?.length > 0) {
+      handleSelectLesson(data[0].lessons[0]);
     }
+  } catch (error) {
+    console.error("Lỗi khi tải dữ liệu học tập:", error);
+  } finally {
+    isLoading.value = false;
   }
 };
-// onMounted(() => {
-//   // Khi component được mount, ẩn scroll của cả trang
-//   document.documentElement.style.overflow = "hidden";
-//   // Nếu chắc chắn hơn, bạn có thể set cho cả body
-//   document.body.style.overflow = "hidden";
-// });
 
-// onUnmounted(() => {
-//   // QUAN TRỌNG: Khi rời khỏi trang, phải trả lại trạng thái cũ
-//   document.documentElement.style.overflow = "auto";
-//   document.body.style.overflow = "auto";
-// });
+const handleSelectLesson = (lesson) => {
+  // Vì BE đã populate sẵn các sections vào trong lesson,
+  // nên ta chỉ cần gán thẳng đối tượng lesson này vào activeLesson
+  activeLesson.value = lesson;
+
+  // Cuộn lên đầu trang
+  if (mainContent.value) {
+    mainContent.value.scrollTo({ top: 0, behavior: "smooth" });
+  }
+};
+
+onMounted(fetchData);
 </script>
