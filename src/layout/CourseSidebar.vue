@@ -12,7 +12,7 @@
         v-show="!isCollapsed"
         class="text-lg font-black text-slate-800 uppercase tracking-tighter truncate"
       >
-        Khóa học UAV
+        Tài liệu khóa học
       </h2>
       <button
         @click="isCollapsed = !isCollapsed"

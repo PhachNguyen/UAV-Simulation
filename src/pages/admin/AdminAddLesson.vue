@@ -1,322 +1,346 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import {
+  ArrowLeft,
   LayoutDashboard,
-  BookOpen,
-  Plane,
-  BarChart3,
-  Settings,
-  Search,
-  Bell,
-  HelpCircle,
-  Save,
-  Send,
-  Clock,
-  Layers,
-  CheckCircle,
+  ChevronDown,
+  Trash2,
+  XCircle,
+  Plus,
+  Play,
+  CheckCircle2,
+  AlertCircle,
+  Box,
   UploadCloud,
-  FileText,
-  X,
-  Eye,
-  History,
+  Zap,
 } from "lucide-vue-next";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
+import api from "@/utils/apis/axios";
 
-const lessonTitle = ref("");
-const lessonDescription = ref("");
-const content = ref("");
-const duration = ref(45);
-const isRequired = ref(true);
-const tags = ref(["Khí động học", "UAV Basic"]);
+// --- STATE ---
+const chapters = ref([]);
+const activeLessonId = ref(null);
+const expandedSections = ref([0]);
+const toasts = ref([]);
+const isLoading = ref(false);
 
-const handlePublish = () => {
-  console.log("Publishing...", {
-    title: lessonTitle.value,
-    content: content.value,
-  });
+// --- 2. API ACTIONS ---
+const fetchCourseData = async () => {
+  try {
+    const { data } = await api.get("/courses");
+    chapters.value = data;
+    if (chapters.value[0]?.lessons[0] && !activeLessonId.value) {
+      activeLessonId.value = chapters.value[0].lessons[0]._id;
+    }
+  } catch (error) {
+    addToast("Không thể tải dữ liệu", "error");
+  }
 };
+
+const addNewChapter = async () => {
+  try {
+    const { data } = await api.post("/courses", {
+      title: "Chương mới",
+      order: chapters.value.length + 1,
+    });
+    chapters.value.push({ ...data, lessons: [] });
+    addToast("Đã thêm chương mới!");
+  } catch (error) {
+    addToast("Lỗi tạo chương", "error");
+  }
+};
+
+const addNewLesson = async (chapterId, cIdx) => {
+  try {
+    const { data } = await api.post(`/courses/${chapterId}/lessons`, {
+      title: "Bài học mới",
+      order: chapters.value[cIdx].lessons.length + 1,
+    });
+    chapters.value[cIdx].lessons.push(data);
+    activeLessonId.value = data._id;
+    addToast("Đã thêm bài giảng!");
+  } catch (error) {
+    addToast("Lỗi tạo bài giảng", "error");
+  }
+};
+
+const deleteLesson = async (chapterId, lessonId, cIdx, lIdx) => {
+  if (!confirm("Xóa bài giảng này?")) return;
+  try {
+    // Phach cần viết thêm route delete này ở BE nhé
+    await api.delete(`/courses/lessons/${lessonId}`);
+    chapters.value[cIdx].lessons.splice(lIdx, 1);
+    addToast("Đã xóa bài giảng", "error");
+  } catch (error) {
+    addToast("Không thể xóa", "error");
+  }
+};
+
+const handlePublish = async () => {
+  if (!currentLesson.value?._id)
+    return addToast("Chọn bài giảng để lưu", "error");
+  try {
+    isLoading.value = true;
+    // Đồng bộ toàn bộ bài giảng hiện tại (title, description, duration...)
+    await api.put(
+      `/courses/lessons/${activeLessonId.value}`,
+      currentLesson.value,
+    );
+    addToast("Đã cập nhật hệ thống!");
+    await fetchCourseData();
+  } catch (error) {
+    addToast("Lỗi đồng bộ", "error");
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// --- COMPUTED ---
+const currentLesson = computed(() => {
+  for (let c of chapters.value) {
+    let l = c.lessons.find((lesson) => lesson._id === activeLessonId.value);
+    if (l) return l;
+  }
+  return null;
+});
+
+const stats = computed(() => ({
+  chapters: chapters.value.length,
+  lessons: chapters.value.reduce(
+    (acc, cur) => acc + (cur.lessons?.length || 0),
+    0,
+  ),
+}));
+
+// --- UTILS ---
+const toggleSection = (idx) => {
+  const pos = expandedSections.value.indexOf(idx);
+  pos > -1
+    ? expandedSections.value.splice(pos, 1)
+    : expandedSections.value.push(idx);
+};
+
+const addToast = (msg, type = "success") => {
+  const id = Date.now();
+  toasts.value.push({ id, msg, type });
+  setTimeout(
+    () => (toasts.value = toasts.value.filter((t) => t.id !== id)),
+    3000,
+  );
+};
+
+onMounted(fetchCourseData);
 </script>
-
 <template>
-  <div class="min-h-screen bg-[#F8FAFC] flex font-sans text-slate-900">
-    <div class="flex-1 flex flex-col">
-      <main class="p-10 max-w-7xl mx-auto w-full grid grid-cols-12 gap-8">
-        <div class="col-span-8 space-y-8">
-          <div>
-            <div
-              class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2"
-            >
-              <span>Khóa học</span> <span>/</span>
-              <span class="text-teal-600">Soạn thảo lý thuyết</span>
-            </div>
-            <h2 class="text-3xl font-black text-slate-900 leading-tight">
-              Soạn thảo bài học lý thuyết
-            </h2>
-            <p class="text-slate-500 mt-1 text-sm font-medium">
-              Thiết lập nội dung chuyên môn và học thuật cho module UAV.
-            </p>
-          </div>
+  <div
+    class="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col relative"
+  >
+    <header
+      class="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm z-50"
+    >
+      <div class="flex items-center gap-4">
+        <button
+          @click="$router.back()"
+          class="p-2 hover:bg-slate-100 rounded-full transition-colors"
+        >
+          <ArrowLeft class="w-5 h-5 text-slate-500" />
+        </button>
+        <h1
+          class="text-xl font-black uppercase tracking-tighter flex items-center gap-2 text-slate-800"
+        >
+          <LayoutDashboard class="w-5 h-5 text-teal-600" /> UAV CONTENT CMS
+        </h1>
+      </div>
+      <button
+        @click="handlePublish"
+        :disabled="isLoading"
+        class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-teal-600 transition-all shadow-xl disabled:opacity-50"
+      >
+        {{ isLoading ? "ĐANG LƯU..." : "CẬP NHẬT HỆ THỐNG" }}
+      </button>
+    </header>
 
-          <section
-            class="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 space-y-6"
+    <div class="flex-1 overflow-hidden flex">
+      <aside
+        class="w-[360px] border-r border-slate-200 bg-white flex flex-col overflow-hidden"
+      >
+        <div class="p-8 border-b border-slate-100 bg-slate-50/50">
+          <h3
+            class="text-[10px] font-black uppercase tracking-[0.2em] text-teal-600 mb-1"
           >
-            <div class="flex items-center gap-3 text-teal-600">
-              <div
-                class="w-6 h-6 bg-teal-50 rounded-full flex items-center justify-center"
-              >
-                <CheckCircle class="w-4 h-4" />
-              </div>
-              <h3 class="font-black uppercase text-xs tracking-widest">
-                Thông tin cơ bản
-              </h3>
-            </div>
-
-            <div class="space-y-4">
-              <div>
-                <label
-                  class="text-[10px] font-black uppercase text-slate-400 mb-2 block"
-                  >Tiêu đề bài học</label
-                >
-                <input
-                  v-model="lessonTitle"
-                  type="text"
-                  placeholder="Ví dụ: Cơ chế khí động học của Multirotor"
-                  class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-none focus:ring-2 ring-teal-500/10 outline-none font-medium"
-                />
-              </div>
-              <div>
-                <label
-                  class="text-[10px] font-black uppercase text-slate-400 mb-2 block"
-                  >Mô tả tóm tắt</label
-                >
-                <textarea
-                  v-model="lessonDescription"
-                  rows="3"
-                  placeholder="Mô tả ngắn gọn mục tiêu của bài học..."
-                  class="w-full px-6 py-4 bg-slate-50 rounded-2xl border-none focus:ring-2 ring-teal-500/10 outline-none font-medium resize-none"
-                ></textarea>
-              </div>
-            </div>
-          </section>
-
-          <section
-            class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
+            Cấu trúc nội dung
+          </h3>
+          <p class="text-[10px] font-bold text-slate-400 uppercase">
+            {{ stats.chapters }} Chương • {{ stats.lessons }} Bài
+          </p>
+          <button
+            @click="addNewChapter"
+            class="w-full mt-4 py-4 border-2 border-dashed border-slate-200 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:border-teal-500 hover:text-teal-600 transition-all flex items-center justify-center gap-2"
           >
-            <div
-              class="p-6 border-b border-slate-50 flex items-center justify-between"
-            >
-              <h3
-                class="font-black uppercase text-xs tracking-widest text-slate-800"
-              >
-                Nội dung chi tiết
-              </h3>
-              <span
-                class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter italic"
-                >Auto-saved 2m ago</span
-              >
-            </div>
-            <div class="p-2">
-              <QuillEditor
-                v-model:content="content"
-                contentType="html"
-                theme="snow"
-                class="min-h-[400px] border-none"
-              />
-            </div>
-          </section>
+            <Plus class="w-4 h-4" /> Thêm chương mới
+          </button>
         </div>
 
-        <div class="col-span-4 space-y-6">
-          <div class="flex gap-3">
-            <button
-              class="flex-1 py-4 bg-slate-200 text-slate-700 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-300 transition-all"
-            >
-              Lưu nháp
-            </button>
-            <button
-              @click="handlePublish"
-              class="flex-1 py-4 bg-teal-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-teal-200 hover:bg-teal-600 transition-all"
-            >
-              Xuất bản
-            </button>
-          </div>
-
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
           <div
-            class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-4"
+            v-for="(chapter, cIdx) in chapters"
+            :key="chapter._id"
+            class="rounded-[2rem] border border-slate-100 bg-white overflow-hidden"
           >
-            <h3
-              class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4"
-            >
-              Cài đặt bài học
-            </h3>
-
             <div
-              class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl"
+              @click="toggleSection(cIdx)"
+              class="p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50"
             >
               <div class="flex items-center gap-3">
-                <Clock class="w-4 h-4 text-teal-600" />
-                <span class="text-xs font-bold text-slate-600">Thời lượng</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <input
-                  v-model="duration"
-                  class="w-8 bg-transparent text-right font-black text-sm outline-none"
-                />
-                <span class="text-[10px] font-bold text-slate-400">Phút</span>
-              </div>
-            </div>
-
-            <div
-              class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl"
-            >
-              <div class="flex items-center gap-3">
-                <Layers class="w-4 h-4 text-teal-600" />
-                <span class="text-xs font-bold text-slate-600">Phân loại</span>
-              </div>
-              <span class="text-xs font-black text-teal-600 uppercase"
-                >Cơ bản</span
-              >
-            </div>
-
-            <div
-              class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl"
-            >
-              <div class="flex items-center gap-3">
-                <CheckCircle class="w-4 h-4 text-teal-600" />
-                <span class="text-xs font-bold text-slate-600">Bắt buộc</span>
-              </div>
-              <button
-                @click="isRequired = !isRequired"
-                class="w-10 h-5 rounded-full relative transition-colors duration-300"
-                :class="isRequired ? 'bg-teal-500' : 'bg-slate-300'"
-              >
                 <div
-                  class="absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-transform duration-300"
-                  :class="isRequired ? 'translate-x-5' : ''"
-                ></div>
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-4"
-          >
-            <h3
-              class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4"
-            >
-              Hình ảnh minh họa
-            </h3>
-            <div
-              class="border-2 border-dashed border-slate-200 rounded-[1.5rem] p-8 flex flex-col items-center justify-center bg-slate-50 hover:border-teal-400 transition-all cursor-pointer group"
-            >
-              <UploadCloud
-                class="w-8 h-8 text-slate-300 group-hover:text-teal-500 mb-2 transition-colors"
-              />
-              <p
-                class="text-[10px] font-bold text-slate-500 text-center uppercase tracking-tighter"
-              >
-                Kéo thả hoặc nhấn để tải lên
-              </p>
-              <p class="text-[9px] text-slate-400 mt-1 uppercase">
-                JPG, PNG (Max 5MB)
-              </p>
-            </div>
-            <div
-              class="flex items-center justify-between p-3 bg-slate-900 rounded-xl shadow-lg"
-            >
-              <div class="flex items-center gap-3 overflow-hidden">
-                <div
-                  class="w-10 h-10 bg-teal-500/20 rounded-lg flex items-center justify-center text-teal-500 shrink-0"
+                  class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[10px] font-black"
                 >
-                  <Plane class="w-5 h-5" />
+                  {{ cIdx + 1 }}
                 </div>
-                <div class="overflow-hidden">
-                  <p
-                    class="text-[10px] font-bold text-white truncate uppercase tracking-tighter"
-                  >
-                    uav-aerodynamics.jpg
-                  </p>
-                  <p class="text-[9px] text-slate-500 uppercase">1.2 MB</p>
-                </div>
+                <span class="text-[11px] font-black uppercase text-slate-800">{{
+                  chapter.title
+                }}</span>
               </div>
-              <button class="p-1 text-slate-500 hover:text-white">
-                <X class="w-4 h-4" />
-              </button>
+              <ChevronDown
+                :class="{ 'rotate-180': expandedSections.includes(cIdx) }"
+                class="w-4 h-4 transition-transform"
+              />
             </div>
-          </div>
 
-          <div
-            class="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-4"
-          >
-            <h3
-              class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4"
+            <div
+              v-show="expandedSections.includes(cIdx)"
+              class="px-3 pb-4 space-y-1 bg-slate-50/50"
             >
-              Từ khóa & SEO
-            </h3>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="tag in tags"
-                :key="tag"
-                class="px-3 py-1 bg-teal-50 text-teal-600 rounded-lg text-[10px] font-black uppercase tracking-tight flex items-center gap-2"
+              <div
+                v-for="(lesson, lIdx) in chapter.lessons"
+                :key="lesson._id"
+                @click="activeLessonId = lesson._id"
+                :class="
+                  activeLessonId === lesson._id
+                    ? 'bg-white shadow-sm ring-1 ring-teal-500/10'
+                    : 'hover:bg-white/40'
+                "
+                class="p-3 rounded-xl cursor-pointer flex items-center justify-between transition-all"
               >
-                #{{ tag }} <X class="w-3 h-3 cursor-pointer" />
-              </span>
+                <div class="flex items-center gap-3 overflow-hidden">
+                  <Play
+                    :class="
+                      activeLessonId === lesson._id
+                        ? 'text-teal-500 fill-current'
+                        : 'text-slate-300'
+                    "
+                    class="w-3 h-3"
+                  />
+                  <span class="text-[11px] font-bold text-slate-600 truncate">{{
+                    lesson.title
+                  }}</span>
+                </div>
+                <button
+                  @click.stop="
+                    deleteLesson(chapter._id, lesson._id, cIdx, lIdx)
+                  "
+                  class="text-slate-300 hover:text-red-500"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </div>
               <button
-                class="px-3 py-1 border border-slate-100 rounded-lg text-[10px] font-bold text-slate-400 hover:bg-slate-50 uppercase"
+                @click="addNewLesson(chapter._id, cIdx)"
+                class="w-full py-2 mt-2 text-[9px] font-black text-teal-600 uppercase border border-dashed border-teal-200 rounded-lg"
               >
-                +
+                + Thêm bài giảng
               </button>
             </div>
           </div>
+        </div>
+      </aside>
+
+      <main
+        v-if="currentLesson"
+        class="flex-1 bg-[#FBFBFB] p-8 overflow-y-auto custom-scrollbar"
+      >
+        <div class="max-w-4xl mx-auto space-y-8">
+          <section
+            class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6"
+          >
+            <h2 class="text-xl font-bold flex items-center gap-2">
+              <Box class="text-teal-600" /> 1. Thông tin cơ bản
+            </h2>
+            <div class="grid grid-cols-2 gap-6">
+              <div class="col-span-2">
+                <label class="text-[10px] font-bold text-slate-400 uppercase"
+                  >Tiêu đề bài giảng</label
+                >
+                <input
+                  v-model="currentLesson.title"
+                  type="text"
+                  class="w-full mt-2 bg-gray-50 border-none rounded-xl py-4 px-5 outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase"
+                  >Thời lượng (phút)</label
+                >
+                <input
+                  v-model="currentLesson.duration"
+                  type="number"
+                  class="w-full mt-2 bg-gray-50 border-none rounded-xl py-4 px-5 outline-none"
+                />
+              </div>
+            </div>
+          </section>
         </div>
       </main>
-
-      <footer
-        class="h-14 bg-white/80 backdrop-blur-md border-t border-slate-100 flex items-center justify-center gap-8 sticky bottom-0 z-50"
+      <div
+        v-else
+        class="flex-1 flex items-center justify-center text-slate-400 font-bold uppercase tracking-widest"
       >
-        <button
-          class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-teal-600 transition-colors"
-        >
-          <div class="w-1.5 h-1.5 rounded-full bg-teal-500"></div>
-          Đang chỉnh sửa bởi bạn
-        </button>
-        <button
-          class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-slate-900"
-        >
-          <Eye class="w-4 h-4" /> Xem trước
-        </button>
-        <button
-          class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-slate-900"
-        >
-          <History class="w-4 h-4" /> Lịch sử
-        </button>
-      </footer>
+        Vui lòng chọn hoặc tạo bài giảng mới
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Tùy chỉnh Quill Editor để đồng nhất với UI */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+/* Transitions */
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+/* Quill Editor UI Fix */
 :deep(.ql-toolbar.ql-snow) {
   border: none !important;
   background: #f8fafc;
-  padding: 1rem 1.5rem;
+  padding: 1.5rem;
   border-bottom: 1px solid #f1f5f9 !important;
 }
 :deep(.ql-container.ql-snow) {
   border: none !important;
 }
 :deep(.ql-editor) {
-  padding: 2rem;
-  font-family: "Inter", sans-serif;
+  min-height: 500px;
+  padding: 3rem;
   line-height: 1.8;
-  font-size: 15px;
-  color: #334155;
-}
-:deep(.ql-editor.ql-blank::before) {
-  font-style: normal;
-  color: #94a3b8;
-  font-weight: 500;
+  font-family: "Inter", sans-serif;
+  font-size: 16px;
 }
 </style>
