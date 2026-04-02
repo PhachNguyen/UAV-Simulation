@@ -391,7 +391,7 @@ defineExpose({ flyToSpot });
 <style scoped>
 .viewer-container {
   width: 100%;
-  height: 600px;
+  height: 700px;
   position: relative;
   background: #080808;
   border-radius: 1.5rem;

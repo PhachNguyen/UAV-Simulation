@@ -1,64 +1,66 @@
 <template>
-  <section v-if="lesson" class="w-full flex h-full overflow-hidden">
-    <div
-      class="flex-1 overflow-y-auto p-12 custom-scrollbar bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.01)]"
-    >
-      <div class="max-w-4xl mx-auto space-y-12">
-        <header
-          class="mb-12 border-b-2 border-slate-50 pb-8 sticky top-0 bg-white z-10"
-        >
-          <h1
-            class="text-4xl font-black text-slate-950 leading-tight mb-3 tracking-tighter uppercase"
+  <div>
+    <section v-if="lesson" class="w-full flex h-full overflow-hidden">
+      <div
+        class="flex-1 overflow-y-auto custom-scrollbar bg-white shadow-[-10px_0_30px_rgba(0,0,0,0.01)]"
+      >
+        <div class="max-w-4xl mx-auto space-y-12">
+          <header
+            class="mb-12 border-b-2 border-slate-50 pb-8 sticky top-0 bg-white z-10"
           >
-            {{ lesson.title }}
-          </h1>
-          <div class="flex items-center gap-3 text-slate-400">
-            <MapPin :size="16" class="text-teal-500" />
-            <span class="text-xs font-bold uppercase tracking-widest"
-              >{{ lesson.hotspots?.length || 0 }} Điểm tương tác 3D</span
+            <h1
+              class="text-4xl font-black text-slate-950 leading-tight mb-3 tracking-tighter uppercase"
             >
-          </div>
-        </header>
-
-        <div class="space-y-16 w-full">
-          <div
-            v-for="(section, index) in lesson.sections"
-            :key="section._id"
-            class="w-full"
-          >
-            <h2
-              class="text-2xl font-black mt-8 mb-6 uppercase tracking-tighter border-l-4 border-gray-200 pl-4 text-slate-800"
-            >
-              {{ section.title }}
-            </h2>
-
-            <div
-              v-if="section.type === 'theory'"
-              class="prose prose-slate max-w-none"
-            >
-              <div
-                v-html="section.content"
-                class="text-lg leading-relaxed text-slate-700 text-justify rich-content"
-              ></div>
+              {{ lesson.title }}
+            </h1>
+            <div class="flex items-center gap-3 text-slate-400">
+              <MapPin :size="16" class="text-teal-500" />
+              <span class="text-xs font-bold uppercase tracking-widest"
+                >{{ lesson.hotspots?.length || 0 }} Điểm tương tác 3D</span
+              >
             </div>
+          </header>
 
+          <div class="space-y-16 w-full">
             <div
-              v-if="section.type === 'image'"
-              class="my-10 flex justify-center"
+              v-for="(section, index) in lesson.sections"
+              :key="section._id"
+              class="w-full"
             >
-              <img
-                :src="'http://localhost:5000' + section.content"
-                class="max-w-xl h-auto rounded-3xl shadow-xl border-4 border-white"
-              />
+              <h2
+                class="text-2xl font-black mt-8 mb-6 uppercase tracking-tighter border-l-4 border-gray-200 pl-4 text-slate-800"
+              >
+                {{ section.title }}
+              </h2>
+
+              <div
+                v-if="section.type === 'theory'"
+                class="prose prose-slate max-w-none"
+              >
+                <div
+                  v-html="section.content"
+                  class="text-lg leading-relaxed text-slate-700 text-justify rich-content"
+                ></div>
+              </div>
+
+              <div
+                v-if="section.type === 'image'"
+                class="my-10 flex justify-center"
+              >
+                <img
+                  :src="'http://localhost:5000' + section.content"
+                  class="max-w-xl h-auto rounded-3xl shadow-xl border-4 border-white"
+                />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-
+    </section>
+    <!-- 3D Viewer -->
     <aside
       v-if="lesson.model3DPath"
-      class="w-[480px] bg-slate-50 p-8 flex flex-col border-l border-slate-100 shadow-[-15px_0_40px_rgba(0,0,0,0.02)] sticky top-0 h-full"
+      class="bg-slate-50 border-l border-slate-100 shadow-[-15px_0_40px_rgba(0,0,0,0.02)] sticky top-0 h-full"
     >
       <div class="p-6 flex-1 overflow-y-auto custom-scrollbar space-y-10">
         <div
@@ -78,7 +80,7 @@
         </div>
 
         <div
-          class="aspect-square bg-slate-950 rounded-[3rem] overflow-hidden relative shadow-2xl border-4 border-slate-800 group transition-all"
+          class="w-[100%] h-[700px] aspect-square bg-slate-950 overflow-hidden relative shadow-2xl border-4 border-slate-800 group transition-all"
         >
           <Uav3DViewer
             ref="uavViewerRef"
@@ -122,7 +124,7 @@
             >
               <div class="flex items-center gap-3 mb-3">
                 <span
-                  class="w-6 h-6 bg-teal-500 rounded-lg flex items-center justify-center text-[10px] font-black text-white shadow-lg"
+                  class="w-6 h-6 bg-[#3b82f6] rounded-lg flex items-center justify-center text-[10px] font-black text-white shadow-lg"
                 >
                   {{ index + 1 }}
                 </span>
@@ -130,8 +132,8 @@
                   {{ spot.title }}
                 </h4>
               </div>
-
-              <div class="grid grid-cols-3 gap-2 mb-3">
+              <!-- Tọa độ -->
+              <!-- <div class="grid grid-cols-3 gap-2 mb-3">
                 <div
                   class="bg-slate-50 p-2 rounded-lg text-center font-mono text-[9px] text-slate-500 border border-slate-100 shadow-inner"
                 >
@@ -159,7 +161,7 @@
                   >
                   {{ spot.pos.z.toFixed(3) }}
                 </div>
-              </div>
+              </div> -->
 
               <p
                 class="text-[10px] text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100 italic"
@@ -171,7 +173,7 @@
         </div>
       </div>
     </aside>
-
+    <!-- Trường hợp không có mô hình 3D -->
     <aside
       v-else
       class="w-[400px] bg-slate-50 p-12 flex items-center justify-center border-l border-slate-100 text-center"
@@ -183,7 +185,7 @@
         </p>
       </div>
     </aside>
-  </section>
+  </div>
 </template>
 
 <script setup>
