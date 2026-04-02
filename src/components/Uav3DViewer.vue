@@ -59,9 +59,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref, onUnmounted, watch, computed } from "vue";
+import { onMounted, ref, onUnmounted, watch, computed, shallowRef } from "vue";
 import { useRoute } from "vue-router";
-
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
@@ -72,479 +71,321 @@ import {
 import gsap from "gsap";
 import { uavList } from "../data/uavData";
 
+// --- PROPS & EMITS ---
+const props = defineProps({
+  modelSrc: String,
+  admin: { type: Boolean, default: false },
+  scale: { type: Number, default: 15 },
+  currentMarkerId: { type: Number, default: 1 },
+  customHotspots: Array, // Nhận từ BE ở trang Detail
+});
+
+const emit = defineEmits(["select-hotspot", "pick-coords", "on-load"]);
+
+// --- STATE ---
 const route = useRoute();
 const container = ref(null);
 const loading = ref(true);
 const isStatsOpen = ref(false);
-const activeSpot = ref(null); // Lưu hotspot đang chọn
-const props = defineProps({
-  modelSrc: String, // Dùng cho Admin Preview (Blob URL)
-  // Admin
-  admin: { type: Boolean, default: false },
-  scale: { type: Number, default: 15 },
-  currentMarkerId: { type: Number, default: 1 }, // Nếu muốn truyền hotspots từ form admin vào xem thử
-});
-const emit = defineEmits(["select-hotspot", "on-load"]);
+const activeSpot = ref(null);
 
-// Xác định dữ liệu nguồn: Ưu tiên props (Admin), sau đó mới tới route (Detail)
+// Sử dụng shallowRef cho các object Three.js để tăng hiệu năng (Vue không cần track sâu)
+const core = {
+  scene: null,
+  camera: null,
+  renderer: null,
+  labelRenderer: null,
+  controls: null,
+  animationId: null,
+  currentModel: null,
+  raycaster: new THREE.Raycaster(),
+  mouse: new THREE.Vector2(),
+};
+
+// --- COMPUTED ---
 const product = computed(() => {
-  if (props.modelSrc) return null;
+  if (props.modelSrc) return { name: "UAV Preview", stats: {} };
   const id = parseInt(route.params.id);
-  return uavList.find((item) => item.id === id);
+  return uavList.find((item) => item.id === id) || { name: "Unknown System" };
 });
-let scene, camera, renderer, labelRenderer, controls, animationId, currentModel;
-//  Props nhận
+
+// --- METHODS ---
+
 const initScene = () => {
-  if (!container.value) return;
-  if (renderer) return;
-  try {
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x080808);
-    scene.fog = new THREE.Fog(0x080808, 20, 100);
+  if (!container.value || core.renderer) return;
 
-    // Môi trường Grid
-    scene.add(new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a));
-    const polar = new THREE.PolarGridHelper(30, 10, 8, 64, 0x3b82f6, 0x111827);
-    polar.material.opacity = 0.1;
-    polar.material.transparent = true;
-    scene.add(polar);
+  // 1. Scene & Environment
+  core.scene = new THREE.Scene();
+  core.scene.background = new THREE.Color(0x080808);
+  core.scene.fog = new THREE.Fog(0x080808, 20, 100);
 
-    camera = new THREE.PerspectiveCamera(
-      40,
-      container.value.clientWidth / container.value.clientHeight,
-      0.1,
-      1000,
-    );
-    camera.position.set(30, 20, 30);
+  core.scene.add(new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a));
+  const polar = new THREE.PolarGridHelper(30, 10, 8, 64, 0x3b82f6, 0x111827);
+  polar.material.opacity = 0.1;
+  polar.material.transparent = true;
+  core.scene.add(polar);
 
-    renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      alpha: true,
-      powerPreference: "high-performance",
-    });
-    renderer.setSize(container.value.clientWidth, container.value.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.value.appendChild(renderer.domElement);
-  } catch (error) {
-    console.error(
-      "Trình duyệt của bạn có vẻ đã hết tài nguyên WebGL. Hãy thử reload trang.",
-      e,
-    );
-    loading.value = false;
-    return;
-  }
-  labelRenderer = new CSS2DRenderer();
-  labelRenderer.setSize(
+  // 2. Camera
+  core.camera = new THREE.PerspectiveCamera(
+    40,
+    container.value.clientWidth / container.value.clientHeight,
+    0.1,
+    1000,
+  );
+  core.camera.position.set(30, 20, 30);
+
+  // 3. Renderers (WebGL + CSS2D)
+  core.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  core.renderer.setSize(
     container.value.clientWidth,
     container.value.clientHeight,
   );
-  Object.assign(labelRenderer.domElement.style, {
+  core.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.value.appendChild(core.renderer.domElement);
+
+  core.labelRenderer = new CSS2DRenderer();
+  core.labelRenderer.setSize(
+    container.value.clientWidth,
+    container.value.clientHeight,
+  );
+  Object.assign(core.labelRenderer.domElement.style, {
     position: "absolute",
     top: "0",
     left: "0",
     pointerEvents: "none",
     zIndex: "10",
   });
-  container.value.appendChild(labelRenderer.domElement);
+  container.value.appendChild(core.labelRenderer.domElement);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-  const spot = new THREE.SpotLight(0xffffff, 50);
-  spot.position.set(20, 30, 20);
-  scene.add(spot);
+  // 4. Lights
+  core.scene.add(new THREE.AmbientLight(0xffffff, 1.2));
+  const spotLight = new THREE.SpotLight(0xffffff, 50);
+  spotLight.position.set(20, 30, 20);
+  core.scene.add(spotLight);
 
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+  // 5. Controls
+  core.controls = new OrbitControls(core.camera, core.renderer.domElement);
+  core.controls.enableDamping = true;
 
-  // Sửa dòng cuối thành:
-  // debugger;
-  loadModel(product.value);
-};
-const cleanupExistingModel = () => {
-  if (!currentModel) return;
-
-  scene.remove(currentModel);
-  currentModel.traverse((node) => {
-    if (node.isMesh) {
-      node.geometry.dispose();
-      // Xử lý nếu material là mảng hoặc đơn lẻ
-      if (Array.isArray(node.material)) {
-        node.material.forEach((m) => m.dispose());
-      } else {
-        node.material.dispose();
-      }
-    }
-  });
-  currentModel = null;
-};
-const playEntryAnimation = () => {
-  gsap.from(camera.position, {
-    x: camera.position.x + 20,
-    y: camera.position.y + 20,
-    z: camera.position.z + 20,
-    duration: 2,
-    ease: "power2.out",
-    onUpdate: () => controls.update(),
-  });
-};
-watch(
-  () => props.currentMarkerId,
-  () => {
-    // Khi ID thay đổi (nghĩa là đã bấm nút Thêm điểm), ta "chốt" marker cũ
-    // Marker cũ lúc này đã dính vào model, ta giải phóng biến preview để click lần sau tạo marker mới
-    activePreviewMarker = null;
-  },
-);
-// Thêm watcher này vào phần script setup
-watch(
-  () => props.modelSrc,
-  (newSrc) => {
-    if (newSrc && scene) {
-      // Gọi loadModel với tham số rỗng vì source sẽ được lấy ưu tiên từ props
-      loadModel();
-    }
-  },
-);
-// Thêm biến đếm số thứ tự
-let markerCount = 0;
-
-const createMarkerWithNumber = (pos, number) => {
-  const canvas = document.createElement("canvas");
-  canvas.width = 128; // Tăng độ phân giải cho nét
-  canvas.height = 128;
-  const ctx = canvas.getContext("2d");
-
-  // Vẽ nền hình tròn Glow
-  ctx.shadowBlur = 15;
-  ctx.shadowColor = "#00f2ff";
-  ctx.fillStyle = "#00f2ff";
-  ctx.beginPath();
-  ctx.arc(64, 64, 50, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Vẽ số thứ tự
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 60px Orbitron, Arial"; // Font công nghệ nếu có
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(number, 64, 64);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  const spriteMaterial = new THREE.SpriteMaterial({
-    map: texture,
-    depthTest: false, // Luôn hiện đè lên Model để dễ nhìn
-    sizeAttenuation: true,
-  });
-
-  const sprite = new THREE.Sprite(spriteMaterial);
-
-  // --- QUAN TRỌNG: KHỬ SCALE CỦA MODEL ---
-  // Giả sử autoScale của bạn là 15, ta chia 1.2 cho 15 để Marker luôn có kích thước ~1.2 đơn vị
-  const s = 1.2 / currentModel.scale.x;
-  sprite.scale.set(s, s, 1);
-
-  sprite.position.set(pos.x, pos.y, pos.z);
-  return sprite;
+  loadModel();
 };
 
-// Biến để lưu marker hiện tại (đang di chuyển)
-let activePreviewMarker = null;
-// Hàm xóa
-const removeMarkerById = (id) => {
-  if (!currentModel) return;
+const handleModelSuccess = (gltf) => {
+  core.currentModel = gltf.scene;
 
-  // Tìm trong các con của model, cái nào là Sprite và có name khớp với ID
-  const target = currentModel.children.find(
-    (child) => child.isSprite && child.name === `marker-${id}`,
-  );
-
-  if (target) {
-    currentModel.remove(target);
-    if (target.material.map) target.material.map.dispose();
-    target.material.dispose();
-    console.log(`--- Đã xóa Marker ID: ${id} ---`);
-  }
-};
-// Hàm này sẽ hiển thị marker tạm thời khi click, và xóa marker cũ nếu chưa "chốt" để tránh rối mắt
-const showTemporaryMarker = (pos) => {
-  if (!currentModel) return;
-
-  const markerId = props.currentMarkerId;
-
-  // KIỂM TRA: Nếu không có ID hoặc ID <= 0 thì không vẽ/hiện marker
-  if (!markerId || markerId <= 0) {
-    console.log("Chưa có ID hợp lệ, không vẽ Marker.");
-    return;
-  }
-
-  // Xóa marker cũ của ID này nếu có để cập nhật vị trí mới
-  const existing = currentModel.children.find(
-    (child) => child.name === `marker-${markerId}`,
-  );
-  if (existing) {
-    currentModel.remove(existing);
-    if (existing.material.map) existing.material.map.dispose();
-    existing.material.dispose();
-  }
-
-  // Chỉ tạo marker khi đã vượt qua check ở trên
-  const marker = createMarkerWithNumber(pos, markerId);
-  marker.name = `marker-${markerId}`;
-
-  currentModel.add(marker);
-};
-defineExpose({
-  removeMarkerById, // Cho phép Admin gọi hàm này từ bên ngoài để xóa marker khi cần
-});
-//  Hàm lấy tọa độ hotspot khi click vào model (dành cho Admin)
-const initRaycaster = () => {
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-
-  // Lắng nghe trên canvas của WebGL thay vì container div
-  renderer.domElement.addEventListener("click", (event) => {
-    if (!currentModel) return;
-
-    // Tính toán lại tọa độ chuột chuẩn xác theo Canvas
-    const rect = renderer.domElement.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-    raycaster.setFromCamera(mouse, camera);
-
-    // Kiểm tra va chạm (intersect)
-    const intersects = raycaster.intersectObject(currentModel, true);
-
-    if (intersects.length > 0) {
-      // Lấy điểm va chạm và chuyển sang Local của Drone
-      const localPos = currentModel.worldToLocal(intersects[0].point.clone());
-
-      // LOG RA CONSOLE ĐỂ KIỂM TRA
-      console.log(`✅ Đã lấy tọa độ (ID: ${markerCount + 1}):`, {
-        x: localPos.x.toFixed(3),
-        y: localPos.y.toFixed(3),
-        z: localPos.z.toFixed(3),
-      });
-
-      // Gửi tọa độ về trang Admin
-      emit("pick-coords", {
-        x: localPos.x.toFixed(3),
-        y: localPos.y.toFixed(3),
-        z: localPos.z.toFixed(3),
-      });
-
-      showTemporaryMarker(localPos);
-    } else {
-      console.warn(" Click trượt model UAV rồi Phách ơi!");
-    }
-  });
-};
-const handleModelSuccess = (gltf, data) => {
-  currentModel = gltf.scene;
-
-  // 1. Tạo một Bounding Box để bao quanh toàn bộ model
-  const box = new THREE.Box3().setFromObject(currentModel);
-
-  // 2. Lấy kích thước (size) và tâm (center) của model
+  // Tự động căn chỉnh Scale và Tâm
+  const box = new THREE.Box3().setFromObject(core.currentModel);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
 
-  // 3. TỰ ĐỘNG TÍNH TOÀN SCALE
-  // Chúng ta muốn cạnh lớn nhất của drone sẽ dài khoảng 18 đơn vị trong Scene
   const desiredSize = 18;
-  const maxDimension = Math.max(size.x, size.y, size.z);
-  const autoScale = desiredSize / maxDimension;
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const autoScale = desiredSize / maxDim;
 
-  // 4. Áp dụng scale
-  // Nếu là Admin và bạn vẫn muốn can thiệp thủ công, có thể nhân thêm props.scale
-  currentModel.scale.set(autoScale, autoScale, autoScale);
-
-  // 5. CĂN GIỮA MODEL (Quan trọng để xoay không bị lệch)
-  // Đưa model về tâm (0,0,0) và nâng lên một chút để nằm trên mặt lưới (Grid)
-  currentModel.position.set(
+  core.currentModel.scale.set(autoScale, autoScale, autoScale);
+  core.currentModel.position.set(
     -center.x * autoScale,
-    -center.y * autoScale + 2, // Nâng nhẹ lên khỏi mặt đất
+    -center.y * autoScale + 2, // Nâng lên khỏi mặt đất
     -center.z * autoScale,
   );
 
-  scene.add(currentModel);
+  core.scene.add(core.currentModel);
 
-  // 6. Hiển thị Hotspots
-  const hotspots = props.customHotspots || data?.hotspots;
-  if (hotspots) {
-    setupHotspots(hotspots);
-  }
+  // Load Hotspots: Ưu tiên props BE (Detail), sau đó tới data tĩnh
+  const hotspots = props.customHotspots || product.value?.hotspots;
+  if (hotspots) setupHotspots(hotspots);
 
   loading.value = false;
   playEntryAnimation();
 };
-const loadModel = (data) => {
-  // Ưu tiên modelSrc từ props (dành cho Admin Preview), nếu không có thì lấy từ data
-  const source = props.modelSrc || data?.model3d;
 
+const loadModel = () => {
+  const source = props.modelSrc || product.value?.model3d;
   if (!source) return;
 
   loading.value = true;
   activeSpot.value = null;
-
-  // 1. Dọn dẹp bộ nhớ (Memory Cleanup)
   cleanupExistingModel();
 
-  // 2. Tải Model mới
-  const loader = new GLTFLoader();
-  loader.load(
-    source,
-    (gltf) => handleModelSuccess(gltf, data),
-    undefined, // Progress callback (có thể thêm nếu muốn hiện % load)
-    (error) => console.error("Lỗi khi tải model UAV:", error),
-  );
+  new GLTFLoader().load(source, handleModelSuccess, undefined, (err) => {
+    console.error("3D Load Error:", err);
+    loading.value = false;
+  });
 };
 
 const setupHotspots = (hotspots) => {
-  hotspots.forEach((spot) => {
+  if (!core.currentModel) return;
+
+  // Xóa labels cũ
+  const labels = core.currentModel.children.filter((c) => c.isCSS2DObject);
+  labels.forEach((l) => core.currentModel.remove(l));
+
+  hotspots.forEach((spot, index) => {
     const el = document.createElement("div");
     el.className = "hotspot-wrapper";
-    el.innerHTML = `<div class="hotspot-pulse"></div><div class="hotspot-node">${spot.id}</div>`;
+    el.innerHTML = `<div class="hotspot-pulse"></div><div class="hotspot-node">${index + 1}</div>`;
 
     const label = new CSS2DObject(el);
     label.position.set(spot.pos.x, spot.pos.y, spot.pos.z);
-    currentModel.add(label);
+    core.currentModel.add(label);
 
     el.onclick = (e) => {
       e.stopPropagation();
-      activeSpot.value = spot; // Hiển thị title/desc
-
-      const worldPos = new THREE.Vector3();
-      label.getWorldPosition(worldPos);
-
-      gsap.to(camera.position, {
-        x: worldPos.x + 8,
-        y: worldPos.y + 4,
-        z: worldPos.z + 8,
-        duration: 1.2,
-        ease: "power3.inOut",
-      });
-      gsap.to(controls.target, {
-        x: worldPos.x,
-        y: worldPos.y,
-        z: worldPos.z,
-        duration: 1.2,
-        onUpdate: () => controls.update(),
-      });
+      flyToSpot(spot, label);
       emit("select-hotspot", spot);
     };
   });
 };
 
+const flyToSpot = (spot, label) => {
+  activeSpot.value = spot;
+  const worldPos = new THREE.Vector3();
+  label.getWorldPosition(worldPos);
+
+  gsap.to(core.camera.position, {
+    x: worldPos.x + 8,
+    y: worldPos.y + 4,
+    z: worldPos.z + 8,
+    duration: 1.2,
+    ease: "power3.inOut",
+  });
+
+  gsap.to(core.controls.target, {
+    x: worldPos.x,
+    y: worldPos.y,
+    z: worldPos.z,
+    duration: 1.2,
+    onUpdate: () => core.controls.update(),
+  });
+};
+
+const initRaycaster = () => {
+  core.renderer.domElement.addEventListener("click", (event) => {
+    if (!core.currentModel) return;
+
+    const rect = core.renderer.domElement.getBoundingClientRect();
+    core.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    core.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    core.raycaster.setFromCamera(core.mouse, core.camera);
+    const intersects = core.raycaster.intersectObject(core.currentModel, true);
+
+    if (intersects.length > 0) {
+      const localPos = core.currentModel.worldToLocal(
+        intersects[0].point.clone(),
+      );
+      emit("pick-coords", {
+        x: localPos.x.toFixed(3),
+        y: localPos.y.toFixed(3),
+        z: localPos.z.toFixed(3),
+      });
+      showTemporaryMarker(localPos);
+    }
+  });
+};
+
+// --- MARKERS (ADMIN) ---
+const showTemporaryMarker = (pos) => {
+  const markerId = props.currentMarkerId;
+  if (!markerId) return;
+
+  const existing = core.currentModel.children.find(
+    (c) => c.name === `marker-${markerId}`,
+  );
+  if (existing) core.currentModel.remove(existing);
+
+  const marker = createMarkerSprite(pos, markerId);
+  marker.name = `marker-${markerId}`;
+  core.currentModel.add(marker);
+};
+
+const createMarkerSprite = (pos, number) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#00f2ff";
+  ctx.beginPath();
+  ctx.arc(64, 64, 50, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 60px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(number, 64, 64);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+  const sprite = new THREE.Sprite(material);
+
+  const s = 1.2 / core.currentModel.scale.x;
+  sprite.scale.set(s, s, 1);
+  sprite.position.copy(pos);
+  return sprite;
+};
+
+// --- CLEANUP ---
+const cleanupExistingModel = () => {
+  if (!core.currentModel) return;
+  core.scene.remove(core.currentModel);
+  core.currentModel.traverse((n) => {
+    if (n.isMesh) {
+      n.geometry.dispose();
+      Array.isArray(n.material)
+        ? n.material.forEach((m) => m.dispose())
+        : n.material.dispose();
+    }
+  });
+  core.currentModel = null;
+};
+
+// --- WATCHERS ---
+watch(() => props.modelSrc, loadModel);
+watch(
+  () => props.customHotspots,
+  (newVal) => {
+    if (newVal && core.currentModel) setupHotspots(newVal);
+  },
+  { deep: true },
+);
+
+// --- LIFECYCLE ---
 const animate = () => {
-  animationId = requestAnimationFrame(animate);
-  controls?.update();
-  renderer?.render(scene, camera);
-  labelRenderer?.render(scene, camera);
+  core.animationId = requestAnimationFrame(animate);
+  core.controls?.update();
+  core.renderer?.render(core.scene, core.camera);
+  core.labelRenderer?.render(core.scene, core.camera);
 };
 
 const handleResize = () => {
   if (!container.value) return;
   const w = container.value.clientWidth;
   const h = container.value.clientHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-  labelRenderer.setSize(w, h);
+  core.camera.aspect = w / h;
+  core.camera.updateProjectionMatrix();
+  core.renderer.setSize(w, h);
+  core.labelRenderer.setSize(w, h);
 };
 
-watch(product, (v) => v && scene && loadModel(v));
 onMounted(() => {
-  // const raycaster = new THREE.Raycaster();
-  // const mouse = new THREE.Vector2();
-
-  // window.addEventListener("click", (event) => {
-  //   // Tính toán vị trí chuột trong không gian 2D của container
-  //   const rect = container.value.getBoundingClientRect();
-  //   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  //   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-  //   raycaster.setFromCamera(mouse, camera);
-
-  //   // Kiểm tra va chạm với currentModel
-  //   if (currentModel) {
-  //     const intersects = raycaster.intersectObject(currentModel, true);
-  //     if (intersects.length > 0) {
-  //       const p = intersects[0].point;
-  //       // Chuyển tọa độ thế giới về tọa độ local của Model (vì bạn gắn hotspot vào model)
-  //       const localPos = currentModel.worldToLocal(p.clone());
-
-  //       console.log(
-  //         `Hotspot Pos: x: ${localPos.x.toFixed(2)}, y: ${localPos.y.toFixed(2)}, z: ${localPos.z.toFixed(2)}`,
-  //       );
-
-  //       // Mẹo: Bạn có thể copy dòng này dán thẳng vào file uavData.js
-  //       alert(
-  //         `Đã copy tọa độ: x: ${localPos.x.toFixed(2)}, y: ${localPos.y.toFixed(2)}, z: ${localPos.z.toFixed(2)}`,
-  //       );
-  //     }
-  //   }
-  // });
   initScene();
-  if (props.admin) {
-    // Khởi tạo raycaster để lấy tọa độ khi click (dành cho Admin)
-    initRaycaster();
-  }
-
+  if (props.admin) initRaycaster();
   animate();
   window.addEventListener("resize", handleResize);
 });
+
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
-  cancelAnimationFrame(animationId);
-
-  if (renderer) {
-    // Dọn dẹp canvas
-    renderer.dispose();
-    if (renderer.domElement && renderer.domElement.parentNode) {
-      renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
-    // Không nên gọi forceContextLoss() trừ khi bạn thực sự muốn khóa GPU
-    // renderer.forceContextLoss();
-    renderer = null;
+  cancelAnimationFrame(core.animationId);
+  if (core.renderer) {
+    core.renderer.dispose();
+    core.renderer.domElement.remove();
   }
-
-  // Dọn dẹp LabelRenderer
-  if (
-    labelRenderer &&
-    labelRenderer.domElement &&
-    labelRenderer.domElement.parentNode
-  ) {
-    labelRenderer.domElement.parentNode.removeChild(labelRenderer.domElement);
-    labelRenderer = null;
-  }
-
-  // Giải phóng Scene
-  if (scene) {
-    scene.traverse((object) => {
-      if (object.isMesh) {
-        object.geometry.dispose();
-        if (Array.isArray(object.material)) {
-          object.material.forEach((m) => cleanMaterial(m));
-        } else {
-          cleanMaterial(object.material);
-        }
-      }
-    });
-    scene.clear();
-    scene = null;
-  }
+  if (core.labelRenderer) core.labelRenderer.domElement.remove();
 });
 
-// Hàm phụ trợ để dọn dẹp Material (Texture ngốn rất nhiều RAM)
-const cleanMaterial = (material) => {
-  material.dispose();
-  for (const key of Object.keys(material)) {
-    if (material[key] && typeof material[key].dispose === "function") {
-      material[key].dispose();
-    }
-  }
-};
+defineExpose({ flyToSpot });
 </script>
 
 <style scoped>
