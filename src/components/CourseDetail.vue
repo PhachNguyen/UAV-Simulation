@@ -66,7 +66,7 @@ const saveProgress = async () => {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        courseId: props.courseId,
+        chapterId: props.courseId,
         lessonId: props.lesson.id,
       }),
     });
