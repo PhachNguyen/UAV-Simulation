@@ -257,13 +257,19 @@ const isPickingLocation = ref(false); // Trạng thái đang chọn tọa độ 
 const uavViewerRef = ref(null); // Ref để gọi hàm của component con
 
 const removeHotspot = (index) => {
-  if (!currentLesson.value) return;
+  if (!currentLesson.value || !currentLesson.value.hotspots) return;
 
-  const targetId = currentLesson.value.hotspots[index].id;
-  if (uavViewerRef.value) {
-    uavViewerRef.value.removeMarkerById(targetId);
-  }
+  // Xóa trực tiếp khỏi mảng local
   currentLesson.value.hotspots.splice(index, 1);
+
+  // Cập nhật trạng thái sửa lỗi index
+  if (editingIndex.value === index) {
+    finishEditing();
+  } else if (editingIndex.value > index) {
+    editingIndex.value--;
+  }
+
+  addToast("Đã xóa điểm tương tác", "success");
 };
 // Hàm khi bấm nút "Thêm điểm"
 const addHotspot = () => {
@@ -298,20 +304,29 @@ const addHotspot = () => {
 // };
 // Hàm nhận tọa độ từ Uav3DViewer gửi ra
 // Trong AddDroneView.vue
+// --- REFACTOR HÀM NHẬN TỌA ĐỘ ---
 const updateLatestHotspot = (coords) => {
   if (!isPickingLocation.value || !currentLesson.value) return;
 
   const spots = currentLesson.value.hotspots;
-  if (spots && spots.length > 0) {
-    const lastIndex = spots.length - 1;
-    // Cập nhật tọa độ cho điểm cuối cùng vừa thêm
-    spots[lastIndex].pos = {
-      x: Number(coords.x),
-      y: Number(coords.y),
-      z: Number(coords.z),
-    };
-    console.log("Tọa độ mới:", spots[lastIndex].pos);
-  }
+  if (!spots || spots.length === 0) return;
+
+  // Lấy index cần cập nhật:
+  // Nếu đang sửa (editingIndex) thì lấy index đó, nếu không thì lấy điểm cuối cùng
+  const targetIndex =
+    editingIndex.value !== null ? editingIndex.value : spots.length - 1;
+
+  // Cập nhật tọa độ
+  spots[targetIndex].pos = {
+    x: Number(coords.x),
+    y: Number(coords.y),
+    z: Number(coords.z),
+  };
+
+  console.log(
+    `Đã cập nhật tọa độ cho điểm ${targetIndex + 1}:`,
+    spots[targetIndex].pos,
+  );
 };
 const form = reactive({
   name: "",
@@ -390,6 +405,75 @@ const handleSave = async () => {
   console.log("Sẵn sàng gửi FormData lên API...");
   toast.success("Đã lưu thiết bị mới!");
 };
+// --- STATE MỚI ---
+const editingIndex = ref(null); // Lưu index của hotspot đang được sửa vị trí
+// const isPickingLocation = ref(false);
+
+// --- HÀM KÍCH HOẠT CHẾ ĐỘ SỬA ---
+const startEditSpot = (index) => {
+  editingIndex.value = index;
+  isPickingLocation.value = true;
+
+  // Bay camera tới điểm đó để Admin dễ quan sát
+  const spot = currentLesson.value.hotspots[index];
+  if (uavViewerRef.value?.flyToSpot) {
+    uavViewerRef.value.flyToSpot(spot);
+  }
+
+  addToast(
+    `Chế độ sửa: Click lên model để đổi vị trí điểm ${index + 1}`,
+    "info",
+  );
+};
+
+// --- REFACTOR HÀM NHẬN TỌA ĐỘ (QUAN TRỌNG) ---
+// const updateLatestHotspot = (coords) => {
+//   if (!isPickingLocation.value || !currentLesson.value) return;
+
+//   const spots = currentLesson.value.hotspots;
+
+//   // Nếu đang trong chế độ sửa một điểm cụ thể
+//   if (editingIndex.value !== null) {
+//     const idx = editingIndex.value;
+//     spots[idx].pos = {
+//       x: Number(coords.x),
+//       y: Number(coords.y),
+//       z: Number(coords.z),
+//     };
+//   }
+//   // Nếu là thêm mới điểm (như cũ)
+//   else if (spots.length > 0) {
+//     const lastIndex = spots.length - 1;
+//     spots[lastIndex].pos = {
+//       x: Number(coords.x),
+//       y: Number(coords.y),
+//       z: Number(coords.z),
+//     };
+//   }
+// };
+
+// --- HÀM THOÁT CHẾ ĐỘ SỬA ---
+const finishEditing = () => {
+  editingIndex.value = null;
+  isPickingLocation.value = false;
+};
+// Logic: Chỉ trả về mảng chứa 1 điểm duy nhất để hiển thị trên 3D
+const displayHotspots = computed(() => {
+  if (!currentLesson.value || !currentLesson.value.hotspots) return [];
+
+  // Trả về toàn bộ danh sách hotspots để hiển thị tất cả các điểm cùng lúc
+  return currentLesson.value.hotspots.map((spot, index) => {
+    return {
+      ...spot,
+      // Có thể thêm thuộc tính để Component 3D đổi màu điểm đang được chọn/sửa
+      isActive:
+        index === editingIndex.value ||
+        (editingIndex.value === null &&
+          index === currentLesson.value.hotspots.length - 1 &&
+          isPickingLocation.value),
+    };
+  });
+});
 </script>
 <template>
   <div
@@ -656,51 +740,97 @@ const handleSave = async () => {
                 <div
                   v-for="(spot, index) in currentLesson.hotspots"
                   :key="index"
-                  class="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 relative group transition-all hover:border-teal-200"
+                  :class="[
+                    'p-4 rounded-2xl border transition-all relative group',
+                    editingIndex === index
+                      ? 'border-teal-500 bg-teal-50/50 ring-2 ring-teal-500/20'
+                      : 'bg-slate-50 border-slate-100 hover:border-slate-200',
+                  ]"
                 >
-                  <button
-                    @click="removeHotspot(index)"
-                    class="absolute top-3 right-3 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                  <div
+                    class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all"
                   >
-                    <Trash2 :size="16" />
-                  </button>
-                  <div class="flex items-center gap-2 mb-2">
-                    <span
-                      class="w-6 h-6 bg-teal-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
-                      >{{ index + 1 }}</span
+                    <button
+                      @click="startEditSpot(index)"
+                      :class="
+                        editingIndex === index
+                          ? 'text-teal-600'
+                          : 'text-slate-400'
+                      "
+                      class="p-1 hover:bg-white rounded-md shadow-sm"
+                      title="Sửa vị trí trên model"
                     >
+                      <MapPin
+                        :size="14"
+                        :class="{ 'animate-bounce': editingIndex === index }"
+                      />
+                    </button>
+                    <button
+                      @click="removeHotspot(index)"
+                      class="p-1 text-slate-400 hover:text-red-500 bg-white rounded-md shadow-sm"
+                    >
+                      <Trash2 :size="14" />
+                    </button>
+                  </div>
+
+                  <div class="flex items-center gap-2 mb-3">
+                    <span
+                      class="w-5 h-5 bg-teal-500 text-white text-[9px] font-black rounded-full flex items-center justify-center"
+                    >
+                      {{ index + 1 }}
+                    </span>
                     <input
                       v-model="spot.title"
-                      placeholder="Tiêu đề điểm..."
-                      class="bg-transparent font-bold text-sm outline-none border-b border-transparent focus:border-teal-300 w-full"
+                      class="bg-transparent font-bold text-xs outline-none border-b border-transparent focus:border-teal-400 w-full"
                     />
                   </div>
-                  <div class="grid grid-cols-3 gap-2">
+
+                  <div
+                    @click="startEditSpot(index)"
+                    class="grid grid-cols-3 gap-1 cursor-crosshair"
+                    title="Click để đổi vị trí trên 3D"
+                  >
                     <div
-                      class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                      class="bg-white p-1.5 rounded-lg border border-slate-100 text-[9px] text-center font-mono"
                     >
-                      <span class="text-slate-400">X:</span>
+                      <span class="text-slate-300">X:</span>
                       {{ spot.pos.x.toFixed(2) }}
                     </div>
                     <div
-                      class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                      class="bg-white p-1.5 rounded-lg border border-slate-100 text-[9px] text-center font-mono"
                     >
-                      <span class="text-slate-400">Y:</span>
+                      <span class="text-slate-300">Y:</span>
                       {{ spot.pos.y.toFixed(2) }}
                     </div>
                     <div
-                      class="bg-white p-2 rounded-lg border border-slate-100 text-[10px] text-center font-mono"
+                      class="bg-white p-1.5 rounded-lg border border-slate-100 text-[9px] text-center font-mono"
                     >
-                      <span class="text-slate-400">Z:</span>
+                      <span class="text-slate-300">Z:</span>
                       {{ spot.pos.z.toFixed(2) }}
                     </div>
                   </div>
+
                   <textarea
                     v-model="spot.desc"
-                    placeholder="Mô tả kỹ thuật..."
+                    class="w-full mt-3 p-2 bg-white border border-slate-100 rounded-xl text-[10px] outline-none focus:border-teal-300 resize-none"
                     rows="2"
-                    class="w-full p-2.5 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:border-teal-300 resize-none"
                   ></textarea>
+
+                  <div
+                    v-if="editingIndex === index"
+                    class="mt-2 flex justify-between items-center"
+                  >
+                    <span
+                      class="text-[8px] font-black text-teal-600 animate-pulse uppercase"
+                      >● Đang lấy tọa độ mới...</span
+                    >
+                    <button
+                      @click="finishEditing"
+                      class="text-[8px] font-black text-slate-900 underline"
+                    >
+                      XONG
+                    </button>
+                  </div>
                 </div>
               </div>
             </section>
@@ -723,11 +853,8 @@ const handleSave = async () => {
                     :modelSrc="
                       'http://localhost:5000' + currentLesson.model3DPath
                     "
-                    :currentMarkerId="
-                      currentLesson.hotspots.length > 0
-                        ? currentLesson.hotspots.length
-                        : 0
-                    "
+                    :customHotspots="displayHotspots"
+                    :currentMarkerId="null"
                     @pick-coords="updateLatestHotspot"
                   />
                   <div
