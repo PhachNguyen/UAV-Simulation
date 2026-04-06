@@ -87,21 +87,38 @@ const overallProgress = ref({
 });
 const isLoading = ref(true);
 
+// MyCourses.vue - Phần Script setup đã refactor
 const fetchData = async () => {
   try {
     isLoading.value = true;
-    // 1. Lấy cấu trúc bài học
-    const resCourse = await api.get("/courses");
-    chapters.value = resCourse.data.chapters;
 
-    // 2. Lấy danh sách ID đã hoàn thành (Ví dụ: [1, 2])
-    const resProgress = await api.get("/progress/1");
-    completedLessonIds.value =
-      resProgress.data.completedLessons?.map((id) => Number(id)) || [];
+    // 1. Lấy cấu trúc bài học và Tiến độ tổng quát cùng lúc
+    const [resCourse, resOverall] = await Promise.all([
+      api.get("/courses"),
+      api.get("/progress/overall"),
+    ]);
 
-    // 3. Lấy phần trăm tổng quát
-    const resOverall = await api.get("/progress/overall/1");
-    overallProgress.value = resOverall.data;
+    // Gán dữ liệu chapters
+    chapters.value = resCourse.data.chapters || [];
+
+    // 2. Lấy danh sách ID đã hoàn thành
+    // Lưu ý: Bạn nên lấy từ resOverall nếu Backend đã gom hết ID vào đó
+    if (resOverall.data.completedLessons) {
+      completedLessonIds.value = resOverall.data.completedLessons.map(Number);
+    }
+
+    // 3. Tính toán lại Overall Progress để tránh lỗi "5/0"
+    const total = chapters.value.reduce(
+      (acc, ch) => acc + (ch.lessons?.length || 0),
+      0,
+    );
+    const completed = completedLessonIds.value.length;
+
+    overallProgress.value = {
+      completedCount: completed,
+      totalLessons: total,
+      percentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
   } catch (error) {
     console.error("Lỗi fetch data:", error);
   } finally {
@@ -119,43 +136,30 @@ const isCompleted = (lessonId) =>
 // MyCourses.vue
 
 const isLocked = (chapterIdx, lessonIdx) => {
-  // 1. Kiểm tra an toàn: Nếu chưa có dữ liệu chapters hoặc chương đó không tồn tại
-  if (
-    !chapters.value ||
-    chapters.value.length === 0 ||
-    !chapters.value[chapterIdx]
-  ) {
-    return true; // Mặc định khóa nếu chưa có dữ liệu
-  }
+  const currentChapter = chapters.value[chapterIdx];
+  const lesson = currentChapter?.lessons?.[lessonIdx];
 
-  // 2. Bài đầu tiên của chương 1 luôn mở
+  if (!lesson) return true;
+
+  // MỚI: Nếu bài này đã nằm trong danh sách hoàn thành -> LUÔN MỞ
+  if (isCompleted(lesson.id)) return false;
+
+  // Bài đầu tiên của khóa học luôn mở
   if (chapterIdx === 0 && lessonIdx === 0) return false;
 
   let prevLesson;
 
-  // 3. Nếu là bài tiếp theo trong cùng chương
   if (lessonIdx > 0) {
-    const currentChapterLessons = chapters.value[chapterIdx].lessons;
-    if (!currentChapterLessons || !currentChapterLessons[lessonIdx - 1])
-      return true;
-
-    prevLesson = currentChapterLessons[lessonIdx - 1];
-  }
-  // 4. Nếu là bài đầu tiên của chương sau
-  else {
+    // Bài trước trong cùng chương
+    prevLesson = currentChapter.lessons[lessonIdx - 1];
+  } else {
+    // Bài cuối của chương trước
     const prevChapter = chapters.value[chapterIdx - 1];
-    // Kiểm tra chương trước có tồn tại và có bài học không
-    if (
-      !prevChapter ||
-      !prevChapter.lessons ||
-      prevChapter.lessons.length === 0
-    ) {
-      return true;
-    }
+    if (!prevChapter || !prevChapter.lessons?.length) return true;
     prevLesson = prevChapter.lessons[prevChapter.lessons.length - 1];
   }
 
-  // 5. Cuối cùng, kiểm tra xem bài trước đó đã xong chưa
+  // Mở nếu bài trước đó đã xong
   return !isCompleted(prevLesson.id);
 };
 
