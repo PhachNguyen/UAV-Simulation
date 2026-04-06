@@ -1,158 +1,163 @@
 <template>
-  <div class="space-y-10">
+  <div
+    class="max-w-5xl mx-auto pb-20"
+    style="letter-spacing: 0.05em; margin-bottom: 1rem"
+  >
+    <section-header title="Khóa học của tôi" />
     <div
-      class="relative bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group"
+      class="text-2xl font-bold text-slate-800"
+      style="letter-spacing: 0.05em; margin-bottom: 1rem"
     >
-      <div class="relative z-10">
-        <span
-          class="px-4 py-1.5 bg-teal-50 text-teal-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-teal-100"
-          >Certification Program</span
-        >
-        <h1
-          class="text-4xl font-black text-slate-900 mt-6 mb-4 tracking-tighter leading-tight"
-        >
-          Chuyên gia Vận hành UAV<br />Chuyên nghiệp
-        </h1>
+      Khóa học của tôi
+    </div>
+    <CourseProgressBar
+      :completed="overallProgress.completedCount"
+      :total="overallProgress.totalLessons"
+      :percentage="overallProgress.percentage"
+      style="margin-bottom: 2rem"
+    />
 
-        <div class="flex items-center gap-6 text-slate-400 font-bold text-sm">
-          <span class="flex items-center gap-2"
-            ><Database class="w-4 h-4 text-teal-500" /> 24 Bài học</span
-          >
-          <span class="flex items-center gap-2"
-            ><Activity class="w-4 h-4 text-teal-500" /> 12 Giờ học tập</span
-          >
-        </div>
-
-        <div class="mt-8 max-w-md">
-          <div
-            class="flex justify-between text-[11px] font-black uppercase mb-2"
-          >
-            <span class="text-slate-400">Tiến độ khóa học</span>
-            <span class="text-teal-600">12/24 Hoàn thành</span>
-          </div>
-          <div class="h-2 bg-slate-100 rounded-full">
-            <div class="h-full bg-teal-500 rounded-full w-1/2"></div>
-          </div>
-        </div>
-      </div>
-      <Plane
-        class="absolute -right-10 -bottom-10 w-64 h-64 text-slate-50 rotate-[-15deg] group-hover:text-teal-50 transition-colors duration-700"
-      />
+    <div v-if="isLoading" class="flex flex-col items-center py-20">
+      <Loader2 class="w-10 h-10 animate-spin text-teal-500 mb-4" />
+      <p class="text-slate-400 font-bold uppercase text-xs tracking-widest">
+        Đang tải giáo trình...
+      </p>
     </div>
 
-    <div class="space-y-4">
+    <div v-else class="mt-10 space-y-8" style="margin-top: 30px">
       <div
-        v-for="(chapter, idx) in courseChapters"
-        :key="idx"
-        class="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm"
+        v-for="(chapter, cIdx) in chapters"
+        :key="chapter.id"
+        class="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm"
+        style="margin: 12px"
       >
         <div
-          class="p-6 flex items-center justify-between border-b border-slate-50"
+          class="p-6 border-b border-slate-50 bg-white flex items-center gap-5"
         >
-          <div class="flex items-center gap-5">
-            <div
-              class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black text-lg"
-            >
-              0{{ idx + 1 }}
-            </div>
-            <div>
-              <h3 class="font-black text-slate-800 tracking-tight">
-                {{ chapter.title }}
-              </h3>
-              <p class="text-[11px] text-slate-400 font-medium">
-                {{ chapter.desc }}
-              </p>
-            </div>
-          </div>
-          <span class="text-[10px] font-black text-slate-400 uppercase"
-            >{{ chapter.progress }} Hoàn thành</span
+          <div
+            class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black text-lg"
           >
+            0{{ cIdx + 1 }}
+          </div>
+          <div>
+            <h3 class="font-black text-slate-800 tracking-tight">
+              {{ chapter.title }}
+            </h3>
+            <p class="text-[11px] text-slate-400 font-medium">
+              {{ chapter.description }}
+            </p>
+          </div>
         </div>
 
-        <div class="p-4 space-y-2 bg-slate-50/50">
-          <div
-            v-for="lesson in chapter.lessons"
+        <div class="p-4 space-y-3 bg-slate-50/30">
+          <LessonItem
+            v-for="(lesson, lIdx) in chapter.lessons"
             :key="lesson.id"
-            class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 hover:shadow-md transition-all group"
-          >
-            <div class="flex items-center gap-4">
-              <div
-                class="w-6 h-6 rounded-full border-2 border-slate-100 flex items-center justify-center group-hover:border-teal-500 transition-colors"
-              >
-                <div
-                  v-if="lesson.completed"
-                  class="w-full h-full bg-teal-500 rounded-full flex items-center justify-center text-white"
-                >
-                  <Check class="w-3 h-3" />
-                </div>
-              </div>
-              <span class="text-sm font-bold text-slate-700">{{
-                lesson.title
-              }}</span>
-              <span
-                class="text-[10px] text-slate-300 font-bold px-2 py-0.5 border border-slate-100 rounded-md"
-                >{{ lesson.time }}</span
-              >
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span
-                v-for="tag in lesson.tags"
-                :key="tag"
-                class="text-[9px] font-black uppercase px-2 py-1 rounded-md border"
-                :class="
-                  tag === 'Lý thuyết'
-                    ? 'bg-slate-50 text-slate-400'
-                    : 'bg-teal-50 text-teal-600 border-teal-100'
-                "
-              >
-                {{ tag }}
-              </span>
-            </div>
-          </div>
+            :lesson="lesson"
+            :is-completed="isCompleted(lesson.id)"
+            :is-locked="isLocked(cIdx, lIdx)"
+            @select="handleLessonSelect(cIdx, lIdx, lesson.id)"
+          />
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script setup>
-import { Check, Database, Activity, Plane } from "lucide-vue-next";
-const courseChapters = [
-  {
-    title: "Chương 1: Tổng quan về Hệ thống UAV",
-    desc: "Lịch sử, phân loại và các thành phần cốt lõi.",
-    progress: "100%",
-    lessons: [
-      {
-        id: 1,
-        title: "1.1 Giới thiệu về Ngành công nghiệp Drone",
-        time: "15 phút",
-        tags: ["Lý thuyết"],
-        completed: true,
-      },
-      {
-        id: 2,
-        title: "1.2 Cấu tạo phần cứng cơ bản",
-        time: "45 phút",
-        tags: ["Lý thuyết", "Mô hình 3D"],
-        completed: true,
-      },
-    ],
-  },
-  {
-    title: "Chương 2: Động lực học & Điều khiển",
-    desc: "Nguyên lý bay, cân bằng và lực nâng khí động học.",
-    progress: "Đang diễn ra",
-    lessons: [
-      {
-        id: 3,
-        title: "2.1 Bốn lực cơ bản trong hàng không",
-        time: "30 phút",
-        tags: ["Lý thuyết", "Mô phỏng 3D"],
-        completed: false,
-      },
-    ],
-  },
-];
+import { ref, onMounted, computed } from "vue";
+import {
+  Check,
+  Database,
+  Activity,
+  Plane,
+  Loader2,
+  Lock,
+  PlayCircle,
+} from "lucide-vue-next";
+import CourseProgressBar from "@/components/CourseProgressBar.vue";
+import LessonItem from "@/components/LessonItem.vue";
+import api from "@/utils/apis/axios";
+
+const chapters = ref([]);
+const completedLessonIds = ref([]);
+const overallProgress = ref({
+  completedCount: 0,
+  totalLessons: 0,
+  percentage: 0,
+});
+const isLoading = ref(true);
+
+const fetchData = async () => {
+  try {
+    isLoading.value = true;
+    // 1. Lấy cấu trúc bài học
+    const resCourse = await api.get("/courses");
+    chapters.value = resCourse.data.chapters;
+
+    // 2. Lấy danh sách ID đã hoàn thành (Ví dụ: [1, 2])
+    const resProgress = await api.get("/progress/1");
+    completedLessonIds.value =
+      resProgress.data.completedLessons?.map((id) => Number(id)) || [];
+
+    // 3. Lấy phần trăm tổng quát
+    const resOverall = await api.get("/progress/overall/1");
+    overallProgress.value = resOverall.data;
+  } catch (error) {
+    console.error("Lỗi fetch data:", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// --- LOGIC QUAN TRỌNG ---
+
+// 1. Kiểm tra bài đã xong chưa
+const isCompleted = (lessonId) =>
+  completedLessonIds.value.includes(Number(lessonId));
+
+// 2. Kiểm tra bài có bị khóa không
+// MyCourses.vue
+
+const isLocked = (chapterIdx, lessonIdx) => {
+  // 1. Kiểm tra an toàn: Nếu chưa có dữ liệu chapters hoặc chương đó không tồn tại
+  if (
+    !chapters.value ||
+    chapters.value.length === 0 ||
+    !chapters.value[chapterIdx]
+  ) {
+    return true; // Mặc định khóa nếu chưa có dữ liệu
+  }
+
+  // 2. Bài đầu tiên của chương 1 luôn mở
+  if (chapterIdx === 0 && lessonIdx === 0) return false;
+
+  let prevLesson;
+
+  // 3. Nếu là bài tiếp theo trong cùng chương
+  if (lessonIdx > 0) {
+    const currentChapterLessons = chapters.value[chapterIdx].lessons;
+    if (!currentChapterLessons || !currentChapterLessons[lessonIdx - 1])
+      return true;
+
+    prevLesson = currentChapterLessons[lessonIdx - 1];
+  }
+  // 4. Nếu là bài đầu tiên của chương sau
+  else {
+    const prevChapter = chapters.value[chapterIdx - 1];
+    // Kiểm tra chương trước có tồn tại và có bài học không
+    if (
+      !prevChapter ||
+      !prevChapter.lessons ||
+      prevChapter.lessons.length === 0
+    ) {
+      return true;
+    }
+    prevLesson = prevChapter.lessons[prevChapter.lessons.length - 1];
+  }
+
+  // 5. Cuối cùng, kiểm tra xem bài trước đó đã xong chưa
+  return !isCompleted(prevLesson.id);
+};
+
+onMounted(fetchData);
 </script>
