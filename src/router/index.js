@@ -29,6 +29,10 @@ const routes = [
         path: "fleet",
         component: () => import("../pages/users/DroneFleetView.vue"),
       },
+      {
+        path: "courses",
+        component: () => import("../pages/users/MyCourses.vue"),
+      },
     ],
     meta: { hideHeaderFooter: true },
   },

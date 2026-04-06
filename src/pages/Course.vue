@@ -22,6 +22,9 @@
           v-if="activeLesson"
           :key="activeLesson.id"
           :lesson="activeLesson"
+          :course-id="activeLesson.chapterId"
+          :completed-lessons="completedLessons"
+          @status-changed="handleProgressUpdate"
         />
       </div>
     </main>
@@ -29,43 +32,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted } from "vue";
 import CourseSidebar from "@/layout/CourseSidebar.vue";
 import CourseDetail from "@/components/CourseDetail.vue";
-import api from "@/utils/apis/axios"; // Đảm bảo đường dẫn axios của bạn đúng
+import api from "@/utils/apis/axios";
 
-// --- STATE ---
 const isSidebarCollapsed = ref(false);
-const courseData = ref([]); // Khởi tạo mảng rỗng
-const activeLesson = ref(null); // Ban đầu chưa có bài học nào được chọn
+const courseData = ref([]);
+const completedLessons = ref([]);
+const activeLesson = ref(null);
 const mainContent = ref(null);
 const isLoading = ref(false);
 
-// --- LOGIC LẤY DỮ LIỆU TỪ BE ---
 const fetchData = async () => {
   try {
     isLoading.value = true;
-    // Gọi API lấy Chapter -> Lesson -> Section (đã populate ở BE)
     const { data } = await api.get("/courses");
-    courseData.value = data;
 
-    // Tự động chọn bài học đầu tiên của chương đầu tiên nếu có
-    if (data.length > 0 && data[0].lessons?.length > 0) {
-      handleSelectLesson(data[0].lessons[0]);
+    // data = { chapters: [...], completedLessons: [...] }
+    courseData.value = data.chapters;
+    completedLessons.value = data.completedLessons || [];
+
+    if (data.chapters.length > 0 && data.chapters[0].lessons?.length > 0) {
+      handleSelectLesson(data.chapters[0].lessons[0]);
     }
   } catch (error) {
-    console.error("Lỗi khi tải dữ liệu học tập:", error);
+    console.error("Lỗi khi tải dữ liệu:", error);
   } finally {
     isLoading.value = false;
   }
 };
 
+/**
+ * Cập nhật danh sách bài đã học khi CourseDetail emit lên
+ */
+const handleProgressUpdate = (lessonId) => {
+  if (!completedLessons.value.includes(lessonId)) {
+    completedLessons.value.push(lessonId);
+  }
+};
+
 const handleSelectLesson = (lesson) => {
-  // Vì BE đã populate sẵn các sections vào trong lesson,
-  // nên ta chỉ cần gán thẳng đối tượng lesson này vào activeLesson
+  // Đảm bảo lesson luôn có chapterId để tránh lỗi "undefined" ở Backend
   activeLesson.value = lesson;
 
-  // Cuộn lên đầu trang
+  // Cuộn khung nội dung chính lên đầu khi chuyển bài
   if (mainContent.value) {
     mainContent.value.scrollTo({ top: 0, behavior: "smooth" });
   }
