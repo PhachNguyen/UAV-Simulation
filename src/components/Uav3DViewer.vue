@@ -196,7 +196,7 @@ const handleModelSuccess = (gltf) => {
   if (hotspots) setupHotspots(hotspots);
 
   loading.value = false;
-  playEntryAnimation();
+  // playEntryAnimation();
 };
 
 const loadModel = () => {

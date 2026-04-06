@@ -24,7 +24,8 @@
           :lesson="activeLesson"
           :course-id="activeLesson.chapterId"
           :completed-lessons="completedLessons"
-          @status-changed="handleProgressUpdate"
+          @nav-lesson="handleLessonChange"
+          @status-changed="updateSidebarStatus"
         />
       </div>
     </main>
@@ -71,7 +72,16 @@ const handleProgressUpdate = (lessonId) => {
     completedLessons.value.push(lessonId);
   }
 };
-
+const handleLessonChange = (direction) => {
+  const currentIndex = allLessons.findIndex(
+    (l) => l.id === currentLesson.value.id,
+  );
+  if (direction === "next" && currentIndex < allLessons.length - 1) {
+    currentLesson.value = allLessons[currentIndex + 1];
+  } else if (direction === "prev" && currentIndex > 0) {
+    currentLesson.value = allLessons[currentIndex - 1];
+  }
+};
 const handleSelectLesson = (lesson) => {
   // Đảm bảo lesson luôn có chapterId để tránh lỗi "undefined" ở Backend
   activeLesson.value = lesson;

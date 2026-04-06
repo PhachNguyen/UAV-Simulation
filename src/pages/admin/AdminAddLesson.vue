@@ -19,7 +19,7 @@ import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import api from "@/utils/apis/axios";
 
 // --- 1. STATE ---
-const chapters = ref([]); // Cấu trúc: [{ _id, title, lessons: [{ _id, title, sections: [] }] }]
+const chapters = ref([]); // Cấu trúc: [{ id, title, lessons: [{ id, title, sections: [] }] }]
 const activeLessonId = ref(null);
 const expandedSections = ref([0]);
 const toasts = ref([]);
@@ -29,19 +29,25 @@ const isLoading = ref(false);
 const fetchCourseData = async () => {
   try {
     const { data } = await api.get("/courses");
-    // Đảm bảo mỗi lesson đều có mảng hotspots để tránh lỗi v-for
-    chapters.value = data.map((chapter) => ({
+
+    // Kiểm tra nếu data là object chứa chapters hoặc là mảng trực tiếp
+    const rawChapters = Array.isArray(data) ? data : data.chapters || [];
+
+    chapters.value = rawChapters.map((chapter) => ({
       ...chapter,
-      lessons: chapter.lessons.map((lesson) => ({
+      lessons: (chapter.lessons || []).map((lesson) => ({
         ...lesson,
         hotspots: lesson.hotspots || [],
+        sections: lesson.sections || [], // ĐẢM BẢO CÓ SECTIONS
       })),
     }));
 
-    if (chapters.value[0]?.lessons?.[0]) {
-      activeLessonId.value = chapters.value[0].lessons[0]._id;
+    // Tự động chọn bài đầu tiên
+    if (chapters.value.length > 0 && chapters.value[0].lessons?.length > 0) {
+      activeLessonId.value = chapters.value[0].lessons[0].id;
     }
   } catch (error) {
+    console.error("Lỗi fetch:", error);
     addToast("Lỗi kết nối máy chủ!", "error");
   }
 };
@@ -52,7 +58,7 @@ onMounted(fetchCourseData);
 // Hiển thị bài giảng đang được chọn dựa trên activeLessonId
 const currentLesson = computed(() => {
   for (const chapter of chapters.value) {
-    const lesson = chapter.lessons?.find((l) => l._id === activeLessonId.value);
+    const lesson = chapter.lessons?.find((l) => l.id === activeLessonId.value);
     if (lesson) return lesson;
   }
   return null;
@@ -70,7 +76,7 @@ const stats = computed(() => ({
 
 const addNewChapter = () => {
   const newChapter = {
-    _id: `temp_${Date.now()}`,
+    id: `temp_${Date.now()}`,
     title: "Chương mới",
     order: chapters.value.length + 1,
     lessons: [],
@@ -83,7 +89,7 @@ const addNewChapter = () => {
 const addNewLesson = (cIdx) => {
   const newId = `temp_${Date.now()}`;
   const newLesson = {
-    _id: newId,
+    id: newId,
     title: "Bài giảng mới",
     order: chapters.value[cIdx].lessons.length + 1,
     // DỮ LIỆU 3D ĐƯỢC ĐẶT Ở ĐÂY
@@ -131,7 +137,7 @@ const handleLesson3DUpload = async (event) => {
 const addSection = (type) => {
   if (!currentLesson.value) return;
   const newSection = {
-    _id: `temp_${Date.now()}`,
+    id: `temp_${Date.now()}`,
     type: type === "text" ? "theory" : "3d_model",
     title: type === "text" ? "Khối văn bản" : "Mô hình 3D",
     content: type === "text" ? "" : { url: "", caption: "" },
@@ -163,7 +169,7 @@ const handlePublish = async () => {
     isLoading.value = true;
     // Duyệt qua từng chương
     for (const chapter of chapters.value) {
-      let cId = chapter._id;
+      let cId = chapter.id;
 
       // --- A. XỬ LÝ CHAPTER ---
       if (String(cId).startsWith("temp_")) {
@@ -171,8 +177,8 @@ const handlePublish = async () => {
           title: chapter.title,
           order: chapter.order,
         });
-        cId = res.data._id;
-        chapter._id = cId;
+        cId = res.data.id;
+        chapter.id = cId;
       } else {
         await api.put(`/courses/${cId}`, {
           title: chapter.title,
@@ -182,7 +188,7 @@ const handlePublish = async () => {
 
       // --- B. XỬ LÝ LESSONS ---
       for (const lesson of chapter.lessons) {
-        let lId = lesson._id; // Khai báo lId tại đây
+        let lId = lesson.id; // Khai báo lId tại đây
         const lessonPayload = {
           title: lesson.title,
           order: lesson.order,
@@ -192,23 +198,23 @@ const handlePublish = async () => {
 
         if (String(lId).startsWith("temp_")) {
           const res = await api.post(`/courses/${cId}/lessons`, lessonPayload);
-          lId = res.data._id;
-          lesson._id = lId;
+          lId = res.data.id;
+          lesson.id = lId;
         } else {
           await api.put(`/courses/lessons/${lId}`, lessonPayload);
         }
 
         // --- C. XỬ LÝ SECTIONS ---
         for (const section of lesson.sections) {
-          const { _id, ...cleanData } = section;
-          if (String(section._id).startsWith("temp_")) {
+          const { id, ...cleanData } = section;
+          if (String(section.id).startsWith("temp_")) {
             const res = await api.post(
               `/courses/lessons/${lId}/sections`,
               cleanData,
             );
-            section._id = res.data._id;
+            section.id = res.data.id;
           } else {
-            await api.put(`/courses/sections/${section._id}`, cleanData);
+            await api.put(`/courses/sections/${section.id}`, cleanData);
           }
         }
       } // Đóng vòng lặp lesson
@@ -453,7 +459,7 @@ const handleSave = async () => {
         <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
           <div
             v-for="(chapter, cIdx) in chapters"
-            :key="chapter._id"
+            :key="chapter.id"
             class="rounded-3xl border border-slate-100 bg-white overflow-hidden"
           >
             <div
@@ -484,10 +490,10 @@ const handleSave = async () => {
             >
               <div
                 v-for="lesson in chapter.lessons"
-                :key="lesson._id"
-                @click="activeLessonId = lesson._id"
+                :key="lesson.id"
+                @click="activeLessonId = lesson.id"
                 :class="
-                  activeLessonId === lesson._id
+                  activeLessonId === lesson.id
                     ? 'bg-white shadow-sm ring-1 ring-teal-500/10'
                     : 'hover:bg-white/40'
                 "
@@ -496,7 +502,7 @@ const handleSave = async () => {
                 <div class="flex items-center gap-3 overflow-hidden">
                   <Play
                     :class="
-                      activeLessonId === lesson._id
+                      activeLessonId === lesson.id
                         ? 'text-teal-500 fill-current'
                         : 'text-slate-300'
                     "
@@ -571,11 +577,11 @@ const handleSave = async () => {
 
             <div
               v-for="(sec, index) in currentLesson.sections"
-              :key="sec._id"
+              :key="sec.id"
               class="bg-white rounded-3xl p-8 border border-slate-100 relative group mb-6 shadow-sm hover:border-teal-200 transition-all"
             >
               <button
-                @click="removeSection(index, sec._id)"
+                @click="removeSection(index, sec.id)"
                 class="absolute -right-2 -top-2 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
               >
                 <Trash2 class="w-4 h-4" />
