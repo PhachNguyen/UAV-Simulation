@@ -244,18 +244,6 @@ export const uavList = [
     ],
     scale: 0.1,
     stats: { battery: "34 Mins", range: "15 KM", speed: "19 m/s" },
-
-    versions: [
-      { title: "DJI Mavic 4 Pro (DJI RC 2)", controller: "DJI RC 2" },
-      {
-        title: "DJI Mavic 4 Pro Fly More Combo (DJI RC 2)",
-        controller: "DJI RC 2",
-      },
-      {
-        title: "DJI Mavic 4 Pro 512GB Creator Combo",
-        controller: "DJI RC Pro 2",
-      },
-    ],
   },
   //  DJI Flip
   {

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="group bg-white border border-gray-100 rounded-2xl p-5 transition-all duration-500 hover:shadow-2xl hover:border-blue-200 flex flex-col relative overflow-hidden"
+    class="group bg-white border border-gray-300 rounded-xl p-5 transition-all duration-500 hover:shadow-2xl hover:border-blue-200 flex flex-col relative overflow-hidden"
   >
     <div
       v-if="product.status"
@@ -63,7 +63,7 @@
         <!-- <span class="text-lg font-black text-gray-900"
           >${{ product.price || 0 }}</span
         > -->
-        <span class="text-sm font-black text-gray-900">Liên hệ ngay</span>
+        <span class="text-sm font-black text-gray-900">Khám phá</span>
       </div>
       <!--  Sự kiện Click ra Detail -->
       <button

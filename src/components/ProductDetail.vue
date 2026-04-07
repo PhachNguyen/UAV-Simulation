@@ -109,7 +109,7 @@
         </div>
         <hr class="border-gray-100 mb-8" />
 
-        <div class="mb-10">
+        <!-- <div class="mb-10">
           <h3
             class="text-sm font-bold text-gray-900 uppercase tracking-widest mb-4"
           >
@@ -143,7 +143,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <div
           class="bg-gray-50 border border-gray-100 rounded-2xl p-5 flex items-center space-x-4 mb-8"
@@ -173,7 +173,7 @@
         <div
           class="cursor-pointer text-xl font-black text-white mb-8 bg-blue-500 p-4 rounded-xl text-center select-none hover:bg-blue-600 transition-colors duration-300"
         >
-          Đặt hàng ngay
+          Gợi ý lộ trình học
         </div>
         <!-- Button mua sản phẩm -->
         <!-- <div class="flex space-x-4">

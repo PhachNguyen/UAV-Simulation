@@ -132,20 +132,24 @@ const focusHotspot = (spot) => {
 <template>
   <div class="flex flex-col bg-white">
     <section v-if="lesson" class="flex-1 flex flex-col min-w-0">
-      <div class="flex-1 relative px-8 py-12">
+      <div class="flex-1 relative px-8">
         <div class="max-w-4xl mx-auto">
           <header
-            class="mb-12 border-b-2 border-slate-50 pb-8 sticky top-0 bg-white/90 backdrop-blur-md z-10"
+            class="mb-10 border-b-2 border-slate-50 pb-8 sticky top-0 bg-white/90 backdrop-blur-md z-10"
           >
             <h1
-              class="text-4xl font-black text-slate-950 leading-tight mb-3 tracking-tighter uppercase"
+              class="text-4xl font-black text-slate-950 leading-tight tracking-tighter uppercase"
+              style="
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+                margin-bottom: 4px;
+              "
             >
               {{ lesson.title }}
             </h1>
             <div class="flex items-center gap-3 text-slate-400">
               <MapPin :size="16" class="text-teal-500" />
               <span class="text-xs font-bold uppercase tracking-widest">
-                {{ lesson.hotspots?.length || 0 }} Điểm tương tác 3D
+                {{ lesson.hotspots?.length || 0 }} tọa độ các điểm kỹ thuật
               </span>
             </div>
           </header>

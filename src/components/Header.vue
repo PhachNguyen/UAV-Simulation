@@ -185,19 +185,23 @@ const navLinks = [
               class="absolute top-full right-0 mt-2 w-48 bg-white shadow-xl rounded-xl border border-slate-100 p-1.5 z-[60]"
             >
               <router-link
-                to="/profile"
+                v-if="user.role !== 'admin'"
+                to="/profile/dashboard"
                 class="flex items-center gap-2 px-3 py-2 text-[13px] text-slate-600 hover:bg-slate-50 rounded-lg"
               >
                 <UserIcon class="w-4 h-4" /> Hồ sơ
               </router-link>
+
               <router-link
-                v-if="user.role === 'instructor'"
-                to="/cms"
+                v-if="user.role === 'admin'"
+                to="admin/dashboard"
                 class="flex items-center gap-2 px-3 py-2 text-[13px] text-slate-600 hover:bg-slate-50 rounded-lg"
               >
                 <Settings class="w-4 h-4" /> Quản trị
               </router-link>
+
               <hr class="my-1 border-slate-100" />
+
               <button
                 @click="logout"
                 class="w-full flex items-center gap-2 px-3 py-2 text-[13px] text-red-500 hover:bg-red-50 rounded-lg transition-colors"

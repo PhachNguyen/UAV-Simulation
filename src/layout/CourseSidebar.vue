@@ -1,6 +1,14 @@
 <script setup>
 import { ref, computed } from "vue";
-import { Menu, ChevronDown, Check, Play, Lock } from "lucide-vue-next";
+import {
+  Menu,
+  ChevronDown,
+  Check,
+  Play,
+  Lock,
+  LayoutList,
+} from "lucide-vue-next";
+import gsap from "gsap";
 
 const props = defineProps({
   courseData: { type: Array, default: () => [] },
@@ -62,13 +70,14 @@ const handleSelect = (lesson, sIdx, lIdx) => {
 <template>
   <aside
     :class="[
-      'bg-white border-r transition-all duration-300',
+      'bg-white  transition-all duration-300 overflow-y-auto border-r border-slate-200',
       isCollapsed ? 'w-20' : 'w-80',
     ]"
   >
-    <div class="p-5 border-b flex items-center justify-between">
+    <!-- Title -->
+    <div class="p-5 flex items-center justify-between overflow-auto">
       <h2 v-show="!isCollapsed" class="text-xs font-black uppercase">
-        Nội dung khóa học
+        Nội dung bài giảng
       </h2>
       <button
         @click="isCollapsed = !isCollapsed"
@@ -78,25 +87,38 @@ const handleSelect = (lesson, sIdx, lIdx) => {
       </button>
     </div>
 
+    <!-- Navigation -->
     <nav class="flex-1 overflow-y-auto p-3 space-y-4">
       <div v-for="(section, sIdx) in courseData" :key="section.id">
         <button
           v-show="!isCollapsed"
           @click="section.isOpen = !section.isOpen"
-          class="w-full flex justify-between px-2 mb-2"
+          class="cursor-pointer w-full flex items-center justify-between px-3 py-2 mb-2 rounded-xl hover:bg-slate-50 transition-colors group"
         >
-          <span class="text-[10px] font-bold text-slate-400 uppercase">{{
-            section.title
-          }}</span>
+          <div class="flex items-center gap-2.5">
+            <div
+              class="p-1.5 rounded-lg bg-slate-100 group-hover:bg-teal-50 group-hover:text-teal-600 text-slate-500 transition-colors"
+            >
+              <LayoutList class="w-3.5 h-3.5" />
+            </div>
+
+            <span
+              class="text-[11px] font-black text-slate-600 uppercase tracking-wider group-hover:text-slate-900 transition-colors"
+            >
+              {{ section.title }}
+            </span>
+          </div>
+
           <ChevronDown
             :class="[
-              'w-3 h-3 transition-transform',
-              section.isOpen ? 'rotate-180' : '',
+              'w-3.5 h-3.5 text-slate-400 transition-transform duration-300',
+              section.isOpen ? 'rotate-180 text-teal-600' : '',
             ]"
           />
         </button>
-
+        <!-- Truong hợp colláped -->
         <div v-show="section.isOpen || isCollapsed" class="space-y-1">
+          <!-- <LayoutList class="w-3.5 h-3.5" /> -->
           <div
             v-for="(lesson, lIdx) in section.lessons"
             :key="lesson.id"
@@ -136,13 +158,35 @@ const handleSelect = (lesson, sIdx, lIdx) => {
               >
                 {{ lesson.title }}
               </h4>
-              <p class="text-[9px] text-slate-400 uppercase">
-                {{
-                  isUnlocked(sIdx, lIdx)
-                    ? (lesson.duration || 0) + " phút"
-                    : "Đang khóa"
-                }}
-              </p>
+              <!-- Hastag -->
+              <div class="flex flex-wrap gap-1 mt-1">
+                <span
+                  class="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[8px] font-black uppercase rounder-xl border border-slate-300"
+                >
+                  # Lý thuyết
+                </span>
+
+                <span
+                  v-if="lesson.model3DPath"
+                  class="px-1.5 py-0.5 rounded-md bg-teal-50 text-teal-600 text-[8px] font-black uppercase rounder-xl border border-slate-300"
+                >
+                  # Mô phỏng 3D
+                </span>
+
+                <span
+                  v-if="isUnlocked(sIdx, lIdx)"
+                  class="px-1.5 py-0.5 text-[8px] font-bold text-slate-400 uppercase"
+                >
+                  {{ lesson.duration || gsap.utils.random(5, 50, 1) }}
+                  phút
+                </span>
+                <span
+                  v-else
+                  class="px-1.5 py-0.5 text-[8px] font-bold text-rose-400 uppercase"
+                >
+                  Đang khóa
+                </span>
+              </div>
             </div>
           </div>
         </div>
