@@ -13,6 +13,11 @@ import {
   Box,
   UploadCloud,
   Zap,
+  GraduationCap,
+  FileText,
+  PlusSquare,
+  MapPin,
+  Hexagon,
 } from "lucide-vue-next";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
@@ -29,20 +34,31 @@ const isLoading = ref(false);
 const fetchCourseData = async () => {
   try {
     const { data } = await api.get("/courses");
-
-    // Kiểm tra nếu data là object chứa chapters hoặc là mảng trực tiếp
     const rawChapters = Array.isArray(data) ? data : data.chapters || [];
 
     chapters.value = rawChapters.map((chapter) => ({
       ...chapter,
-      lessons: (chapter.lessons || []).map((lesson) => ({
-        ...lesson,
-        hotspots: lesson.hotspots || [],
-        sections: lesson.sections || [], // ĐẢM BẢO CÓ SECTIONS
-      })),
+      lessons: (chapter.lessons || []).map((lesson) => {
+        // Kiểm tra nếu bài giảng chưa có nội dung (sections rỗng)
+        const sections = lesson.sections || [];
+        if (sections.length === 0) {
+          sections.push({
+            id: `temp_default_${Date.now()}`,
+            type: "theory",
+            title: "", // Tên mặc định
+            content: "",
+            order: 1,
+          });
+        }
+
+        return {
+          ...lesson,
+          hotspots: lesson.hotspots || [],
+          sections: sections,
+        };
+      }),
     }));
 
-    // Tự động chọn bài đầu tiên
     if (chapters.value.length > 0 && chapters.value[0].lessons?.length > 0) {
       activeLessonId.value = chapters.value[0].lessons[0].id;
     }
@@ -95,7 +111,15 @@ const addNewLesson = (cIdx) => {
     // DỮ LIỆU 3D ĐƯỢC ĐẶT Ở ĐÂY
     model3DPath: null,
     hotspots: [],
-    sections: [], // Các khối văn bản bên trong
+    sections: [
+      {
+        id: `temp_sec_${Date.now()}`,
+        type: "theory", // Loại văn bản
+        title: "",
+        content: "", // Nội dung trống cho QuillEditor
+        order: 1,
+      },
+    ],
   };
   chapters.value[cIdx].lessons.push(newLesson);
   activeLessonId.value = newId;
@@ -139,7 +163,7 @@ const addSection = (type) => {
   const newSection = {
     id: `temp_${Date.now()}`,
     type: type === "text" ? "theory" : "3d_model",
-    title: type === "text" ? "Khối văn bản" : "Mô hình 3D",
+    title: type === "text" ? "" : "Mô hình 3D",
     content: type === "text" ? "" : { url: "", caption: "" },
     order: currentLesson.value.sections.length + 1,
   };
@@ -497,50 +521,61 @@ const displayHotspots = computed(() => {
     </TransitionGroup>
 
     <header
-      class="h-20 bg-white border-b border-slate-200 px-8 flex items-center justify-between shadow-sm z-50"
+      class="h-20 bg-white border rounded-2xl border-slate-300 px-8 flex items-center justify-between shadow-stone-400"
     >
       <div class="flex items-center gap-4">
-        <button
+        <!-- Nút back -->
+        <!-- <button
           @click="$router.back()"
           class="p-2 hover:bg-slate-100 rounded-full transition-colors"
         >
           <ArrowLeft class="w-5 h-5 text-slate-500" />
-        </button>
+        </button> -->
         <h1
           class="text-xl font-black uppercase tracking-tighter flex items-center gap-2 text-slate-800"
         >
-          <LayoutDashboard class="w-5 h-5 text-teal-600" /> UAV CMS PRO
+          <LayoutDashboard class="w-5 h-5 text-teal-600" /> Thông tin bài giảng
         </h1>
       </div>
       <button
         @click="handlePublish"
         :disabled="isLoading"
-        class="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-teal-600 transition-all shadow-xl disabled:opacity-50"
+        class="cursor-pointer px-8 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-teal-600 transition-all shadow-xl disabled:opacity-50"
       >
         {{ isLoading ? "ĐANG ĐỒNG BỘ..." : "CẬP NHẬT HỆ THỐNG" }}
       </button>
     </header>
 
     <div class="flex-1 overflow-hidden flex">
-      <aside class="w-[260px] border-r border-slate-200 bg-white flex flex-col">
-        <div class="p-8 border-b border-slate-100 bg-slate-50/50">
-          <h3
-            class="text-[10px] font-black uppercase tracking-[0.2em] text-teal-600"
-          >
+      <!-- Sidebar  -->
+      <aside class="w-[260px] border-r border-slate-300 bg-white flex flex-col">
+        <div
+          class="border-b border-slate-100 bg-slate-50/50"
+          style="padding: 12px 16px 8px 16px"
+        >
+          <h3 class="text-[10px] font-black uppercase text-teal-600">
             Cấu trúc nội dung
           </h3>
-          <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">
+          <p
+            class="text-[10px] font-bold text-slate-400 uppercase mt-1"
+            style="margin-top: 4px"
+          >
             {{ stats.chapters }} Chương • {{ stats.lessons }} Bài
           </p>
           <button
             @click="addNewChapter"
-            class="w-full mt-4 py-4 border-2 border-dashed border-slate-200 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:border-teal-500 hover:text-teal-600 transition-all flex items-center justify-center gap-2"
+            class="cursor-pointer w-full mt-4 py-4 border-2 border-dashed border-slate-200 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:border-teal-500 hover:text-teal-600 transition-all flex items-center justify-center gap-2"
+            style="margin-top: 16px"
           >
             <Plus class="w-4 h-4" /> Thêm chương mới
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+        <!-- Danh sách chương -->
+        <div
+          class="flex-1 overflow-y-auto space-y-4 custom-scrollbar"
+          style="overflow-x: hidden; padding: 12px 16px 8px 16px"
+        >
           <div
             v-for="(chapter, cIdx) in chapters"
             :key="chapter.id"
@@ -548,7 +583,8 @@ const displayHotspots = computed(() => {
           >
             <div
               @click="toggleSection(cIdx)"
-              class="p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50"
+              class="flex items-center justify-between cursor-pointer hover:bg-slate-200 cursor-pointer"
+              style="padding: 20px 0px"
             >
               <div class="flex items-center gap-3">
                 <div
@@ -608,54 +644,77 @@ const displayHotspots = computed(() => {
         </div>
       </aside>
 
+      <!-- Bài giảng -->
       <main
         v-if="currentLesson"
-        class="flex-1 bg-[#FBFBFB] p-8 overflow-y-auto custom-scrollbar"
+        class="flex-1 bg-[#FBFBFB] p-6 overflow-y-auto custom-scrollbar"
       >
         <div class="max-w-4xl mx-auto space-y-12">
           <section
-            class="bg-white rounded-3xl p-8 shadow-sm border border-slate-100"
+            class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100"
           >
             <h2
-              class="text-xl font-bold text-slate-800 flex items-center gap-3 mb-8"
+              class="text-2xl font-bold text-slate-800 flex items-center gap-3 mb-8"
             >
-              <Box class="text-teal-500" /> 1. Thông tin bài giảng
+              <GraduationCap class="text-teal-500 w-6 h-6" />
+              1. Thông tin bài giảng
             </h2>
-            <div class="space-y-6">
-              <div>
+            <!--  Tiêu đề bài giảng  -->
+            <div class="space-y-6" style="margin-top: 12px">
+              <div class="group">
                 <label
-                  class="text-[10px] font-bold text-slate-400 uppercase ml-1"
-                  >Tiêu đề bài giảng</label
+                  class="text-[14px] font-bold text-slate-400 uppercase ml-1 tracking-wider transition-colors group-focus-within:text-teal-500"
                 >
-                <input
-                  v-model="currentLesson.title"
-                  type="text"
-                  class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 mt-2 outline-none focus:ring-2 focus:ring-teal-500 transition-all"
-                />
+                  Tiêu đề bài giảng
+                </label>
+
+                <div class="relative mt-2">
+                  <div
+                    class="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-teal-500 transition-colors"
+                  >
+                    <Type class="w-4 h-4" />
+                  </div>
+
+                  <input
+                    v-model="currentLesson.title"
+                    type="text"
+                    placeholder="Nhập tên bài giảng tại đây..."
+                    class="w-full bg-slate-50 border-b border-slate-300 rounded-2xl py-4 pl-12 pr-6 outline-none focus:bg-white focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 transition-all text-[13px] font-medium text-slate-700"
+                  />
+                </div>
               </div>
             </div>
           </section>
-
+          <!--  Content -->
           <section class="space-y-6">
-            <div class="flex items-center justify-between">
+            <div
+              class="flex items-center justify-between bg-white/50 p-4 rounded-2xl border border-slate-100 shadow-sm"
+            >
               <h2
                 class="text-xl font-bold text-slate-800 flex items-center gap-3"
               >
-                <Zap class="text-amber-500" /> 2. Nội dung chi tiết
+                <div class="p-2 bg-teal-50 rounded-xl border border-teal-100">
+                  <FileText class="text-teal-600 w-5 h-5 fill-teal-600/10" />
+                </div>
+                2. Nội dung chi tiết
               </h2>
-              <div class="flex gap-2">
+
+              <div class="flex gap-3">
                 <button
                   @click="addSection('text')"
-                  class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black hover:bg-slate-50"
+                  class="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-100 rounded-xl text-[11px] font-black uppercase tracking-wider text-slate-600 hover:border-teal-500 hover:text-teal-600 hover:bg-teal-50 transition-all active:scale-95 shadow-sm"
                 >
-                  Thêm chương
+                  <PlusSquare class="w-4 h-4" />
+                  Thêm Chương
                 </button>
-                <button
+
+                <!-- <button
                   @click="addSection('3d')"
-                  class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black hover:bg-slate-50"
+                  class="flex items-center gap-2 px-4 py-2 bg-slate-900 border-2 border-slate-900 rounded-xl text-[11px] font-black uppercase tracking-wider text-white hover:bg-slate-800 transition-all active:scale-95 shadow-lg shadow-slate-200"
                 >
-                  Thêm ảnh
-                </button>
+                  <ImagePlus class="w-4 h-4" />
+                  Thêm hình ảnh
+                </button> -->
               </div>
             </div>
 
@@ -666,27 +725,29 @@ const displayHotspots = computed(() => {
             >
               <button
                 @click="removeSection(index, sec.id)"
-                class="absolute -right-2 -top-2 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
+                class="cursor-pointer absolute -right-2 -top-2 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
               >
                 <Trash2 class="w-4 h-4" />
               </button>
 
               <div class="space-y-4">
-                <div class="flex items-center gap-4 mb-4">
-                  <div class="w-1 h-8 bg-teal-500 rounded-full"></div>
+                <div
+                  class="flex items-center gap-4 mb-4"
+                  style="margin-bottom: 16px"
+                >
+                  <div class="w-1 h-10 bg-teal-500 rounded-full"></div>
                   <div class="flex-1">
                     <label
-                      class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-1"
+                      class="text-[12px] font-black text-slate-600 uppercase block"
+                      style="margin-bottom: 4px"
                     >
-                      Tiêu đề mục #{{ index + 1 }} ({{
-                        sec.type === "theory" ? "Văn bản" : "3D"
-                      }})
+                      Tiêu đề chương {{ index + 1 }}
                     </label>
                     <input
                       v-model="sec.title"
                       type="text"
                       placeholder="Nhập tên mục (Ví dụ: Giới thiệu chung, Video thực hành...)"
-                      class="w-full bg-transparent border-b border-slate-100 py-2 text-sm font-bold text-slate-700 outline-none focus:border-teal-500 transition-colors"
+                      class="w-full bg-transparent border-b border-slate-300 py-2 text-sm font-bold text-slate-700 outline-none focus:border-teal-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -702,31 +763,101 @@ const displayHotspots = computed(() => {
               </div>
             </div>
           </section>
-          <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-            <Zap class="text-amber-500" /> 3. Tọa độ & Mô hình 3D
+          <!--  Mục  Mô phỏng 3D -->
+          <h2
+            class="text-xl font-bold text-slate-800 flex items-center gap-3"
+            style="margin-top: 32px"
+          >
+            <Box class="text-teal-500 w-6 h-6" />
+            3. Mô phỏng
           </h2>
-          <div class="flex gap-6 items-start">
+          <div class="flex flex-col gap-6">
+            <!-- Mô hình 3D -->
+            <section
+              class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex-1"
+            >
+              <h3
+                class="font-black text-slate-800 text-xs uppercase flex items-center gap-2 border-b border-slate-50 pb-4"
+              >
+                <Hexagon :size="16" class="text-teal-500" /> Mô hình 3D (.GLB)
+              </h3>
+              <div
+                class="h-full bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-slate-800 shadow-inner group"
+              >
+                <template v-if="currentLesson.model3DPath">
+                  <Uav3DViewer
+                    ref="uavViewerRef"
+                    :admin="true"
+                    :modelSrc="
+                      'http://localhost:5000' + currentLesson.model3DPath
+                    "
+                    :customHotspots="displayHotspots"
+                    :currentMarkerId="null"
+                    @pick-coords="updateLatestHotspot"
+                  />
+                  <div
+                    class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none"
+                  >
+                    <div
+                      class="bg-black/50 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest"
+                    >
+                      Preview Mode
+                    </div>
+                    <label
+                      class="bg-white text-slate-900 px-4 py-1.5 rounded-lg text-[10px] font-black cursor-pointer pointer-events-auto hover:bg-teal-400 transition-colors shadow-xl"
+                    >
+                      Thay đổi model
+                      <input
+                        type="file"
+                        @change="handleFileUpload($event, 'model3d')"
+                        class="hidden"
+                        accept=".glb"
+                      />
+                    </label>
+                  </div>
+                </template>
+
+                <div v-else class="text-center">
+                  <div
+                    class="p-4 bg-slate-800 rounded-full inline-block mb-3 text-teal-400 shadow-lg"
+                  >
+                    <UploadCloud :size="32" />
+                  </div>
+                  <p class="text-white font-bold text-sm">Chưa có mô hình 3D</p>
+                  <p class="text-slate-500 text-[10px] mt-1">
+                    Hỗ trợ định dạng .GLB
+                  </p>
+                  <input
+                    type="file"
+                    @change="handleFileUpload($event, 'model3d')"
+                    class="absolute inset-0 opacity-0 cursor-pointer"
+                    accept=".glb"
+                  />
+                </div>
+              </div>
+            </section>
             <!-- Gán tọa độ -->
             <section
               class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5"
             >
+              <!--  Title tọa độ -->
               <div
                 class="flex justify-between items-center border-b border-slate-50 pb-4"
               >
                 <h3
-                  class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2"
+                  class="font-black text-slate-800 text-xs uppercase flex items-center gap-2"
                 >
                   <MapPin :size="16" class="text-teal-500" /> Gán tọa độ cho mô
                   hình
                 </h3>
                 <button
                   @click="addHotspot"
-                  class="text-[10px] font-black uppercase bg-teal-50 text-teal-700 px-4 py-2 rounded-xl hover:bg-teal-100 transition-colors"
+                  class="cursor-pointer text-[10px] flex font-black uppercase bg-teal-50 text-teal-700 px-4 py-2 rounded-xl hover:bg-teal-100 transition-colors"
                 >
-                  + Thêm điểm
+                  <Plus class="w-4 h-4 text-teal-700" /> Thêm điểm
                 </button>
               </div>
-
+              <!-- Gán tọa độ -->
               <div
                 v-if="currentLesson.hotspots.length === 0"
                 class="py-10 text-center border-2 border-dashed border-slate-100 rounded-3xl"
@@ -760,10 +891,10 @@ const displayHotspots = computed(() => {
                       class="p-1 hover:bg-white rounded-md shadow-sm"
                       title="Sửa vị trí trên model"
                     >
-                      <MapPin
+                      <!-- <MapPin
                         :size="14"
                         :class="{ 'animate-bounce': editingIndex === index }"
-                      />
+                      /> -->
                     </button>
                     <button
                       @click="removeHotspot(index)"
@@ -831,70 +962,6 @@ const displayHotspots = computed(() => {
                       XONG
                     </button>
                   </div>
-                </div>
-              </div>
-            </section>
-            <!-- Mô hình 3D -->
-            <section
-              class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 flex-1"
-            >
-              <h3
-                class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2 border-b border-slate-50 pb-4"
-              >
-                <Box :size="16" class="text-teal-500" /> Mô hình 3D (.GLB)
-              </h3>
-              <div
-                class="h-80 bg-slate-900 rounded-2xl relative overflow-hidden flex items-center justify-center border-2 border-slate-800 shadow-inner group"
-              >
-                <template v-if="currentLesson.model3DPath">
-                  <Uav3DViewer
-                    ref="uavViewerRef"
-                    :admin="true"
-                    :modelSrc="
-                      'http://localhost:5000' + currentLesson.model3DPath
-                    "
-                    :customHotspots="displayHotspots"
-                    :currentMarkerId="null"
-                    @pick-coords="updateLatestHotspot"
-                  />
-                  <div
-                    class="absolute bottom-4 left-4 right-4 flex justify-between pointer-events-none"
-                  >
-                    <div
-                      class="bg-black/50 backdrop-blur-md text-white px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 uppercase tracking-widest"
-                    >
-                      Preview Mode
-                    </div>
-                    <label
-                      class="bg-white text-slate-900 px-4 py-1.5 rounded-lg text-[10px] font-black cursor-pointer pointer-events-auto hover:bg-teal-400 transition-colors shadow-xl"
-                    >
-                      Thay đổi model
-                      <input
-                        type="file"
-                        @change="handleFileUpload($event, 'model3d')"
-                        class="hidden"
-                        accept=".glb"
-                      />
-                    </label>
-                  </div>
-                </template>
-
-                <div v-else class="text-center">
-                  <div
-                    class="p-4 bg-slate-800 rounded-full inline-block mb-3 text-teal-400 shadow-lg"
-                  >
-                    <UploadCloud :size="32" />
-                  </div>
-                  <p class="text-white font-bold text-sm">Chưa có mô hình 3D</p>
-                  <p class="text-slate-500 text-[10px] mt-1">
-                    Hỗ trợ định dạng .GLB
-                  </p>
-                  <input
-                    type="file"
-                    @change="handleFileUpload($event, 'model3d')"
-                    class="absolute inset-0 opacity-0 cursor-pointer"
-                    accept=".glb"
-                  />
                 </div>
               </div>
             </section>

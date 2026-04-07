@@ -117,7 +117,7 @@
         </div>
       </header>
 
-      <main class="p-8 flex-1">
+      <main class="px-8 flex-1 p-6">
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
             <component :is="Component" />
@@ -146,6 +146,8 @@ import {
   ShieldAlert,
   Map,
   Database,
+  GraduationCap,
+  PlaneTakeoff,
 } from "lucide-vue-next";
 
 const route = useRoute();
@@ -154,8 +156,8 @@ const isSidebarOpen = ref(true);
 
 const menuItems = [
   { name: "Bảng điều khiển", path: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "Quản lý UAV", path: "/admin/drones", icon: Box },
-  { name: "Quản lý bài giảng", path: "/admin/course", icon: Box },
+  { name: "Quản lý UAV", path: "/admin/drones", icon: PlaneTakeoff }, // Hoặc sử dụng 'Navigation' hoặc 'Cpu'
+  { name: "Quản lý bài giảng", path: "/admin/course/add", icon: GraduationCap }, // Hoặc sử dụng 'BookOpen' hoặc 'Library'
 ];
 
 const currentPageName = computed(() => {
