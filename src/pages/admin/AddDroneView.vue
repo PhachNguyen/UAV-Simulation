@@ -11,7 +11,7 @@
             <Box :size="20" />
           </div>
           <h1 class="text-lg font-bold text-slate-900 uppercase tracking-tight">
-            Thêm UAV mới
+            {{ isEdit ? "Chỉnh sửa thông tin Drone" : "Thêm mới Drone" }}
           </h1>
         </div>
 
@@ -443,7 +443,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import {
   Info,
   Image as ImageIcon,
@@ -459,11 +459,55 @@ import {
   ChevronRight,
 } from "lucide-vue-next";
 import { useToast } from "vue-toastification";
+import api from "@/utils/apis/axios";
 // Đừng quên import component 3D của bạn để xem preview
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
 const toast = useToast();
+import { useRoute, useRouter } from "vue-router"; // Thêm router để điều hướng sau khi lưu thành công
 const isPickingLocation = ref(false); // Trạng thái đang chọn tọa độ trên bản đồ 3D
 const uavViewerRef = ref(null); // Ref để gọi hàm của component con
+
+const route = useRoute();
+const router = useRouter();
+const droneId = route.params.id; // Lấy ID từ URL
+const isEdit = ref(!!droneId); // Kiểm tra xem có phải đang ở chế độ sửa không
+// --- LOAD DỮ LIỆU CŨ NẾU LÀ CHẾ ĐỘ SỬA ---
+const fetchDroneDetail = async () => {
+  if (!isEdit.value) return;
+
+  try {
+    const { data } = await api.get(`/drones/${droneId}`);
+
+    // Đổ dữ liệu vào Form
+    Object.assign(form, {
+      name: data.name,
+      category: data.category,
+      description: data.description,
+      scale: data.scale || 15,
+      // Lưu ý: Các file thực tế (image, model3d) sẽ vẫn để null
+      // trừ khi người dùng chọn file mới để thay thế
+      hotspots:
+        typeof data.hotspots === "string"
+          ? JSON.parse(data.hotspots)
+          : data.hotspots,
+    });
+
+    // Hiển thị Preview từ URL của Backend
+    const backendUrl = "http://localhost:5000";
+    previews.image = data.image ? backendUrl + data.image : null;
+    previews.model3d = data.model3d ? backendUrl + data.model3d : null;
+
+    if (data.images) {
+      const thumbUrls =
+        typeof data.images === "string" ? JSON.parse(data.images) : data.images;
+      previews.thumbnails = thumbUrls.map((url) => backendUrl + url);
+    }
+  } catch (error) {
+    toast.error("Không thể lấy thông tin thiết bị!");
+  }
+};
+
+onMounted(fetchDroneDetail);
 
 const removeHotspot = (index) => {
   // 1. Lấy ID của điểm sắp xóa (thường là index + 1)
@@ -573,17 +617,96 @@ const handleFileUpload = (event, type) => {
   }
   previews[type] = URL.createObjectURL(file);
 };
+// Reset form
+const resetForm = () => {
+  // 1. Thu hồi các URL preview để giải phóng bộ nhớ
+  if (previews.image) URL.revokeObjectURL(previews.image);
+  if (previews.model3d) URL.revokeObjectURL(previews.model3d);
+  if (previews.video) URL.revokeObjectURL(previews.video);
+  previews.thumbnails.forEach((url) => URL.revokeObjectURL(url));
 
+  // 2. Reset dữ liệu form về mặc định
+  Object.assign(form, {
+    name: "",
+    description: "",
+    category: "",
+    image: null,
+    model3d: null,
+    scale: 15,
+    hotspots: [],
+    thumbnails: [],
+    video: null,
+  });
+
+  // 3. Reset các đường dẫn preview hiển thị trên giao diện
+  Object.assign(previews, {
+    image: null,
+    model3d: null,
+    thumbnails: [],
+    video: null,
+  });
+
+  // 4. Nếu bạn có dùng ref để reset input file (optional)
+  // document.querySelectorAll('input[type="file"]').forEach(input => input.value = "");
+};
+// Save data
+// --- CẬP NHẬT HÀM SAVE ĐỂ HỖ TRỢ CẢ UPDATE ---
 const handleSave = async () => {
-  // Khi gửi lên C# Backend, Phách phải dùng FormData thay vì JSON thông thường
-  const formData = new FormData();
-  formData.append("name", form.name);
-  formData.append("imageFile", form.image); // Gửi file
-  formData.append("modelFile", form.model3d); // Gửi file
-  // ... append các trường khác
+  try {
+    const loadingToast = toast.info("Đang xử lý dữ liệu...", {
+      timeout: false,
+    });
 
-  console.log("Sẵn sàng gửi FormData lên API...");
-  toast.success("Đã lưu thiết bị mới!");
+    // 1. Chỉ Upload file nếu người dùng chọn file mới (form.image/form.model3d không null)
+    const uploadIfNew = async (file, currentUrl) => {
+      if (file instanceof File) {
+        // Nếu là File thực tế thì mới upload
+        const fData = new FormData();
+        fData.append("file", file);
+        const res = await api.post("/courses/upload", fData);
+        return res.data.url;
+      }
+      // Nếu không chọn file mới, giữ nguyên URL cũ (cần cắt bỏ domain backend để lưu vào DB)
+      return currentUrl
+        ? currentUrl.replace("http://localhost:5000", "")
+        : null;
+    };
+
+    const [mainImageUrl, modelUrl] = await Promise.all([
+      uploadIfNew(form.image, previews.image),
+      uploadIfNew(form.model3d, previews.model3d),
+    ]);
+
+    // 2. Gom dữ liệu cuối cùng
+    const finalData = {
+      name: form.name,
+      category: form.category,
+      description: form.description,
+      scale: form.scale,
+      image: mainImageUrl,
+      model3d: modelUrl,
+      images: previews.thumbnails.map((url) =>
+        url.replace("http://localhost:5000", ""),
+      ), // Logic đơn giản cho thumbnails
+      hotspots: form.hotspots,
+      stats: { battery: "34 Mins", range: "15 KM", speed: "19 m/s" },
+    };
+
+    // 3. Gọi API POST (tạo mới) hoặc PUT (cập nhật)
+    if (isEdit.value) {
+      await api.put(`/drones/${droneId}`, finalData);
+      toast.success("Cập nhật thiết bị thành công!");
+    } else {
+      await api.post("/drones", finalData);
+      toast.success("Thêm mới thiết bị thành công!");
+    }
+
+    toast.dismiss(loadingToast);
+    router.push("/admin/drones"); // Quay lại trang danh sách
+  } catch (error) {
+    toast.clear();
+    toast.error("Lỗi khi lưu dữ liệu!");
+  }
 };
 </script>
 

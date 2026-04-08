@@ -36,6 +36,14 @@ const routes = [
     ],
     meta: { hideHeaderFooter: true },
   },
+  {
+    path: "/test",
+    component: () => import("../pages/Test.vue"),
+  },
+  // {
+  //   path: "/test1",
+  //   component: () => import("../pages/Test.html"),
+  // },
   // Admin routes
   {
     path: "/admin",
@@ -53,6 +61,13 @@ const routes = [
         path: "drones/add",
         component: () => import("../pages/admin/AddDroneView.vue"),
       },
+      // Ví dụ trong router/index.js
+      {
+        path: "drones/edit/:id",
+        name: "EditDrone",
+        component: () => import("../pages/admin/AddDroneView.vue"), // Dùng chung file với trang Add
+      },
+
       {
         path: "course",
         component: () => import("../pages/admin/AdminCourseManager.vue"),

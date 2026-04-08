@@ -1,489 +1,336 @@
+<script setup>
+import { ref } from "vue";
+
+// 1. Dữ liệu Điều hướng
+const navLinks = [
+  { name: "Sản phẩm", href: "#", active: true },
+  { name: "Khóa học", href: "#", active: false },
+  { name: "Mô phỏng", href: "#", active: false },
+  { name: "Cộng đồng", href: "#", active: false },
+];
+
+// 2. Dữ liệu Sản phẩm Drone
+const products = ref([
+  {
+    id: 1,
+    name: "AeroSpeed FPV",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuAirPebV3L9RXLPOlLKTZeE095hSk5N-RND27cCLkA2Xoxtk9aNxR3yL5_FI4lmZoiwX4aWrodPqa10Bo5nwrHSqXftsh3WER8b_pJVSF-p4WrR1J35TMPDoa_k7LiHeDhPuMYrHraeOU2wYwedhS-s2AtNffNtiJyjApw9grZhZvMuHNJNJR9qBUSABzQYby99VWMlpuOlUSWmd8l9QUFiU12EgCuLcN0TgMSmXLeK1hexGQgQrgwGQbBfk4UDlx1jg_tCI7xvig",
+    stats: [
+      { label: "Tốc độ", value: "140 km/h", icon: "speed" },
+      { label: "Thời gian bay", value: "15 phút", icon: "timer" },
+      { label: "Camera", value: "4K 60fps", icon: "videocam" },
+    ],
+  },
+  {
+    id: 2,
+    name: "AeroVision 4K",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDJUT_TRiC-uxAtn3L68T6eR_PX2nHitV9yDJS2CEyae-bnds3LZMsh3zgMiVpGZyvBQeXoHXi8J1KlPHPKxaZDP4mo4ZwcIfz1ePCH20tlxAgjiinc7yuSE8iCzFyC5zX2ekIrpCuUngl7TtAm5D4UY5G9DqtYHIR7usOdRnmD7GsxsWQYVMDSfy10ciuFZJRnt87GiUwCvzZ3CIGVo9DMSQhQ3tiHuvhTFSU3Oxkx-xINDxW7ntVvMk8Xlj2WJyPNb1DsOYxHIA",
+    stats: [
+      { label: "Tốc độ", value: "72 km/h", icon: "speed" },
+      { label: "Thời gian bay", value: "45 phút", icon: "timer" },
+      { label: "Camera", value: "5.4K ProRes", icon: "videocam" },
+    ],
+  },
+  {
+    id: 3,
+    name: "AeroWork Pro",
+    image:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuAuBuwu7lklbv5OonB_WniV9anybPrmsiZdayjd8ucDjYAdydFDTuQvPWPBC-Tb-6K25gYrYSwbJ1ElgYYZZY7d7pULzj3ozcLVq180peeCzGnkHKq9E2ZS7q77gbjX3KbK4jqx0huCg7Km7jUfTQWjL1PrtXkAsIOrjvW5kufl00qkj3nr_F2mMvUHEzby_VgGIXWCfKutVJfV7L9cShsD4OYH9P2D8qbJDGxqSbk9ydTr9m0-edNfY4yKitPTOuCFBoHnUT5AjA",
+    stats: [
+      { label: "Tốc độ", value: "50 km/h", icon: "speed" },
+      { label: "Thời gian bay", value: "55 phút", icon: "timer" },
+      { label: "Camera", value: "Thermal / 20x Zoom", icon: "videocam" },
+    ],
+  },
+]);
+
+// 3. Các tính năng Học viện
+const academyFeatures = [
+  {
+    title: "Giáo trình chuẩn",
+    desc: "Hệ thống bài giảng được thiết kế bởi các chuyên gia hàng đầu trong ngành hàng không.",
+    icon: "school",
+  },
+  {
+    title: "Mô phỏng 3D",
+    desc: "Luyện tập kỹ năng bay an toàn trong môi trường ảo trước khi chạm vào thiết bị thật.",
+    icon: "water_loss",
+    hasBar: true,
+  },
+  {
+    title: "Cấp chứng chỉ",
+    desc: "Hoàn thành khóa học và nhận chứng chỉ xác thực kỹ năng bay chuyên nghiệp.",
+    icon: "workspace_premium",
+  },
+];
+</script>
+
 <template>
-  <div class="min-h-screen bg-white font-sans antialiased">
-    <section
-      class="relative h-[85vh] bg-black flex flex-col items-center justify-center px-4 overflow-hidden"
+  <div
+    class="min-h-screen bg-background text-on-surface font-body selection:bg-primary/20"
+  >
+    <!-- <nav
+      class="fixed top-0 w-full z-50 flex justify-between items-center px-8 h-16 bg-white/80 backdrop-blur-md border-b border-slate-100/50 font-headline tracking-tight"
     >
-      <div
-        class="absolute inset-0 opacity-40 bg-[radial-gradient(circle,_var(--tw-gradient-stops))] from-gray-800 via-transparent to-transparent"
-      ></div>
-      <div
-        class="flex"
-        style="
-          justify-content: space-between;
-          width: stretch;
-          align-items: center;
-        "
-      >
-        <div class="relative z-10">
-          <h1
-            class="text-white text-4xl md:text-5xl font-medium mb-4 tracking-tight py-[8px]"
-          >
-            Trải Nghiệm Drone Ánh Sáng
-          </h1>
-          <p
-            class="text-gray-400 max-w-lg mx-auto text-sm leading-relaxed mb-8 pb-[8px]"
-          >
-            Khám phá bầu trời và thế giới tuyệt đẹp với khả năng điều hướng đơn
-            giản. <br />
-            Ghi lại trọn vẹn những kỷ niệm đáng nhớ, nhanh chóng và nhẹ nhàng
-            như một tia chớp.
-          </p>
-          <button
-            class="bg-[#2E4DEC] hover:bg-indigo-700 text-white px-8 py-2.5 rounded-full font-bold text-sm transition-all duration-300 transform hover:scale-105"
-          >
-            MUA NGAY
-          </button>
-        </div>
-        <div class="relative z-10 mt-12">
+      <div class="text-xl font-extrabold text-slate-900 tracking-tighter">
+        AeroEdu
+      </div>
+
+      <div class="hidden md:flex space-x-8 items-center">
+        <a
+          v-for="link in navLinks"
+          :key="link.name"
+          :href="link.href"
+          :class="[
+            link.active
+              ? 'text-slate-900 border-b-2 border-slate-900'
+              : 'text-slate-500 hover:text-slate-900',
+            'pb-1 transition-all text-sm font-semibold',
+          ]"
+        >
+          {{ link.name }}
+        </a>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <button
+          class="material-symbols-outlined text-slate-800 p-2 hover:bg-slate-100 rounded-full transition-colors"
+        >
+          notifications
+        </button>
+        <div
+          class="w-8 h-8 rounded-full bg-surface-container overflow-hidden border border-slate-200"
+        >
           <img
-            src="/public/img/UAV-50_1.png"
-            alt="White Drone"
-            class="w-[450px] drop-shadow-[0_20px_50px_rgba(255,255,255,0.2)]"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhrPsrFWm9u0035kL9v9HssaitDNjAsPhdLjEl7vE8lwzWka49G9-iCh1fdFEG7OQWpJMzszuE9tM9fef2OSjXxFsu_yfUNQRo7K0-FxP6dhssHcR-rQ2y1VyC-WJddPATV6osrv1RaaqQAXjYDMrkpGj4WvvD5L76YhtT0NUGD9qaoLnaOQ8mk_G9T7BQYeY6JrKURNWQa2ZzBCk95IIwSX63LWD6TOpt_SPKc35vOy_LvVX9xOnv6eDQhz74Q4CkxX2rTQ-bQQ"
+            alt="User"
+            class="w-full h-full object-cover"
           />
         </div>
       </div>
-    </section>
+    </nav> -->
 
-    <div class="min-h-[80vh] flex items-center justify-center bg-white">
+    <main class="pt-16">
       <section
-        class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 w-full max-w-[1400px] mx-auto relative z-20"
+        class="relative min-h-[90vh] flex items-center justify-center bg-white overflow-hidden"
       >
         <div
-          class="relative group aspect-[4/3] overflow-hidden rounded-sm cursor-pointer text-white"
+          class="container mx-auto px-8 grid md:grid-cols-2 gap-12 items-center"
         >
-          <img
-            src="/public/img/ultra_light 1.svg"
-            class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110"
-          />
-          <div
-            class="absolute top-[45px] inset-0 flex flex-col items-center text-center p-6 z-10"
-          >
-            <h2 class="text-4xl font-bold mb-4 text-[#222222]">Siêu Nhẹ</h2>
-            <p class="text-lg max-w-sm font-light mx-auto text-[#222222]/50">
-              Drone di chuyển nhanh hơn với linh kiện trọng lượng
-              <span class="text-[#222222] font-bold mt-1">dưới 200g</span>
+          <div class="z-10 animate-fade-in">
+            <h1
+              class="font-headline text-5xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight text-slate-900 mb-6"
+            >
+              Hệ sinh thái Drone<br /><span class="text-primary-dim"
+                >thế hệ mới</span
+              >
+            </h1>
+            <p
+              class="text-lg text-on-surface-variant max-w-md mb-8 leading-relaxed"
+            >
+              Khám phá công nghệ bay không người lái tiên tiến nhất, kết hợp
+              giữa hiệu suất cơ khí chính xác và trí tuệ nhân tạo đột phá.
             </p>
+            <button
+              class="bg-[#0F172A] text-white px-10 py-4 rounded-lg font-bold hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-3 group shadow-lg shadow-slate-200"
+            >
+              Khám phá ngay
+              <span
+                class="material-symbols-outlined group-hover:translate-x-1 transition-transform"
+                >arrow_forward</span
+              >
+            </button>
           </div>
-        </div>
 
-        <div
-          class="relative group aspect-[4/3] overflow-hidden rounded-sm cursor-pointer text-white"
-        >
-          <img
-            src="/public/img/best_resolution 1.svg"
-            class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-110"
-          />
-          <div
-            class="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition"
-          ></div>
-          <div
-            class="absolute top-[45px] inset-0 flex flex-col items-center text-center p-6 z-10"
-          >
-            <h2 class="text-4xl font-bold mb-4">Độ Phân Giải Cao</h2>
-            <p class="text-lg max-w-sm font-light mx-auto">
-              Ghi lại những khung hình tuyệt đẹp với camera lên đến
-              <span class="font-bold text-yellow-400 mt-1">4K Ultra HD</span>
-            </p>
+          <div class="relative flex justify-center items-center">
+            <div
+              class="absolute -z-10 w-[120%] h-[120%] bg-gradient-to-tr from-primary-container/30 to-transparent rounded-full blur-[100px]"
+            ></div>
+            <img
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuACMmSf8ug0j83NUyAr1Ix8R-ukxDnf7fxxQ4unZ6-NSEIvcPYFFfsQm6Pp5bWxZKS0KRRRGQ70efr8SjhlM8KhI9cZGAkyHj2w1-kZFs0jWzuYCVaExz1gFy1U9Eu16mu4AGj6TaUoNEVPavReB1GwnaY7JaA4jiw0g5b-_AgWI39pXRYGJIWLi0kYXq_RDS7rg8VC0xxEdYaSPdI9lQMOGCO-e5raaS96SmfeZBkMQLSH36WIfPFvuSQSAs7fbZiLUiY0HU4YFA"
+              alt="Hero Drone"
+              class="w-full h-auto drop-shadow-[0_35px_35px_rgba(0,0,0,0.1)] hover:scale-105 transition-transform duration-700"
+            />
           </div>
         </div>
       </section>
-    </div>
-    <section
-      class="py-10 px-4 mx-auto flex items-center justify-center text-center"
-    >
-      <div class="mb-16">
-        <img
-          src="/public/img/benefit_feature_image 1.svg"
-          alt="Thông số Drone"
-          class="w-full max-w-lg drop-shadow-2xl animate-float"
-        />
-      </div>
 
-      <div class="max-w-3xl space-y-8">
-        <h2
-          class="text-4xl md:text-5xl font-bold text-gray-800"
-          style="margin-bottom: 16px"
-        >
-          Tại sao chọn Drone Light?
-        </h2>
-        <p class="text-gray-500 text-lg leading-relaxed mx-auto">
-          Chúng tôi cung cấp những dòng drone tự lái tốt nhất, dễ dàng vận hành
-          và điều khiển. Với chế độ bay tự động, thiết bị sẽ ghi lại những góc
-          nhìn tuyệt đẹp, mang lại trải nghiệm bay chuyên nghiệp nhất.
-        </p>
-
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-12 pt-10">
-          <div class="flex flex-col items-center">
-            <div class="text-3xl font-black text-gray-900">4K</div>
-            <div
-              class="text-[11px] uppercase tracking-[0.2em] text-gray-400 font-bold leading-tight mt-2"
-            >
-              Độ phân giải<br />Camera
-            </div>
-          </div>
-
-          <div class="flex flex-col items-center">
-            <div class="text-3xl font-black text-gray-900">2 TB</div>
-            <div
-              class="text-[11px] uppercase tracking-[0.2em] text-gray-400 font-bold leading-tight mt-2"
-            >
-              Dung lượng<br />Lưu trữ
-            </div>
-          </div>
-
-          <div class="flex flex-col items-center">
-            <div class="text-3xl font-black text-gray-900">60 m/s</div>
-            <div
-              class="text-[11px] uppercase tracking-[0.2em] text-gray-400 font-bold leading-tight mt-2"
-            >
-              Tốc độ<br />Tối đa
-            </div>
-          </div>
-
-          <div class="flex flex-col items-center">
-            <div class="text-3xl font-black text-gray-900">30 phút</div>
-            <div
-              class="text-[11px] uppercase tracking-[0.2em] text-gray-400 font-bold leading-tight mt-2"
-            >
-              Thời gian<br />Bay tối đa
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section
-      class="py-[30px] bg-gray-50/50 flex flex-col items-center justify-center"
-    >
-      <div class="max-w-7xl w-full mx-auto px-6">
-        <div class="text-center mb-16">
-          <h2
-            class="text-[36px] font-semibold text-[#222222] mb-4 tracking-tight"
-          >
-            Sản Phẩm Mới
-          </h2>
-          <div class="space-y-1">
-            <p
-              class="text-[#818181] font-bold text-[10px] tracking-[0.3em] uppercase"
-            >
-              Sáng tạo không ngừng, chất lượng vượt trội.
-            </p>
-            <p class="text-[#818181] text-[10px] tracking-[0.2em] uppercase">
-              Biến mỗi khoảnh khắc bay lượn trở nên đáng nhớ hơn bao giờ hết.
-            </p>
-          </div>
-        </div>
-
-        <div class="flex flex-wrap justify-center gap-10 py-[30px]">
+      <section class="py-24 bg-surface">
+        <div class="container mx-auto px-8">
           <div
-            v-for="product in products"
-            :key="product.id"
-            class="w-full max-w-[350px] bg-white rounded-2xl shadow-sm border border-gray-100 p-8 flex flex-col items-center text-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-3 group"
+            class="flex flex-col md:flex-row justify-between items-end mb-16 gap-4"
           >
-            <div class="w-full h-56 overflow-hidden rounded-xl mb-8 bg-gray-50">
-              <img
-                :src="product.image"
-                :alt="product.name"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-            </div>
-
-            <h3 class="text-2xl font-bold text-gray-900 mb-4">
-              {{ product.name }}
-            </h3>
-
-            <p
-              class="text-gray-500 text-sm leading-relaxed mb-10 px-2 flex-grow"
-            >
-              {{ product.description }}
-            </p>
-
-            <button
-              class="bg-[#2E4DEC] hover:bg-indigo-500 text-white px-10 py-3 rounded-full font-bold text-xs tracking-widest uppercase transition-all duration-300 shadow-lg shadow-indigo-100 active:scale-95"
-            >
-              SỞ HỮU NGAY
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!--  Ưu đãi -->
-    <section class="py-8 bg-white flex justify-center">
-      <div
-        class="max-w-7xl w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-8"
-      >
-        <div
-          class="bg-[#F3F4F6] rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between overflow-hidden group min-h-[320px]"
-        >
-          <div
-            class="flex-1 flex flex-col h-full justify-between space-y-4 w-full"
-          >
-            <div class="space-y-4">
-              <p class="text-gray-500 font-medium text-sm">
-                Cần dịch vụ cho Drone?
-              </p>
-              <h3
-                class="text-3xl font-black text-gray-900 leading-tight line-clamp-2 h-[4.5rem]"
-                title="Giảm 30% cho lần bảo trì đầu tiên"
-              >
-                Giảm 30% cho lần bảo trì đầu tiên
-              </h3>
-            </div>
-
-            <div class="pt-4">
-              <button
-                class="bg-black cursor-pointer text-white px-8 py-3 rounded-full font-bold text-sm transition-transform hover:scale-105 active:scale-95"
-              >
-                NHẬN NGAY
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="flex-1 mt-8 md:mt-0 flex justify-center transform transition-transform group-hover:rotate-6 duration-500"
-          >
-            <img
-              src="/public/img/promt_1.jpg"
-              alt="Promo Drone"
-              class="w-full max-w-[280px] object-contain"
-            />
-          </div>
-        </div>
-
-        <div
-          class="bg-[#F3F4F6] rounded-[2.5rem] p-10 flex flex-col md:flex-row items-center justify-between overflow-hidden group min-h-[320px]"
-        >
-          <div
-            class="flex-1 flex flex-col h-full justify-between space-y-4 w-full"
-          >
-            <div class="space-y-4">
-              <p class="text-gray-500 font-medium text-sm">
-                Khởi đầu hành trình bay
-              </p>
-              <h3
-                class="text-3xl font-black text-gray-900 leading-tight h-[4.5rem]"
-                title="Cẩm nang Drone cho người mới bắt đầu"
-              >
-                Cẩm nang Drone cho người mới bắt đầu
-              </h3>
-            </div>
-
-            <div class="pt-4">
-              <button
-                class="cursor-pointer border-2 border-gray-900 bg-white text-shadow-gray-950 px-8 py-3 rounded-full font-bold text-sm transition-all hover:bg-gray-900 hover:text-white"
-              >
-                XEM CHI TIẾT
-              </button>
-            </div>
-          </div>
-
-          <div
-            class="flex-1 mt-8 md:mt-0 flex justify-center transform transition-transform group-hover:-translate-y-4 duration-500"
-          >
-            <img
-              src="/public/img/promt_2.jpg"
-              alt="Guide Drone"
-              class="w-full max-w-[280px] object-contain"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- Khách hàng  -->
-    <section class="py-16 bg-white px-3.5 flex justify-center">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div
-            class="relative md:col-span-2 h-[400px] rounded-[2rem] overflow-hidden group"
-          >
-            <img
-              src="/public/img/best_resolution 1.svg"
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-            />
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"
-            ></div>
-            <div class="absolute bottom-8 left-8 right-8 text-white">
-              <p class="text-lg italic font-light mb-4">
-                "Drone tuyệt vời với chất lượng camera đỉnh cao và tính năng rất
-                dễ sử dụng." - Alex
-              </p>
-              <div class="flex text-yellow-400">★★★★★</div>
-            </div>
-          </div>
-
-          <div class="relative h-[300px] rounded-[2rem] overflow-hidden group">
-            <img
-              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=600&q=80"
-              class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700"
-            />
-            <div class="absolute inset-0 bg-black/40"></div>
-            <div class="absolute bottom-6 left-6 right-6 text-white text-sm">
-              <p class="italic mb-2">
-                "Hình ảnh kinh ngạc và rất dễ lái. Nhiệt tình đề xuất!" - Emily
-              </p>
-              <div class="flex text-yellow-400 text-xs">★★★★★</div>
-            </div>
-          </div>
-
-          <div class="relative h-[300px] rounded-[2rem] overflow-hidden group">
-            <img
-              src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1000&q=80"
-              class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-700"
-            />
-            <div class="absolute inset-0 bg-black/40"></div>
-            <div class="absolute bottom-6 left-6 right-6 text-white text-sm">
-              <p class="italic mb-2">
-                "Dronex hoàn hảo cho cả mục đích giải trí và công việc." - Brian
-              </p>
-              <div class="flex text-yellow-400 text-xs">★★★★★</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-6">
-          <div
-            class="bg-[#F3F4F6] rounded-[2rem] p-10 flex-1 flex flex-col justify-center"
-          >
-            <h2 class="text-4xl font-black text-gray-900 mb-6">
-              Khách hàng của chúng tôi
-            </h2>
-            <p class="text-gray-500 leading-relaxed">
-              Khám phá những dòng drone hàng đầu với công nghệ tiên tiến, được
-              thiết kế cho mọi phi công.
-            </p>
-          </div>
-
-          <div
-            class="bg-[#F3F4F6] rounded-[2rem] p-10 flex-1 flex flex-col justify-center"
-          >
-            <div class="text-6xl font-black text-gray-900 mb-2">90%</div>
-            <p class="text-gray-600 font-bold mb-9" style="margin-bottom: 36px">
-              Khách hàng đề xuất sản phẩm của chúng tôi cho mọi người.
-            </p>
-            <button
-              class="bg-black text-white w-[150px] py-4 rounded-full font-bold text-sm hover:bg-gray-800 cursor-pointer transition-colors uppercase tracking-widest"
-            >
-              Mua ngay
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-    <!-- Đánh giá -->
-    <section class="py-[30px] bg-white flex flex-col items-center">
-      <div class="max-w-7xl w-full mx-auto px-6">
-        <div class="mb-20 text-center md:text-left" style="margin-bottom: 20px">
-          <h2
-            class="md:text-5xl font-black text-gray-900 leading-[1.1] tracking-tighter"
-          >
-            Cảm nhận từ <br />
-            Những "Phi công"
-          </h2>
-          <div class="w-25 h-1.5 bg-[#2E4DEC] mt-[8px] mx-auto md:mx-0"></div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-          <div
-            v-for="review in reviews"
-            :key="review.id"
-            class="bg-gray-50 border border-gray-100 rounded-[2rem] p-10 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col justify-between group"
-          >
-            <div class="relative">
+            <div>
               <span
-                class="text-4xl text-indigo-200 absolute -top-4 -left-2 font-serif opacity-0 group-hover:opacity-100 transition-opacity"
-                >“</span
+                class="text-tertiary font-bold tracking-[0.2em] uppercase text-[10px]"
+                >Danh mục sản phẩm</span
               >
-              <p
-                class="text-gray-600 text-base leading-relaxed mb-12 italic relative z-10"
-              >
-                “{{ review.content }}”
-              </p>
+              <h2 class="font-headline text-4xl font-bold mt-2 text-slate-900">
+                Các mẫu Drone tiêu biểu
+              </h2>
             </div>
-
-            <div
-              class="flex items-center space-x-4 border-t border-gray-200 pt-8"
+            <button
+              class="text-sm font-bold text-slate-900 flex items-center gap-1 hover:gap-2 transition-all"
             >
-              <img
-                :src="review.avatar"
-                :alt="review.name"
-                class="w-14 h-14 rounded-full object-cover border-4 border-white shadow-md"
-              />
-              <div>
-                <h4
-                  class="text-gray-900 font-black text-sm uppercase tracking-wide"
+              Tất cả sản phẩm
+              <span class="material-symbols-outlined text-sm"> </span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div
+              v-for="drone in products"
+              :key="drone.id"
+              class="bg-surface-container-lowest p-8 rounded-2xl transition-all border border-transparent hover:border-slate-200 hover:shadow-2xl group"
+            >
+              <div
+                class="aspect-square mb-8 overflow-hidden rounded-xl bg-surface-container-low relative"
+              >
+                <img
+                  :src="drone.image"
+                  :alt="drone.name"
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+
+              <h3 class="font-headline text-2xl font-bold mb-6 text-slate-900">
+                {{ drone.name }}
+              </h3>
+
+              <div class="space-y-4 mb-8">
+                <div
+                  v-for="stat in drone.stats"
+                  :key="stat.label"
+                  class="flex items-center justify-between text-sm"
                 >
-                  {{ review.name }}
+                  <span class="text-on-surface-variant flex items-center gap-3">
+                    <span
+                      class="material-symbols-outlined text-lg opacity-70"
+                      >{{ stat.icon }}</span
+                    >
+                    {{ stat.label }}
+                  </span>
+                  <span class="font-bold text-slate-900">{{ stat.value }}</span>
+                </div>
+              </div>
+
+              <button
+                class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-primary transition-all shadow-md"
+              >
+                Xem chi tiết
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="py-24 bg-white relative overflow-hidden">
+        <div class="container mx-auto px-8 relative z-10">
+          <div class="max-w-4xl mx-auto text-center">
+            <span
+              class="text-tertiary font-bold tracking-[0.2em] uppercase text-[10px]"
+              >Học viện Drone</span
+            >
+            <h2
+              class="font-headline text-4xl md:text-5xl font-bold mt-4 mb-8 text-slate-900 leading-tight"
+            >
+              Đào tạo phi công chuyên nghiệp
+            </h2>
+            <p class="text-lg text-on-surface-variant leading-relaxed mb-16">
+              Nền tảng AeroEdu cung cấp lộ trình học tập toàn diện từ lý thuyết
+              bay, mô phỏng 3D đến thực hành thực tế. Chúng tôi giúp bạn làm chủ
+              bầu trời.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
+              <div
+                v-for="feature in academyFeatures"
+                :key="feature.title"
+                class="flex flex-col gap-4 group"
+              >
+                <div
+                  class="w-14 h-14 bg-tertiary-container/20 rounded-2xl flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-white transition-all duration-300"
+                >
+                  <span class="material-symbols-outlined text-3xl">{{
+                    feature.icon
+                  }}</span>
+                </div>
+                <div
+                  v-if="feature.hasBar"
+                  class="h-1.5 w-12 bg-tertiary-container rounded-full"
+                ></div>
+                <h4 class="font-headline font-bold text-xl text-slate-900">
+                  {{ feature.title }}
                 </h4>
-                <p
-                  class="text-indigo-600 font-bold text-[11px] uppercase tracking-widest mt-0.5"
-                >
-                  {{ review.role }}
+                <p class="text-sm text-on-surface-variant leading-relaxed">
+                  {{ feature.desc }}
                 </p>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </main>
 
-    <footer class="h-20 bg-white"></footer>
+    <footer class="w-full py-16 border-t border-slate-100 bg-white">
+      <div class="container mx-auto px-8 flex flex-col items-center">
+        <div class="flex space-x-12 mb-8">
+          <a
+            v-for="item in ['Điều khoản', 'Bảo mật', 'Liên hệ']"
+            :key="item"
+            href="#"
+            class="text-slate-400 hover:text-primary font-bold text-[10px] uppercase tracking-widest transition-colors"
+          >
+            {{ item }}
+          </a>
+        </div>
+        <p
+          class="text-slate-300 text-[10px] font-bold uppercase tracking-[0.2em]"
+        >
+          © 2026 AeroEdu. Một phần của hệ sinh thái Aeronautical Intelligence.
+        </p>
+      </div>
+    </footer>
   </div>
 </template>
 
-<script setup>
-//  Data
-const products = [
-  {
-    id: 1,
-    name: "Mini Drone",
-    description:
-      "Powerful camera drone at an affordable price range. Camera up to 4K resolution, optimize shots automatically.",
-    image: "/public/img/mini_drone.svg",
-  },
-  {
-    id: 2,
-    name: "Drone Light",
-    description:
-      "Drone light is every creators dream. Setting aperture manually and high battery performance. Drone light is everything you need.",
-    image:
-      "https://images.unsplash.com/photo-1507582020474-9a35b7d455d9?auto=format&fit=crop&w=500&q=80",
-  },
-  {
-    id: 3,
-    name: "Phantom Pro",
-    description: "Inspired can move fast. Focus on speed and environment.",
-    image: "/public/img/phantom_drone 1.svg",
-  },
-];
-const reviews = [
-  {
-    id: 1,
-    content:
-      "With high resolution camera, picture become clear and beautiful. It's so easy to operate drone.",
-    name: "Hugo Adams",
-    role: "Content Creator",
-    avatar: "https://i.pravatar.cc/150?u=hugo",
-  },
-  {
-    id: 2,
-    content:
-      "Taking high view video become easy and faster. Battery performance really helping for making film.",
-    name: "Jennie Obrien",
-    role: "Director Film",
-    avatar: "https://i.pravatar.cc/150?u=jennie",
-  },
-  {
-    id: 3,
-    content:
-      "Making video content for my trip vlog so powerful and wonderful. Love the video quality.",
-    name: "Lisa Millz",
-    role: "Content Creator",
-    avatar: "https://i.pravatar.cc/150?u=lisa",
-  },
-];
-</script>
-
 <style scoped>
-/* Tùy chỉnh thêm nếu cần */
+@reference "tailwindcss";
+
+/* 1. Thiết lập font chuẩn cho các class đã dùng */
+.font-headline {
+  font-family: "Manrope", sans-serif;
+}
+.font-body {
+  font-family: "Inter", sans-serif;
+}
+
+/* 2. Hiệu ứng mờ nền chuẩn Tailwind v4 */
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* 3. Animation đơn giản cho Hero */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out forwards;
+}
+
+/* 4. Tùy chỉnh thanh cuộn ẩn cho showcase */
+.scroll-hide::-webkit-scrollbar {
+  display: none;
+}
 </style>

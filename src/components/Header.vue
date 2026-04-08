@@ -43,24 +43,13 @@ onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 // --- Nav Data ---
 const navLinks = [
   { name: "Tổng quan", href: "/" },
-  {
-    name: "Vận hành",
-    subLinks: [
-      {
-        name: "Các vùng cấm bay",
-        href: "/no-fly-zones",
-        desc: "Kiểm tra khu vực",
-      },
-      {
-        name: "Lập trình đường bay",
-        href: "/operation/planner",
-        desc: "Thiết lập Waypoints",
-      },
-    ],
-  },
+
   { name: "Sản Phẩm", href: "/products" },
   { name: "Mô phỏng lái", href: "/simulation" },
   { name: "Khóa học", href: "/course" },
+  { name: "Khóa học ver2", href: "/test" },
+  { name: "Trưng bày", href: "/services" },
+  { name: "Detail ver2", href: "/blog" },
 ];
 </script>
 <template>
