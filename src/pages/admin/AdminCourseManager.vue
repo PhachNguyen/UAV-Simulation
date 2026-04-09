@@ -14,6 +14,7 @@ import {
   Send,
   ChevronDown,
 } from "lucide-vue-next";
+import LessonStructure from "@/components/LessonStructure.vue";
 const uploadProgress = ref(0);
 const selectedFileName = ref("");
 const videoPreviewUrl = ref(""); // Đường dẫn để hiển thị video
@@ -65,8 +66,8 @@ const simulateUpload = () => {
 const fileInput = ref(null); // Cho video
 const resourceInput = ref(null); // [QUAN TRỌNG] Phải có dòng này cho tài liệu
 const uploadedFiles = ref([
-  { name: "Flight_Safety_Manual.pdf", status: "Uploaded" },
-  { name: "Pre-Flight_Checklist.docx", status: "Uploaded" },
+  // { name: "Flight_Safety_Manual.pdf", status: "Uploaded" },
+  // { name: "Pre-Flight_Checklist.docx", status: "Uploaded" },
 ]);
 
 // --- LOGIC CHO TÀI LIỆU NGUỒN ---
@@ -120,11 +121,16 @@ const removeResource = (index) => {
   uploadedFiles.value.splice(index, 1);
 };
 const courseStructure = ref([
-  { id: 1, title: "1. Giới thiệu" },
+  {
+    id: 1,
+    title: "1. Giới thiệu",
+    lessons: [{ id: 101, title: "1.1 Tổng quan" }],
+  },
   { id: 2, title: "2. Cơ học Bay" },
   { id: 3, title: "3. Giao thức An toàn" },
   { id: 4, title: "4. Các động tác nâng cao" },
 ]);
+// const currentStatus = ref("Nháp");
 </script>
 
 <template>
@@ -172,7 +178,7 @@ const courseStructure = ref([
             <h2
               class="text-xl font-extrabold text-[#0b1f3f] uppercase tracking-tight"
             >
-              Chi tiết Bài học
+              Chi tiết Bài giảng của chương {{ courseStructure[0].title }}
             </h2>
 
             <div class="space-y-3">
@@ -187,16 +193,36 @@ const courseStructure = ref([
                 class="w-full px-4 py-3.5 rounded-lg border border-[#dee2e6] focus:ring-2 focus:ring-[#0b1f3f]/10 focus:border-[#0b1f3f] outline-none transition-all font-medium placeholder:text-slate-400 bg-[#fcfcfc]"
               />
             </div>
+            <!-- Mô tả bài học -->
 
+            <div class="space-y-3">
+              <div class="flex justify-between items-end">
+                <label
+                  class="text-[11px] font-black text-[#0b1f3f] uppercase tracking-widest"
+                >
+                  Mô tả Bài giảng
+                </label>
+                <span class="text-[10px] font-bold text-slate-400 uppercase"
+                  >Tối đa 500 ký tự</span
+                >
+              </div>
+              <textarea
+                v-model="lessonDescription"
+                rows="4"
+                placeholder="Mô tả tóm tắt nội dung bài học này giúp học viên nắm bắt nhanh..."
+                class="w-full px-4 py-3.5 rounded-lg border border-[#dee2e6] focus:ring-2 focus:ring-[#0b1f3f]/10 focus:border-[#0b1f3f] outline-none transition-all font-medium placeholder:text-slate-400 bg-[#fcfcfc] resize-none leading-relaxed"
+              ></textarea>
+            </div>
+            <!-- Bài giảng -->
             <div class="space-y-6">
               <h3
                 class="text-[11px] font-black text-[#0b1f3f] uppercase tracking-widest"
               >
-                Tải lên Media
+                Tải bài giảng Video và Tài liệu bài học
               </h3>
 
-              <div class="grid md:grid-cols-2 gap-8">
-                <div class="space-y-4 font-inter">
+              <div class="grid md:grid-cols-2 gap-8 items-start font-inter">
+                <div class="space-y-4">
                   <label
                     class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest block"
                   >
@@ -212,7 +238,7 @@ const courseStructure = ref([
                   />
 
                   <div
-                    class="w-full relative aspect-video rounded-xl border-2 border-dashed border-[#0b1f3f] overflow-hidden bg-[#f8f9fa] shadow-sm transition-all"
+                    class="w-full relative aspect-video rounded-xl border-2 border-dashed border-[#0b1f3f] overflow-hidden bg-[#f8f9fa] shadow-sm"
                   >
                     <div
                       v-if="!isFinished"
@@ -231,8 +257,7 @@ const courseStructure = ref([
                         <p
                           class="text-[11px] text-slate-500 font-bold text-center leading-relaxed px-6"
                         >
-                          Drag & Drop Video Files Here<br />
-                          or
+                          Tải file tại đây<br />hoặc
                           <span class="text-[#0b1f3f] underline">Browse</span>
                         </p>
                       </div>
@@ -242,7 +267,7 @@ const courseStructure = ref([
                         class="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center px-10 space-y-4"
                       >
                         <div
-                          class="w-full max-w-xs h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200"
+                          class="w-full max-w-xs h-1.5 bg-slate-100 rounded-full overflow-hidden border"
                         >
                           <div
                             class="h-full bg-[#0b1f3f] transition-all duration-300"
@@ -250,10 +275,9 @@ const courseStructure = ref([
                           ></div>
                         </div>
                         <span
-                          class="font-mono text-[10px] font-black text-[#0b1f3f] uppercase tracking-tighter"
+                          class="font-mono text-[10px] font-black text-[#0b1f3f] uppercase"
+                          >{{ uploadProgress }}% Uploading...</span
                         >
-                          {{ uploadProgress }}% Uploading System...
-                        </span>
                       </div>
                     </div>
 
@@ -261,52 +285,41 @@ const courseStructure = ref([
                       <video
                         :src="videoPreviewUrl"
                         controls
-                        class="w-full h-full object-contain shadow-inner"
+                        class="w-full h-full object-contain"
                       ></video>
-
                       <div
-                        class="absolute top-4 right-4 opacity-0 group-hover/player:opacity-100 transition-opacity flex gap-2 z-10"
+                        class="absolute top-4 right-4 opacity-0 group-hover/player:opacity-100 transition-opacity flex gap-2"
                       >
                         <button
                           @click="triggerFileInput"
-                          class="p-2 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white rounded-lg transition-all border border-white/20"
-                          title="Thay đổi video"
+                          class="p-2 bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-white/40"
                         >
-                          <X class="w-4 h-4" />
+                          <RefreshCw class="w-4 h-4" />
                         </button>
                         <button
                           @click="removeVideo"
-                          class="p-2 bg-red-500/80 backdrop-blur-md hover:bg-red-600 text-white rounded-lg transition-all border border-white/10"
-                          title="Xóa"
+                          class="p-2 bg-red-500/80 backdrop-blur-md rounded-lg text-white hover:bg-red-600"
                         >
                           <X class="w-4 h-4" />
                         </button>
-                      </div>
-
-                      <div
-                        class="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-md text-[10px] text-white/80 font-mono pointer-events-none border border-white/10 max-w-[70%] truncate"
-                      >
-                        {{ selectedFileName }}
                       </div>
                     </div>
                   </div>
 
-                  <transition name="fade">
+                  <div
+                    v-if="isFinished"
+                    class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase tracking-widest pt-1"
+                  >
                     <div
-                      v-if="isFinished"
-                      class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase tracking-widest pt-1"
-                    >
-                      <div
-                        class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
-                      ></div>
-                      Hệ thống: Video đã sẵn sàng để phát
-                    </div>
-                  </transition>
+                      class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
+                    ></div>
+                    Hệ thống: Video đã sẵn sàng
+                  </div>
                 </div>
 
-                <div class="space-y-4 font-inter">
+                <div class="space-y-4">
                   <label
-                    class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest"
+                    class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest block"
                   >
                     Tài liệu Nguồn
                   </label>
@@ -316,7 +329,7 @@ const courseStructure = ref([
                     ref="resourceInput"
                     class="hidden"
                     multiple
-                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    accept=".pdf,.docx"
                     @change="handleResourceUpload"
                   />
 
@@ -324,44 +337,40 @@ const courseStructure = ref([
                     @click="triggerResourceInput"
                     @dragover.prevent
                     @drop.prevent="handleResourceUpload"
-                    class="border-2 border-dashed border-[#0b1f3f] rounded-xl p-10 flex flex-col items-center justify-center bg-[#f8f9fa] hover:bg-white hover:border-solid transition-all cursor-pointer group"
+                    class="w-full aspect-video border-2 border-dashed border-[#0b1f3f] rounded-xl flex flex-col items-center justify-center bg-[#f8f9fa] hover:bg-white transition-all cursor-pointer group"
                   >
                     <FileText
                       class="w-10 h-10 text-slate-300 group-hover:text-[#0b1f3f] mb-4 transition-colors"
                     />
                     <p
-                      class="text-[11px] text-slate-500 font-bold text-center leading-relaxed"
+                      class="text-[11px] text-slate-500 font-bold text-center leading-relaxed px-6"
                     >
-                      Drag & Drop Resource Files Here (PDF, DOCX)<br />
-                      or <span class="text-[#0b1f3f] underline">Browse</span>
+                      Kéo file tài liệu vào đây (PDF, DOCX)<br />hoặc
+                      <span class="text-[#0b1f3f] underline">Browse</span>
                     </p>
                   </div>
 
-                  <div class="space-y-2">
+                  <div class="space-y-2 mt-4">
                     <transition-group name="list">
                       <div
                         v-for="(file, index) in uploadedFiles"
                         :key="file.name + index"
-                        class="flex items-center justify-between p-3 bg-white border border-[#dee2e6] rounded-lg group hover:border-[#0b1f3f] transition-colors shadow-sm"
+                        class="flex items-center justify-between p-3 bg-white border border-[#dee2e6] rounded-lg group hover:border-[#0b1f3f] transition-all shadow-sm"
                       >
                         <div class="flex items-center gap-3">
                           <FileText class="w-4 h-4 text-[#4a4a4a]" />
                           <span
-                            class="text-[11px] font-bold text-[#1a1a1a] truncate max-w-[200px]"
+                            class="text-[11px] font-bold text-[#1a1a1a] truncate max-w-[150px]"
+                            >{{ file.name }}</span
                           >
-                            {{ file.name }}
-                          </span>
                           <span
                             class="text-[9px] font-mono font-bold text-green-600 uppercase tracking-widest"
+                            >- {{ file.status }}</span
                           >
-                            - {{ file.status }}
-                          </span>
                         </div>
-
                         <button
                           @click.stop="removeResource(index)"
-                          class="p-1.5 hover:bg-red-50 rounded transition-colors group-hover:text-red-500 text-slate-300"
-                          title="Xóa tài liệu"
+                          class="p-1.5 hover:bg-red-50 rounded text-slate-300 hover:text-red-500 transition-colors"
                         >
                           <Trash2 class="w-4 h-4" />
                         </button>
@@ -447,50 +456,11 @@ const courseStructure = ref([
           </div>
         </div>
 
-        <aside class="lg:col-span-3 space-y-6">
-          <div
-            class="bg-white rounded-xl border border-[#dee2e6] p-6 shadow-sm space-y-6 sticky top-24"
-          >
-            <h3
-              class="text-sm font-black text-[#0b1f3f] uppercase tracking-[0.2em]"
-            >
-              Cấu trúc Bài học
-            </h3>
-            <div class="space-y-3">
-              <div
-                v-for="section in courseStructure"
-                :key="section.id"
-                class="p-4 border border-[#dee2e6] rounded-lg bg-white flex items-center gap-4 group hover:border-[#0b1f3f] hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
-              >
-                <GripVertical
-                  class="w-4 h-4 text-slate-300 group-hover:text-[#0b1f3f]"
-                />
-                <span
-                  class="text-[11px] font-bold text-[#1a1a1a] tracking-wide"
-                  >{{ section.title }}</span
-                >
-              </div>
-              <button
-                class="w-full py-4 border-2 border-dashed border-[#dee2e6] text-slate-400 text-[10px] font-black uppercase rounded-lg hover:border-[#0b1f3f] hover:text-[#0b1f3f] transition-all flex items-center justify-center gap-2 mt-4 bg-slate-50/50"
-              >
-                <Plus class="w-4 h-4" /> Thêm Phần
-              </button>
-            </div>
-
-            <div
-              class="pt-6 border-t border-[#f1f3f5] flex justify-between items-center"
-            >
-              <span
-                class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest"
-                >Trạng thái:</span
-              >
-              <span
-                class="px-4 py-1.5 bg-slate-100 text-[#0b1f3f] text-[10px] font-black uppercase rounded-full border border-slate-200"
-                >Nháp</span
-              >
-            </div>
-          </div>
-        </aside>
+        <!--  Tạo component structure -->
+        <LessonStructure
+          :structure="courseStructure"
+          status="Nháp"
+        ></LessonStructure>
       </div>
     </main>
   </div>
