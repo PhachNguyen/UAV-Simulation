@@ -143,6 +143,14 @@ const lessonDetails = ref([
             alt="Drone View"
             class="w-full h-full object-cover opacity-70"
           />
+          <!-- <video
+            controls
+            class="w-full rounded-2xl"
+            style="margin-bottom: 16px"
+          >
+            <source src="../assets/videos/drone-intro.mp4" type="video/mp4" />
+            Trình duyệt không hỗ trợ video
+          </video> -->
           <div class="absolute inset-0 flex flex-col justify-between p-4">
             <div class="flex justify-between items-start">
               <div
