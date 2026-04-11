@@ -117,7 +117,7 @@
         </div>
       </header>
 
-      <main class="px-8 flex-1 p-6">
+      <main class="">
         <router-view v-slot="{ Component }">
           <transition name="page-fade" mode="out-in">
             <component :is="Component" />

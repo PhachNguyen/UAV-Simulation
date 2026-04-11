@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref, computed, reactive } from "vue";
 import {
   ChevronRight,
   Video,
@@ -13,453 +13,378 @@ import {
   Save,
   Send,
   ChevronDown,
+  RefreshCw,
+  Info,
+  MapPin,
+  Check,
 } from "lucide-vue-next";
 import LessonStructure from "@/components/LessonStructure.vue";
+import api from "@/utils/apis/axios";
+
+/** --- 1. STATE QUẢN LÝ --- **/
+const isLoading = ref(false);
+const courseStructure = ref([]);
+const activeLessonId = ref(null);
 const uploadProgress = ref(0);
-const selectedFileName = ref("");
-const videoPreviewUrl = ref(""); // Đường dẫn để hiển thị video
-const isFinished = ref(false);
+const isVideoUploading = ref(false);
 
-// 1. Kích hoạt chọn file
-const triggerFileInput = () => {
-  fileInput.value.click();
-};
-
-// 2. Xử lý file và tạo Preview
-const handleFileUpload = (event) => {
-  const file = event.target.files[0] || event.dataTransfer?.files[0];
-
-  if (file && file.type.startsWith("video/")) {
-    selectedFileName.value = file.name;
-    isFinished.value = false;
-
-    // TẠO ĐƯỜNG DẪN PREVIEW
-    // Giải phóng bộ nhớ nếu đã có url cũ
-    if (videoPreviewUrl.value) URL.revokeObjectURL(videoPreviewUrl.value);
-    videoPreviewUrl.value = URL.createObjectURL(file);
-
-    simulateUpload();
-  } else {
-    alert("Vui lòng chọn định dạng video!");
+/** --- 2. DATA ACCESS (COMPUTED) --- **/
+// Lấy Lesson hiện tại từ mảng lồng nhau
+const currentLesson = computed(() => {
+  if (!activeLessonId.value) return null;
+  for (const chapter of courseStructure.value) {
+    const lesson = chapter.lessons?.find((l) => l.id === activeLessonId.value);
+    if (lesson) return lesson;
   }
-};
+  return null;
+});
 
-// 3. Xóa video hiện tại
-const removeVideo = () => {
-  selectedFileName.value = "";
-  videoPreviewUrl.value = "";
-  uploadProgress.value = 0;
-  isFinished.value = false;
-};
+// Danh sách file của lesson đang chọn
+const uploadedFiles = computed(() => currentLesson.value?.resources || []);
 
-// 4. Mô phỏng upload
-const simulateUpload = () => {
-  uploadProgress.value = 0;
-  const interval = setInterval(() => {
-    uploadProgress.value += 10;
-    if (uploadProgress.value >= 100) {
-      clearInterval(interval);
-      isFinished.value = true;
+// Nguồn video (Ưu tiên preview blob, sau đó đến link server)
+const videoSource = computed(() => {
+  if (!currentLesson.value?.videoUrl) return "";
+  const url = currentLesson.value.videoUrl;
+  return url.startsWith("blob:") || url.startsWith("http")
+    ? url
+    : `http://localhost:5000${url}`;
+});
+
+/** --- 3. API & CRUD LOGIC --- **/
+const fetchCourseData = async () => {
+  try {
+    isLoading.value = true;
+    const { data } = await api.get("/courses");
+    courseStructure.value = (data.chapters || []).map((chapter) => ({
+      ...chapter,
+      lessons: (chapter.lessons || []).map((lesson) => ({
+        ...lesson,
+        hotspots: lesson.hotspots || [],
+        sections: lesson.sections || [],
+        resources: lesson.resources || [],
+      })),
+    }));
+    // Tự động chọn bài đầu tiên
+    if (courseStructure.value[0]?.lessons?.[0]) {
+      activeLessonId.value = courseStructure.value[0].lessons[0].id;
     }
-  }, 150);
-};
-const fileInput = ref(null); // Cho video
-const resourceInput = ref(null); // [QUAN TRỌNG] Phải có dòng này cho tài liệu
-const uploadedFiles = ref([
-  // { name: "Flight_Safety_Manual.pdf", status: "Uploaded" },
-  // { name: "Pre-Flight_Checklist.docx", status: "Uploaded" },
-]);
-
-// --- LOGIC CHO TÀI LIỆU NGUỒN ---
-
-// Mở hộp thoại chọn file
-const triggerResourceInput = () => {
-  if (resourceInput.value) {
-    resourceInput.value.click();
+  } catch (error) {
+    console.error("Lỗi fetch:", error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
-// Xử lý upload file
-const handleResourceUpload = (event) => {
-  // Lấy file từ cả sự kiện 'change' (chọn file) và 'drop' (kéo thả)
-  const files = event.target.files || event.dataTransfer?.files;
-  if (!files) return;
-
-  const newFiles = Array.from(files).filter((file) => {
-    const isDoc =
-      file.type === "application/pdf" ||
-      file.type ===
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      file.name.toLowerCase().endsWith(".pdf") ||
-      file.name.toLowerCase().endsWith(".docx");
-    return isDoc;
-  });
-
-  if (newFiles.length === 0) {
-    alert("Hệ thống: Chỉ chấp nhận định dạng PDF hoặc DOCX.");
-    return;
+// Hàm lưu toàn bộ thay đổi của bài học hiện tại lên Server
+const handleUpdateLesson = async () => {
+  if (!currentLesson.value) return;
+  try {
+    isLoading.value = true;
+    await api.put(
+      `/courses/lessons/${currentLesson.value.id}`,
+      currentLesson.value,
+    );
+    alert("Đã lưu bài học thành công!");
+  } catch (error) {
+    alert("Lỗi khi lưu bài học");
+  } finally {
+    isLoading.value = false;
   }
+};
 
-  // Thêm vào danh sách
-  newFiles.forEach((file) => {
-    // Kiểm tra tránh trùng tên file nếu muốn
-    const isExisted = uploadedFiles.value.some((f) => f.name === file.name);
-    if (!isExisted) {
-      uploadedFiles.value.push({
+/** --- 4. MEDIA FEATURE (VIDEO & DOCUMENTS) --- **/
+const fileInput = ref(null);
+const resourceInput = ref(null);
+
+const uploadFile = async (file, type) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const { data } = await api.post("/courses/upload", formData, {
+      onUploadProgress: (e) => {
+        if (type === "video")
+          uploadProgress.value = Math.round((e.loaded * 100) / e.total);
+      },
+    });
+    return data.url;
+  } catch (error) {
+    return null;
+  }
+};
+
+const handleVideoUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file || !currentLesson.value) return;
+
+  const preview = URL.createObjectURL(file);
+  currentLesson.value.videoUrl = preview; // Hiện preview ngay lập tức
+  isVideoUploading.value = true;
+
+  const url = await uploadFile(file, "video");
+  if (url) currentLesson.value.videoUrl = url;
+  isVideoUploading.value = false;
+};
+
+const handleResourceUpload = async (event) => {
+  const files = Array.from(
+    event.target.files || event.dataTransfer?.files || [],
+  );
+  if (!files.length || !currentLesson.value) return;
+
+  for (const file of files) {
+    const url = await uploadFile(file, "document");
+    if (url) {
+      currentLesson.value.resources.push({
         name: file.name,
+        url,
         status: "Uploaded",
       });
     }
+  }
+};
+
+const removeVideo = () => {
+  if (currentLesson.value) currentLesson.value.videoUrl = "";
+};
+const removeResource = (idx) => currentLesson.value?.resources.splice(idx, 1);
+
+/** --- 5. STRUCTURE & SIDEBAR --- **/
+const handleAddChapter = async () => {
+  const { data } = await api.post("/courses", {
+    title: "Chương mới",
+    order: courseStructure.value.length + 1,
   });
-
-  // Reset input để có thể chọn lại chính file đó nếu vừa xóa
-  if (event.target.value) event.target.value = "";
+  courseStructure.value.push({ ...data, lessons: [] });
 };
 
-// 3. Xóa tài liệu khỏi danh sách
-const removeResource = (index) => {
-  uploadedFiles.value.splice(index, 1);
+const handleAddLesson = async (chapterId) => {
+  const chapter = courseStructure.value.find((c) => c.id === chapterId);
+  const { data } = await api.post(`/courses/${chapterId}/lessons`, {
+    title: "Bài giảng mới",
+    order: chapter.lessons.length + 1,
+  });
+  chapter.lessons.push({ ...data, resources: [], hotspots: [], sections: [] });
+  activeLessonId.value = data.id;
 };
-const courseStructure = ref([
-  {
-    id: 1,
-    title: "1. Giới thiệu",
-    lessons: [{ id: 101, title: "1.1 Tổng quan" }],
-  },
-  { id: 2, title: "2. Cơ học Bay" },
-  { id: 3, title: "3. Giao thức An toàn" },
-  { id: 4, title: "4. Các động tác nâng cao" },
-]);
-// const currentStatus = ref("Nháp");
+
+const handleRemoveItem = async ({ cIndex, lIndex }) => {
+  if (!confirm("Xác nhận xóa?")) return;
+  const chapter = courseStructure.value[cIndex];
+  if (lIndex !== undefined) {
+    await api.delete(`/courses/lessons/${chapter.lessons[lIndex].id}`);
+    chapter.lessons.splice(lIndex, 1);
+  } else {
+    await api.delete(`/courses/${chapter.id}`);
+    courseStructure.value.splice(cIndex, 1);
+  }
+};
+
+const selectLesson = (id) => {
+  activeLessonId.value = id;
+};
+
+onMounted(fetchCourseData);
 </script>
-
 <template>
   <div
     class="min-h-screen bg-[#f8f9fa] text-[#1a1a1a] font-inter antialiased pb-20"
   >
     <header
-      class="bg-white border-b border-[#dee2e6] px-8 py-4 flex justify-between items-center sticky top-0 z-50"
+      class="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50"
     >
-      <h1 class="text-2xl font-extrabold text-[#0b1f3f] tracking-tight">
-        Giao diện Tạo Bài học Quản trị
-      </h1>
+      <h1 class="text-2xl font-extrabold text-[#0b1f3f]">Quản trị Bài học</h1>
       <div class="flex gap-3">
         <button
-          class="px-6 py-2.5 bg-[#0b1f3f] text-white font-bold rounded-lg text-sm hover:bg-black transition-all shadow-sm"
+          @click="handleUpdateLesson"
+          :disabled="isLoading"
+          class="px-6 py-2.5 bg-[#0b1f3f] text-white font-bold rounded-lg hover:bg-black transition-all shadow-sm flex items-center gap-2"
         >
+          <Save v-if="!isLoading" class="w-4 h-4" />
+          <RefreshCw v-else class="w-4 h-4 animate-spin" />
           Lưu & Xuất bản
-        </button>
-        <button
-          class="px-6 py-2.5 border border-[#dee2e6] text-[#1a1a1a] font-bold rounded-lg text-sm hover:bg-slate-50 transition-all bg-white"
-        >
-          Lưu Nháp
         </button>
       </div>
     </header>
 
-    <nav
-      class="px-8 py-3 border-b border-[#dee2e6] text-[11px] font-bold uppercase tracking-widest text-[#4a4a4a] flex items-center gap-2 bg-white/50"
-    >
-      <a href="#" class="hover:text-[#0b1f3f]">Trang chủ</a>
-      <ChevronRight class="w-3 h-3 text-slate-400" />
-      <a href="#" class="hover:text-[#0b1f3f]">Khóa học</a>
-      <ChevronRight class="w-3 h-3 text-slate-400" />
-      <a href="#" class="hover:text-[#0b1f3f]">Vận hành UAV</a>
-      <ChevronRight class="w-3 h-3 text-slate-400" />
-      <span class="text-[#0b1f3f]">Bài học Mới</span>
-    </nav>
-
     <main class="max-w-[1440px] mx-auto px-8 py-8">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-9 space-y-6">
+        <div v-if="currentLesson" class="lg:col-span-9 space-y-6">
           <div
             class="bg-white rounded-xl border border-[#dee2e6] p-8 shadow-sm space-y-8"
           >
             <h2
               class="text-xl font-extrabold text-[#0b1f3f] uppercase tracking-tight"
             >
-              Chi tiết Bài giảng của chương {{ courseStructure[0].title }}
+              Đang sửa: {{ currentLesson.title }}
             </h2>
 
-            <div class="space-y-3">
-              <label
-                class="text-[11px] font-black text-[#0b1f3f] uppercase tracking-widest"
-                >Tiêu đề Bài học</label
-              >
-              <input
-                v-model="lessonTitle"
-                type="text"
-                placeholder="Nhập tiêu đề bài học (ví dụ: Cơ học bay UAV)"
-                class="w-full px-4 py-3.5 rounded-lg border border-[#dee2e6] focus:ring-2 focus:ring-[#0b1f3f]/10 focus:border-[#0b1f3f] outline-none transition-all font-medium placeholder:text-slate-400 bg-[#fcfcfc]"
-              />
-            </div>
-            <!-- Mô tả bài học -->
-
-            <div class="space-y-3">
-              <div class="flex justify-between items-end">
+            <div class="space-y-6">
+              <div class="space-y-3">
                 <label
                   class="text-[11px] font-black text-[#0b1f3f] uppercase tracking-widest"
+                  >Tiêu đề Bài học</label
                 >
-                  Mô tả Bài giảng
-                </label>
-                <span class="text-[10px] font-bold text-slate-400 uppercase"
-                  >Tối đa 500 ký tự</span
-                >
+                <input
+                  v-model="currentLesson.title"
+                  placeholder="Nhập tiêu đề bài học"
+                  type="text"
+                  class="w-full px-4 py-3.5 rounded-lg border border-[#dee2e6] focus:border-[#0b1f3f] outline-none"
+                />
               </div>
-              <textarea
-                v-model="lessonDescription"
-                rows="4"
-                placeholder="Mô tả tóm tắt nội dung bài học này giúp học viên nắm bắt nhanh..."
-                class="w-full px-4 py-3.5 rounded-lg border border-[#dee2e6] focus:ring-2 focus:ring-[#0b1f3f]/10 focus:border-[#0b1f3f] outline-none transition-all font-medium placeholder:text-slate-400 bg-[#fcfcfc] resize-none leading-relaxed"
-              ></textarea>
+              <div class="space-y-3">
+                <label
+                  class="text-[11px] font-black text-[#0b1f3f] uppercase tracking-widest"
+                  >Mô tả Bài giảng</label
+                >
+                <textarea
+                  v-model="currentLesson.description"
+                  rows="4"
+                  placeholder="Nhập tối đa 5000 kí tự mô tả"
+                  class="w-full px-4 py-3.5 rounded-lg border border-[#dee2e6] outline-none resize-none"
+                ></textarea>
+              </div>
             </div>
-            <!-- Bài giảng -->
-            <div class="space-y-6">
-              <h3
-                class="text-[11px] font-black text-[#0b1f3f] uppercase tracking-widest"
-              >
-                Tải bài giảng Video và Tài liệu bài học
-              </h3>
 
-              <div class="grid md:grid-cols-2 gap-8 items-start font-inter">
-                <div class="space-y-4">
-                  <label
-                    class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest block"
-                  >
-                    Bài giảng Video
-                  </label>
+            <div class="grid md:grid-cols-2 gap-8 items-start">
+              <div class="space-y-4">
+                <label
+                  class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest"
+                  >Bài giảng Video</label
+                >
+                <input
+                  type="file"
+                  ref="fileInput"
+                  class="hidden"
+                  accept="video/*"
+                  @change="handleVideoUpload"
+                />
 
-                  <input
-                    type="file"
-                    ref="fileInput"
-                    class="hidden"
-                    accept="video/*"
-                    @change="handleFileUpload"
-                  />
-
+                <div
+                  class="w-full relative aspect-video rounded-xl border-2 border-dashed border-[#0b1f3f] overflow-hidden bg-[#f8f9fa]"
+                >
                   <div
-                    class="w-full relative aspect-video rounded-xl border-2 border-dashed border-[#0b1f3f] overflow-hidden bg-[#f8f9fa] shadow-sm"
+                    v-if="isVideoUploading"
+                    class="absolute inset-0 bg-white flex flex-col items-center justify-center p-6"
                   >
                     <div
-                      v-if="!isFinished"
-                      @click="triggerFileInput"
-                      @dragover.prevent
-                      @drop.prevent="handleFileUpload"
-                      class="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white transition-colors group"
+                      class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border mb-2"
                     >
                       <div
-                        v-if="uploadProgress === 0"
-                        class="flex flex-col items-center"
-                      >
-                        <Video
-                          class="w-10 h-10 text-slate-300 group-hover:text-[#0b1f3f] mb-4 transition-colors"
-                        />
-                        <p
-                          class="text-[11px] text-slate-500 font-bold text-center leading-relaxed px-6"
-                        >
-                          Tải file tại đây<br />hoặc
-                          <span class="text-[#0b1f3f] underline">Browse</span>
-                        </p>
-                      </div>
-
-                      <div
-                        v-if="uploadProgress > 0 && uploadProgress < 100"
-                        class="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center px-10 space-y-4"
-                      >
-                        <div
-                          class="w-full max-w-xs h-1.5 bg-slate-100 rounded-full overflow-hidden border"
-                        >
-                          <div
-                            class="h-full bg-[#0b1f3f] transition-all duration-300"
-                            :style="{ width: uploadProgress + '%' }"
-                          ></div>
-                        </div>
-                        <span
-                          class="font-mono text-[10px] font-black text-[#0b1f3f] uppercase"
-                          >{{ uploadProgress }}% Uploading...</span
-                        >
-                      </div>
+                        class="h-full bg-[#0b1f3f] transition-all"
+                        :style="{ width: uploadProgress + '%' }"
+                      ></div>
                     </div>
-
-                    <div v-else class="absolute inset-0 bg-black group/player">
-                      <video
-                        :src="videoPreviewUrl"
-                        controls
-                        class="w-full h-full object-contain"
-                      ></video>
-                      <div
-                        class="absolute top-4 right-4 opacity-0 group-hover/player:opacity-100 transition-opacity flex gap-2"
-                      >
-                        <button
-                          @click="triggerFileInput"
-                          class="p-2 bg-white/20 backdrop-blur-md rounded-lg text-white hover:bg-white/40"
-                        >
-                          <RefreshCw class="w-4 h-4" />
-                        </button>
-                        <button
-                          @click="removeVideo"
-                          class="p-2 bg-red-500/80 backdrop-blur-md rounded-lg text-white hover:bg-red-600"
-                        >
-                          <X class="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div
-                    v-if="isFinished"
-                    class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase tracking-widest pt-1"
-                  >
-                    <div
-                      class="w-2 h-2 rounded-full bg-green-500 animate-pulse"
-                    ></div>
-                    Hệ thống: Video đã sẵn sàng
-                  </div>
-                </div>
-
-                <div class="space-y-4">
-                  <label
-                    class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest block"
-                  >
-                    Tài liệu Nguồn
-                  </label>
-
-                  <input
-                    type="file"
-                    ref="resourceInput"
-                    class="hidden"
-                    multiple
-                    accept=".pdf,.docx"
-                    @change="handleResourceUpload"
-                  />
-
-                  <div
-                    @click="triggerResourceInput"
-                    @dragover.prevent
-                    @drop.prevent="handleResourceUpload"
-                    class="w-full aspect-video border-2 border-dashed border-[#0b1f3f] rounded-xl flex flex-col items-center justify-center bg-[#f8f9fa] hover:bg-white transition-all cursor-pointer group"
-                  >
-                    <FileText
-                      class="w-10 h-10 text-slate-300 group-hover:text-[#0b1f3f] mb-4 transition-colors"
-                    />
-                    <p
-                      class="text-[11px] text-slate-500 font-bold text-center leading-relaxed px-6"
+                    <span class="text-[10px] font-black uppercase"
+                      >{{ uploadProgress }}% Uploading...</span
                     >
-                      Kéo file tài liệu vào đây (PDF, DOCX)<br />hoặc
-                      <span class="text-[#0b1f3f] underline">Browse</span>
+                  </div>
+                  <div
+                    v-else-if="!videoSource"
+                    @click="fileInput.click()"
+                    class="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white transition-all"
+                  >
+                    <Video class="w-10 h-10 text-slate-300 mb-4" />
+                    <p class="text-[11px] text-slate-500 font-bold">
+                      Kéo video hoặc nhấn để chọn
                     </p>
                   </div>
-
-                  <div class="space-y-2 mt-4">
-                    <transition-group name="list">
-                      <div
-                        v-for="(file, index) in uploadedFiles"
-                        :key="file.name + index"
-                        class="flex items-center justify-between p-3 bg-white border border-[#dee2e6] rounded-lg group hover:border-[#0b1f3f] transition-all shadow-sm"
+                  <div v-else class="absolute inset-0 bg-black group/player">
+                    <video
+                      :src="videoSource"
+                      controls
+                      class="w-full h-full object-contain"
+                    ></video>
+                    <div
+                      class="absolute top-4 right-4 opacity-0 group-hover/player:opacity-100 flex gap-2"
+                    >
+                      <button
+                        @click="fileInput.click()"
+                        class="p-2 bg-white/20 backdrop-blur-md rounded-lg text-white"
                       >
-                        <div class="flex items-center gap-3">
-                          <FileText class="w-4 h-4 text-[#4a4a4a]" />
-                          <span
-                            class="text-[11px] font-bold text-[#1a1a1a] truncate max-w-[150px]"
-                            >{{ file.name }}</span
-                          >
-                          <span
-                            class="text-[9px] font-mono font-bold text-green-600 uppercase tracking-widest"
-                            >- {{ file.status }}</span
-                          >
-                        </div>
-                        <button
-                          @click.stop="removeResource(index)"
-                          class="p-1.5 hover:bg-red-50 rounded text-slate-300 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 class="w-4 h-4" />
-                        </button>
-                      </div>
-                    </transition-group>
+                        <RefreshCw class="w-4 h-4" />
+                      </button>
+                      <button
+                        @click="removeVideo"
+                        class="p-2 bg-red-500/80 rounded-lg text-white"
+                      >
+                        <X class="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div
-            class="bg-white rounded-xl border border-[#dee2e6] overflow-hidden shadow-sm"
-          >
-            <div
-              class="px-8 py-5 border-b border-[#dee2e6] flex justify-between items-center bg-[#fcfcfc]"
-            >
-              <h3
-                class="text-sm font-black text-[#0b1f3f] uppercase tracking-[0.2em]"
-              >
-                Tích hợp Mô phỏng UAV
-              </h3>
-              <ChevronDown class="w-5 h-5 text-[#4a4a4a]" />
-            </div>
-            <div class="p-8 space-y-8">
-              <div class="flex items-center gap-4">
-                <button
-                  @click="isSimulationEnabled = !isSimulationEnabled"
-                  :class="[
-                    'w-11 h-6 rounded-full transition-all relative p-1 shadow-inner',
-                    isSimulationEnabled ? 'bg-[#0b1f3f]' : 'bg-[#dee2e6]',
-                  ]"
+              <div class="space-y-4">
+                <label
+                  class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest"
+                  >Tài liệu Nguồn</label
                 >
-                  <div
-                    :class="[
-                      'w-4 h-4 bg-white rounded-full transition-all shadow-sm',
-                      isSimulationEnabled ? 'translate-x-5' : 'translate-x-0',
-                    ]"
-                  ></div>
-                </button>
-                <span
-                  class="text-xs font-extrabold uppercase text-[#0b1f3f] tracking-wide"
-                  >Kích hoạt Mô phỏng 3D</span
+                <input
+                  type="file"
+                  ref="resourceInput"
+                  class="hidden"
+                  multiple
+                  accept=".pdf,.docx"
+                  @change="handleResourceUpload"
+                />
+                <div
+                  @click="resourceInput.click()"
+                  class="w-full aspect-video border-2 border-dashed border-[#0b1f3f] rounded-xl flex flex-col items-center justify-center bg-[#f8f9fa] cursor-pointer hover:bg-white transition-all"
                 >
-              </div>
-
-              <div class="grid md:grid-cols-2 gap-12">
-                <div class="space-y-4">
-                  <button
-                    class="px-6 py-3.5 border-2 border-[#dee2e6] text-[#0b1f3f] font-black text-[10px] uppercase rounded-lg hover:border-[#0b1f3f] transition-all flex items-center gap-3 bg-white shadow-sm"
-                  >
-                    <Box class="w-4 h-4" /> Liên kết Mô-đun 3D (Chọn từ Thư
-                    viện)
-                  </button>
-                  <p
-                    class="text-[10px] text-slate-400 font-bold flex items-center gap-2"
-                  >
-                    <Info class="w-3 h-3" /> Open now modal
+                  <FileText class="w-10 h-10 text-slate-300 mb-4" />
+                  <p class="text-[11px] text-slate-500 font-bold">
+                    Chọn tài liệu PDF/DOCX
                   </p>
                 </div>
-
-                <div class="space-y-4">
-                  <label
-                    class="text-[10px] font-black uppercase text-[#4a4a4a] tracking-widest"
-                    >Tải lên Tham số Mô phỏng (JSON, XML)</label
-                  >
-                  <div class="flex gap-2">
+                <div class="space-y-2 mt-4">
+                  <transition-group name="list">
                     <div
-                      class="flex-1 bg-[#f8f9fa] border border-[#dee2e6] rounded-lg px-4 py-2.5 flex items-center text-[11px] font-medium text-slate-500 shadow-inner"
+                      v-for="(file, index) in uploadedFiles"
+                      :key="file.name + index"
+                      class="flex items-center justify-between p-3 bg-white border border-[#dee2e6] rounded-lg shadow-sm"
                     >
-                      <UploadCloud class="w-4 h-4 mr-3" /> Tải lên tài liệu
-                      nguồn (PDF, DOCX)
+                      <div class="flex items-center gap-3">
+                        <FileText class="w-4 h-4 text-[#4a4a4a]" />
+                        <span
+                          class="text-[11px] font-bold text-[#1a1a1a] truncate max-w-[150px]"
+                          >{{ file.name }}</span
+                        >
+                      </div>
+                      <button
+                        @click="removeResource(index)"
+                        class="p-1.5 text-slate-300 hover:text-red-500"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      class="bg-[#0b1f3f] text-white text-[10px] font-black uppercase px-6 py-2 rounded-lg hover:bg-black transition-colors"
-                    >
-                      Duyệt
-                    </button>
-                  </div>
+                  </transition-group>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!--  Tạo component structure -->
+        <div
+          v-else
+          class="lg:col-span-9 flex flex-col items-center justify-center py-40 bg-white rounded-xl border-2 border-dashed border-slate-200"
+        >
+          <Box class="w-16 h-16 text-slate-200 mb-4" />
+          <p
+            class="text-slate-400 font-bold uppercase text-[11px] tracking-widest text-center"
+          >
+            Vui lòng chọn bài học từ danh sách bên phải <br />
+            để bắt đầu chỉnh sửa
+          </p>
+        </div>
+
         <LessonStructure
           :structure="courseStructure"
           status="Nháp"
+          @select-lesson="selectLesson"
+          @add-chapter="handleAddChapter"
+          @add-lesson="handleAddLesson"
+          @remove-item="handleRemoveItem"
         ></LessonStructure>
       </div>
     </main>

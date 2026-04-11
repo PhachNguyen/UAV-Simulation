@@ -7,6 +7,7 @@ import {
   BookOpen,
   FileText,
   X,
+  Trash2,
 } from "lucide-vue-next";
 
 const props = defineProps({
@@ -19,9 +20,15 @@ const props = defineProps({
     type: String,
     default: "Nháp",
   },
+  activeLessonId: { type: [Number, String], default: null },
 });
 
-const emit = defineEmits(["add-chapter", "add-lesson", "remove-item"]);
+const emit = defineEmits([
+  "add-chapter",
+  "add-lesson",
+  "remove-item",
+  "select-lesson",
+]);
 
 // Trạng thái lưu trữ các ID chương đang mở (mặc định mở chương đầu tiên)
 const expandedChapters = ref(new Set([props.structure[0]?.id]));
@@ -70,7 +77,12 @@ const toggleChapter = (chapterId) => {
             >
               {{ chapter.title }}
             </span>
-
+            <button
+              @click.stop="emit('remove-item', { cIndex })"
+              class="cursor-pointer opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-all"
+            >
+              <Trash2 class="w-3 h-3 text-red-500" />
+            </button>
             <span class="text-[9px] font-bold text-slate-400 font-mono">
               ({{ chapter.lessons?.length || 0 }})
             </span>
@@ -83,19 +95,38 @@ const toggleChapter = (chapterId) => {
             <div
               v-for="(lesson, lIndex) in chapter.lessons"
               :key="lesson.id"
-              class="p-3 border border-[#dee2e6] rounded-lg bg-white flex items-center gap-3 group hover:border-[#0b1f3f] hover:shadow-sm transition-all cursor-grab"
+              @click="emit('select-lesson', lesson.id)"
+              class="p-3 border rounded-lg flex items-center gap-3 group transition-all cursor-pointer shadow-sm"
+              :class="[
+                activeLessonId === lesson.id
+                  ? 'bg-[#0b1f3f] border-[#0b1f3f] ring-2 ring-[#0b1f3f]/10'
+                  : 'bg-white border-[#dee2e6] hover:border-[#0b1f3f]',
+              ]"
             >
               <FileText
-                class="w-3.5 h-3.5 text-slate-400 group-hover:text-[#0b1f3f]"
+                class="w-3.5 h-3.5"
+                :class="
+                  activeLessonId === lesson.id ? 'text-white' : 'text-slate-400'
+                "
               />
+
               <span
-                class="text-[11px] font-bold text-[#4a4a4a] tracking-wide flex-1"
+                class="text-[11px] font-bold tracking-wide flex-1"
+                :class="
+                  activeLessonId === lesson.id ? 'text-white' : 'text-[#4a4a4a]'
+                "
               >
                 {{ lesson.title }}
               </span>
+
               <button
                 @click.stop="emit('remove-item', { cIndex, lIndex })"
-                class="opacity-0 group-hover:opacity-100 p-1 hover:text-red-500 transition-all"
+                class="p-1 transition-all"
+                :class="
+                  activeLessonId === lesson.id
+                    ? 'text-white/50 hover:text-white'
+                    : 'opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500'
+                "
               >
                 <X class="w-3 h-3" />
               </button>
