@@ -7,7 +7,7 @@
       </div>
     </Transition>
 
-    <div class="ui-panel-top">
+    <!-- <div class="ui-panel-top">
       <button @click="isStatsOpen = !isStatsOpen" class="toggle-btn">
         <div class="btn-label">
           <span class="label-sub">Hệ thống</span>
@@ -38,7 +38,7 @@
           </div>
         </div>
       </Transition>
-    </div>
+    </div> -->
 
     <Transition name="slide-up">
       <div v-if="activeSpot" class="hotspot-detail-card">
@@ -118,8 +118,9 @@ const initScene = () => {
   core.scene = new THREE.Scene();
   core.scene.background = new THREE.Color(0x080808);
   core.scene.fog = new THREE.Fog(0x080808, 20, 100);
-
+  // Thêm lưới trục to hơn và mờ hơn để làm nền, giúp định hướng không gian tốt hơn
   core.scene.add(new THREE.GridHelper(60, 40, 0x1e293b, 0x0f172a));
+  // Lưới phân cực giúp dễ định hướng hơn, đặc biệt khi model có nhiều chi tiết nhỏ
   const polar = new THREE.PolarGridHelper(30, 10, 8, 64, 0x3b82f6, 0x111827);
   polar.material.opacity = 0.1;
   polar.material.transparent = true;
@@ -127,12 +128,12 @@ const initScene = () => {
 
   // 2. Camera
   core.camera = new THREE.PerspectiveCamera(
-    40,
+    60, // FOV đủ rộng để nhìn rõ model
     container.value.clientWidth / container.value.clientHeight,
-    0.1,
-    1000,
+    0.1, // Gần nhất
+    1000, // Xa nhất
   );
-  core.camera.position.set(30, 20, 30);
+  core.camera.position.set(15, 15, 20);
 
   // 3. Renderers (WebGL + CSS2D)
   core.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -160,7 +161,8 @@ const initScene = () => {
   // 4. Lights
   core.scene.add(new THREE.AmbientLight(0xffffff, 1.2));
   const spotLight = new THREE.SpotLight(0xffffff, 50);
-  spotLight.position.set(20, 30, 20);
+  // Điều chỉnh vị trí và góc chiếu của đèn để làm nổi bật model hơn
+  spotLight.position.set(100, 10, 10);
   core.scene.add(spotLight);
 
   // 5. Controls
@@ -173,30 +175,38 @@ const initScene = () => {
 const handleModelSuccess = (gltf) => {
   core.currentModel = gltf.scene;
 
-  // Tự động căn chỉnh Scale và Tâm
+  // 1. Tính toán kích thước và tâm của Model
   const box = new THREE.Box3().setFromObject(core.currentModel);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
 
-  const desiredSize = 18;
+  // 2. Tự động Scale (Giữ nguyên logic cũ của cậu)
+  const desiredSize = 15; // Phách có thể chỉnh số này để Drone to/nhỏ lại
   const maxDim = Math.max(size.x, size.y, size.z);
   const autoScale = desiredSize / maxDim;
-
   core.currentModel.scale.set(autoScale, autoScale, autoScale);
+
+  // 3. ĐƯA VỀ TÂM: Trừ đi tọa độ center để tâm model trùng với (0,0,0)
+  // Lưu ý: Không cộng thêm "+ 2" như trước nữa để nó nằm đúng giữa trục Y
   core.currentModel.position.set(
-    -center.x * autoScale,
-    -center.y * autoScale + 2, // Nâng lên khỏi mặt đất
-    -center.z * autoScale,
+    -center.x * autoScale + 2,
+    -center.y * autoScale + 8,
+    -center.z * autoScale + 2,
   );
 
   core.scene.add(core.currentModel);
 
-  // Load Hotspots: Ưu tiên props BE (Detail), sau đó tới data tĩnh
+  // 4. Đảm bảo Camera nhìn vào đúng tâm (0,0,0)
+  // if (core.controls) {
+  //   core.controls.target.set(0, 0, 0);
+  //   core.controls.update();
+  // }
+
+  // Load Hotspots
   const hotspots = props.customHotspots || product.value?.hotspots;
   if (hotspots) setupHotspots(hotspots);
 
   loading.value = false;
-  // playEntryAnimation();
 };
 
 const loadModel = () => {
@@ -213,14 +223,21 @@ const loadModel = () => {
   });
 };
 
+// Tìm hàm setupHotspots trong Uav3DViewer.vue và sửa như sau:
 const setupHotspots = (hotspots) => {
   if (!core.currentModel) return;
 
-  // Xóa labels cũ
+  // 1. Xóa các labels cũ để vẽ lại
   const labels = core.currentModel.children.filter((c) => c.isCSS2DObject);
   labels.forEach((l) => core.currentModel.remove(l));
 
   hotspots.forEach((spot, index) => {
+    // --- BỔ SUNG ĐIỀU KIỆN NÀY ---
+    // Nếu điểm này đang được chọn để sửa (currentMarkerId),
+    // ta ẩn marker cũ đi để hiện marker tạm thời (Teal) cho đỡ rối.
+    if (props.admin && props.currentMarkerId === index + 1) return;
+    // ----------------------------
+
     const el = document.createElement("div");
     el.className = "hotspot-wrapper";
     el.innerHTML = `<div class="hotspot-pulse"></div><div class="hotspot-node">${index + 1}</div>`;
@@ -236,7 +253,41 @@ const setupHotspots = (hotspots) => {
     };
   });
 };
+// Thêm đoạn watcher này vào phần Watchers của Uav3DViewer.vue
 
+watch(
+  () => props.currentMarkerId,
+  (newId) => {
+    if (!core.currentModel) return;
+
+    // 1. DỌN SẠCH các marker tạm (Teal) cũ
+    const tempMarkers = core.currentModel.children.filter(
+      (c) => c.name && c.name.startsWith("marker-"),
+    );
+    tempMarkers.forEach((m) => core.currentModel.remove(m));
+
+    // 2. Vẽ lại toàn bộ marker Blue (Hàm này sẽ ẩn cái ID trùng với newId)
+    setupHotspots(props.customHotspots || []);
+
+    // 3. KHẮC PHỤC: Nếu đang chọn để sửa (newId != null), vẽ ngay marker Teal tại vị trí cũ
+    if (newId) {
+      // currentMarkerId là Index + 1, nên lấy trong mảng phải trừ 1
+      const editingSpot = props.customHotspots[newId - 1];
+
+      if (editingSpot && editingSpot.pos) {
+        // Tạo vector tọa độ từ dữ liệu có sẵn
+        const currentPos = new THREE.Vector3(
+          editingSpot.pos.x,
+          editingSpot.pos.y,
+          editingSpot.pos.z,
+        );
+
+        // Gọi hàm hiển thị marker tạm thời tại vị trí này
+        showTemporaryMarker(currentPos);
+      }
+    }
+  },
+);
 const flyToSpot = (spot, label) => {
   activeSpot.value = spot;
   const worldPos = new THREE.Vector3();
@@ -287,13 +338,15 @@ const initRaycaster = () => {
 // --- MARKERS (ADMIN) ---
 const showTemporaryMarker = (pos) => {
   const markerId = props.currentMarkerId;
-  if (!markerId) return;
+  if (!markerId || !core.currentModel) return;
 
-  const existing = core.currentModel.children.find(
-    (c) => c.name === `marker-${markerId}`,
+  // Xóa marker Teal cũ nếu có (để tránh bị chồng nhiều cái Teal khi click liên tục)
+  const existingTemp = core.currentModel.children.filter(
+    (c) => c.name && c.name.startsWith("marker-"),
   );
-  if (existing) core.currentModel.remove(existing);
+  existingTemp.forEach((m) => core.currentModel.remove(m));
 
+  // Tạo marker Teal mới
   const marker = createMarkerSprite(pos, markerId);
   marker.name = `marker-${markerId}`;
   core.currentModel.add(marker);
@@ -304,7 +357,8 @@ const createMarkerSprite = (pos, number) => {
   canvas.width = canvas.height = 128;
   const ctx = canvas.getContext("2d");
 
-  ctx.fillStyle = "#00f2ff";
+  // ĐỔI DÒNG NÀY: Từ #00f2ff (Teal) sang #3b82f6 (Blue)
+  ctx.fillStyle = "#3b82f6";
   ctx.beginPath();
   ctx.arc(64, 64, 50, 0, Math.PI * 2);
   ctx.fill();
@@ -319,12 +373,12 @@ const createMarkerSprite = (pos, number) => {
   const material = new THREE.SpriteMaterial({ map: texture, depthTest: false });
   const sprite = new THREE.Sprite(material);
 
-  const s = 1.2 / core.currentModel.scale.x;
+  // Giữ nguyên scale để đảm bảo kích thước hiển thị tương đồng
+  const s = 1.5 / core.currentModel.scale.x;
   sprite.scale.set(s, s, 1);
   sprite.position.copy(pos);
   return sprite;
 };
-
 // --- CLEANUP ---
 const cleanupExistingModel = () => {
   if (!core.currentModel) return;
@@ -518,9 +572,10 @@ defineExpose({ flyToSpot });
 /* Common 3D UI */
 :deep(.hotspot-wrapper) {
   position: absolute;
+  /* DÒNG NÀY LÀ CỨU CÁNH: Đưa tâm thẻ HTML về đúng tọa độ 3D */
   transform: translate(-50%, -50%);
-  cursor: pointer;
   pointer-events: auto;
+  will-change: transform; /* Giúp mượt hơn khi xoay camera */
 }
 :deep(.hotspot-pulse) {
   position: absolute;
@@ -530,9 +585,14 @@ defineExpose({ flyToSpot });
   animation: pulse 2s infinite;
 }
 :deep(.hotspot-node) {
+  /* Kích thước chuẩn bạn yêu cầu */
   width: 24px;
   height: 24px;
+
+  /* Màu nền Blue chuẩn Tailwind */
   background: #3b82f6;
+
+  /* Các style bổ trợ để nhìn xịn hơn */
   border: 2px solid white;
   border-radius: 50%;
   color: white;
@@ -543,8 +603,8 @@ defineExpose({ flyToSpot });
   font-size: 10px;
   z-index: 2;
   position: relative;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); /* Thêm hiệu ứng đổ bóng cho đẹp */
 }
-
 @keyframes pulse {
   0% {
     transform: scale(0.6);
