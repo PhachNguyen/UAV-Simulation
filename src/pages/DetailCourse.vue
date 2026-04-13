@@ -38,11 +38,20 @@ const isLoading = ref(false);
 // ]);
 //  Fetch data
 
-// 3. Tài nguyên đính kèm
-const resources = ref([
-  { name: "THERMAL_PHYSICS_V2.PDF", type: "PDF", color: "bg-[#0b1f3f]" },
-  { name: "MISSION_LOG_SHEET.XLSX", type: "XLSX", color: "bg-green-700" },
-]);
+//  Download tài liệu
+
+const downloadResource = (relativeUrl) => {
+  if (!relativeUrl) return;
+
+  // Nối Base URL của Backend vào
+  const baseUrl = "http://localhost:5000";
+  const fullUrl = relativeUrl.startsWith("http")
+    ? relativeUrl
+    : `${baseUrl}${relativeUrl}`;
+
+  // Mở trong tab mới
+  window.open(fullUrl, "_blank");
+};
 
 // 4. Nội dung chi tiết bài học (Dễ dàng mở rộng/API hóa)
 const lessonDetails = ref([
@@ -75,20 +84,17 @@ const lessonDetails = ref([
 
 // 1. API Fetch dữ liệu Aero-X
 const fetchAllData = async () => {
-  try {
-    isLoading.value = true;
-    const { data } = await api.get("/courses");
-    courseStructure.value = data.chapters;
-    completedLessonIds.value = data.completedLessons;
+  const { data } = await api.get("/courses");
 
-    // Tự động chọn bài đầu tiên nếu mới vào trang
-    if (!activeLessonId.value && data.chapters[0]?.lessons[0]) {
-      activeLessonId.value = data.chapters[0].lessons[0].id;
-    }
-  } catch (error) {
-    console.error("SkyLink Error:", error);
-  } finally {
-    isLoading.value = false;
+  // 1. Gán mảng bài học đã xong trước
+  completedLessonIds.value = data.completedLessons;
+  courseStructure.value = data.chapters;
+
+  // 2. Sau đó mới gán activeLessonId
+  if (data.lastAccessed) {
+    activeLessonId.value = data.lastAccessed; // Sẽ nhảy về bài 8
+  } else {
+    activeLessonId.value = data.chapters[0]?.lessons[0]?.id;
   }
 };
 // 2. COMPUTED: Tìm bài học hiện tại từ cấu trúc BE
@@ -105,17 +111,40 @@ const handleSelect = (id) => {
   activeLessonId.value = id;
   // Logic load nội dung bài học mới ở đây...
 };
-const nextLesson = () => {
-  // Phẳng hóa danh sách bài học
-  const allLessons = courseStructure.value.flatMap((ch) => ch.lessons);
-  const currentIndex = allLessons.findIndex(
-    (l) => l.id === activeLessonId.value,
+// --- TRONG <script setup> CỦA TRANG CHA ---
+// Hàm bổ trợ để tìm Chapter ID từ Lesson ID
+const findChapterId = (lessonId) => {
+  // Duyệt qua toàn bộ cấu trúc khóa học mà cậu đã fetch từ BE
+  const chapter = courseStructure.value.find((ch) =>
+    ch.lessons?.some((l) => l.id === lessonId),
   );
 
-  if (currentIndex < allLessons.length - 1) {
-    activeLessonId.value = allLessons[currentIndex + 1].id;
-  } else {
-    alert("Chúc mừng! Bạn đã hoàn thành khóa học.");
+  // Trả về ID của chương đó, nếu không thấy thì trả về null
+  return chapter ? chapter.id : null;
+};
+
+// Hàm xử lý khi nhấn "Bài giảng tiếp theo"
+const handleNextLesson = async ({ currentId, nextId }) => {
+  try {
+    // 1. Tìm chapterId (giữ nguyên logic cũ của cậu)
+    const chapterId = findChapterId(currentId);
+
+    // 2. Luôn gọi API để lưu bài vừa học (Giúp nhảy lên 100% ở bài cuối)
+    await api.post("/progress/update", { lessonId: currentId, chapterId });
+
+    // 3. Cập nhật mảng local để Sidebar hiện tích xanh và nhảy %
+    if (!completedLessonIds.value.includes(currentId)) {
+      completedLessonIds.value.push(currentId);
+    }
+
+    // 4. CHỈ CHUYỂN BÀI NẾU CÓ BÀI MỚI
+    // Nếu nextId trùng currentId (bài cuối), chúng ta không gán lại để tránh load lại trang
+    if (nextId && nextId !== activeLessonId.value) {
+      activeLessonId.value = nextId;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  } catch (error) {
+    console.error("Lỗi cập nhật SkyLink:", error);
   }
 };
 </script>
@@ -194,6 +223,7 @@ const nextLesson = () => {
         <div
           class="relative bg-slate-900 rounded-lg overflow-hidden aspect-[16/9] shadow-sm border border-slate-200"
         >
+          <!-- Gán URL video -->
           <iframe
             v-if="
               currentLesson.videoUrl &&
@@ -205,11 +235,12 @@ const nextLesson = () => {
             allowfullscreen
           ></iframe>
 
+          <!-- Trường hợp video cục bộ -->
           <video
             v-else-if="currentLesson.videoUrl"
             controls
             class="w-full h-full object-cover"
-            :src="currentLesson.videoUrl"
+            :src="`http://localhost:5000${currentLesson.videoUrl}`"
           ></video>
 
           <div v-else class="w-full h-full relative">
@@ -272,14 +303,14 @@ const nextLesson = () => {
             <h3
               class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4"
             >
-              Tài nguyên chiến thuật
+              Tài nguyên bài giảng
             </h3>
             <div class="space-y-3">
               <div
                 v-for="res in currentLesson.resources"
                 :key="res.name"
                 class="flex items-center justify-between p-3 bg-white rounded-md border border-slate-200 hover:border-blue-300 transition-all cursor-pointer group shadow-sm"
-                @click="window.open(res.url, '_blank')"
+                @click="downloadResource(res.url)"
               >
                 <div class="flex items-center gap-3">
                   <div
@@ -338,7 +369,7 @@ const nextLesson = () => {
         :active-lesson-id="activeLessonId"
         :completed-lessons="completedLessonIds"
         @select-lesson="handleSelect"
-        @next-lesson="nextLesson"
+        @next-lesson="handleNextLesson"
       />
     </main>
 
