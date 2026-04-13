@@ -133,7 +133,7 @@ const initScene = () => {
     0.1, // Gần nhất
     1000, // Xa nhất
   );
-  core.camera.position.set(15, 15, 20);
+  core.camera.position.set(30, 20, 30); // Đặt xa hơn để có cái nhìn tổng thể hơn
 
   // 3. Renderers (WebGL + CSS2D)
   core.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -189,9 +189,9 @@ const handleModelSuccess = (gltf) => {
   // 3. ĐƯA VỀ TÂM: Trừ đi tọa độ center để tâm model trùng với (0,0,0)
   // Lưu ý: Không cộng thêm "+ 2" như trước nữa để nó nằm đúng giữa trục Y
   core.currentModel.position.set(
-    -center.x * autoScale + 2,
+    -center.x * autoScale,
     -center.y * autoScale + 8,
-    -center.z * autoScale + 2,
+    -center.z * autoScale,
   );
 
   core.scene.add(core.currentModel);
@@ -294,16 +294,17 @@ const flyToSpot = (spot, label) => {
   label.getWorldPosition(worldPos);
 
   gsap.to(core.camera.position, {
-    x: worldPos.x + 8,
-    y: worldPos.y + 4,
-    z: worldPos.z + 8,
+    x: worldPos.x + 6,
+    y: worldPos.y + 3,
+    z: worldPos.z + 6,
     duration: 1.2,
     ease: "power3.inOut",
   });
 
+  // CẬP NHẬT ĐIỂM NHÌN (target) CÙNG LÚC ĐỂ CAMERA LUÔN HƯỚNG VỀ HOTSPOT
   gsap.to(core.controls.target, {
-    x: worldPos.x,
-    y: worldPos.y,
+    x: worldPos.x, // Giữ nguyên trục X để có góc nhìn tốt hơn
+    y: worldPos.y, // Nâng cao điểm nhìn lên một chút để có góc nhìn đẹp hơn
     z: worldPos.z,
     duration: 1.2,
     onUpdate: () => core.controls.update(),
@@ -321,17 +322,7 @@ const initRaycaster = () => {
     core.raycaster.setFromCamera(core.mouse, core.camera);
     const intersects = core.raycaster.intersectObject(core.currentModel, true);
 
-    if (intersects.length > 0) {
-      const localPos = core.currentModel.worldToLocal(
-        intersects[0].point.clone(),
-      );
-      emit("pick-coords", {
-        x: localPos.x.toFixed(3),
-        y: localPos.y.toFixed(3),
-        z: localPos.z.toFixed(3),
-      });
-      showTemporaryMarker(localPos);
-    }
+    initRaycaster;
   });
 };
 

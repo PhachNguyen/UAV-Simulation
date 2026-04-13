@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, reactive } from "vue";
+import { useRouter } from "vue-router";
 import {
   ChevronRight,
   Video,
@@ -30,6 +31,11 @@ const activeLessonId = ref(null);
 const uploadProgress = ref(0);
 const isVideoUploading = ref(false);
 
+const router = useRouter();
+const goToSections = (lessonId) => {
+  // Đính kèm ID vào URL: ví dụ /admin/lesson/15/sections
+  router.push(`/admin/lesson/${lessonId}/sections`);
+};
 // Biến mô phỏng
 // const isSimulationEnabled = ref(false);
 // const latestPickedCoords = ref(null); // Tọa độ điểm vừa được admin chọn trên model 3D
@@ -317,8 +323,67 @@ onMounted(fetchCourseData);
     </header>
 
     <main class="max-w-[1440px] mx-auto px-8 py-8">
+      <nav
+        class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2"
+      >
+        <span
+          class="hover:text-[#0b1f3f] cursor-pointer"
+          @click="router.push('/admin/dashboard')"
+          >Hệ thống</span
+        >
+        <ChevronRight class="w-3 h-3" />
+        <span
+          class="hover:text-[#0b1f3f] cursor-pointer"
+          @click="goToCourseStructure(lesson.id)"
+          >Khóa học UAV</span
+        >
+        <ChevronRight class="w-3 h-3" />
+        <span class="text-[#0b1f3f]">Nội dung bài học</span>
+      </nav>
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div v-if="currentLesson" class="lg:col-span-9 space-y-6">
+          <div class="flex items-center justify-between mb-6 px-2">
+            <div class="flex items-center gap-4">
+              <button
+                @click="goToCourseStructure"
+                class="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-[#0b1f3f] transition-all group shadow-sm"
+                title="Quay lại cấu trúc khóa học"
+              >
+                <ArrowLeft
+                  class="w-5 h-5 text-slate-400 group-hover:text-[#0b1f3f]"
+                />
+              </button>
+
+              <div>
+                <h1
+                  class="text-xl font-black text-[#0b1f3f] uppercase tracking-tight"
+                >
+                  Chi tiết nội dung
+                </h1>
+                <p
+                  class="text-[10px] text-slate-400 font-bold uppercase tracking-widest"
+                >
+                  Cấu hình Video, Tài liệu & 3D
+                </p>
+              </div>
+            </div>
+            <!-- Trang chuyển đến tạo nội dung bài giảng -->
+            <button
+              @click="goToSections(currentLesson.id)"
+              class="flex items-center gap-3 px-6 py-3 bg-[#0b1f3f] text-white rounded-2xl hover:bg-[#162e54] transition-all shadow-lg hover:shadow-[#0b1f3f]/20 active:scale-95"
+            >
+              <div class="text-left">
+                <!-- <span
+                  class="block text-[10px] font-black uppercase opacity-60 leading-none"
+                  >Chuyển đến</span
+                > -->
+                <span class="block text-xs font-bold uppercase tracking-wide"
+                  >Tạo nội dung chương</span
+                >
+              </div>
+            </button>
+          </div>
+
           <div
             class="bg-white rounded-xl border border-[#dee2e6] p-8 shadow-sm space-y-8"
           >

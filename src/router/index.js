@@ -61,6 +61,12 @@ const routes = [
         path: "drones/add",
         component: () => import("../pages/admin/AddDroneView.vue"),
       },
+      {
+        path: "lesson/:id/sections",
+        name: "SectionEditor",
+        component: () => import("../pages/admin/SectionEditor.vue"),
+        props: true, // Cho phép nhận id như một props
+      },
       // Ví dụ trong router/index.js
       {
         path: "drones/edit/:id",
