@@ -37,9 +37,49 @@ const isLoading = ref(false);
 //   },
 // ]);
 //  Fetch data
+// Tìm Chapter hiện tại dựa trên activeLessonId
+const currentChapter = computed(() => {
+  if (!activeLessonId.value || courseStructure.value.length === 0) return null;
 
+  // Tìm trong danh sách chapters xem thằng nào chứa cái lessonId đang active
+  return courseStructure.value.find((chapter) =>
+    chapter.lessons?.some((lesson) => lesson.id === activeLessonId.value),
+  );
+});
 //  Download tài liệu
+const videoEmbedUrl = computed(() => {
+  const url = currentLesson.value?.videoUrl;
+  if (!url) return "";
 
+  // 1. Nếu đã là link embed chuẩn thì trả về luôn
+  if (url.includes("/embed/")) return url;
+
+  // 2. Regex thần thánh: Bắt được cả youtube.com/watch?v=... và youtu.be/...
+  const regExp =
+    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+
+  // Nếu tìm thấy ID video (thường có 11 ký tự)
+  if (match && match[2].length === 11) {
+    const videoId = match[2];
+    // Trả về link embed sạch sẽ, bỏ qua các tham số rác như ?si=...
+    return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`;
+  }
+
+  // 3. Nếu không phải link YouTube (ví dụ video cục bộ /uploads/...)
+  // thì trả về link gốc kèm domain backend
+  if (url.startsWith("/")) {
+    return `http://localhost:5000${url}`;
+  }
+
+  return url;
+});
+
+// Thêm một computed để kiểm tra xem có phải video YouTube không
+const isYoutube = computed(() => {
+  const url = currentLesson.value?.videoUrl || "";
+  return url.includes("youtube.com") || url.includes("youtu.be");
+});
 const downloadResource = (relativeUrl) => {
   if (!relativeUrl) return;
 
@@ -52,35 +92,6 @@ const downloadResource = (relativeUrl) => {
   // Mở trong tab mới
   window.open(fullUrl, "_blank");
 };
-
-// 4. Nội dung chi tiết bài học (Dễ dàng mở rộng/API hóa)
-const lessonDetails = ref([
-  {
-    id: "01",
-    title: "Tổng quan về Khí động học Drone",
-    paragraphs: [
-      "Tìm hiểu về các lực tác động lên thiết bị bay không người lái trong quá trình vận hành. Khí động học đóng vai trò then chốt trong việc tối ưu hóa hiệu suất bay và tiết kiệm năng lượng pin. Trong phần này, chúng ta sẽ phân tích sâu về các dòng khí bao quanh cánh quạt và thân máy.",
-      "Cơ chế tạo lực nâng (lift) và lực cản (drag) được giải thích thông qua các mô hình mô phỏng thực tế. Việc hiểu rõ các thông số này giúp phi công điều khiển thiết bị ổn định hơn trong các điều kiện môi trường khắc nghiệt như gió mạnh hoặc nhiễu động không khí cục bộ.",
-    ],
-  },
-  {
-    id: "02",
-    title: "Kỹ thuật Điều hướng Cột nhiệt (Thermals)",
-    paragraphs: [
-      "Cột nhiệt là những luồng không khí nóng bốc lên từ mặt đất, thường xuất hiện trên các bề mặt hấp thụ nhiệt tốt như đường nhựa, mái nhà tôn hoặc cánh đồng khô hạn. Phi công nâng cao có thể tận dụng các cột nhiệt này để duy trì độ cao mà không cần sử dụng nhiều năng lượng từ động cơ.",
-      "Để xác định cột nhiệt, phi công cần quan sát các dấu hiệu thị giác như sự di chuyển của chim săn mồi, sự hình thành của mây tích (cumulus) hoặc sử dụng cảm biến áp suất (barometer) có độ nhạy cao. Bài học này sẽ hướng dẫn quy trình xoay vòng (circling) để 'bám' vào tâm của cột nhiệt hiệu quả nhất.",
-    ],
-    note: "Lưu ý: Luôn duy trì quan sát đường chân trời và các vật cản xung quanh khi đang tập trung tìm kiếm luồng khí bốc.",
-  },
-  {
-    id: "03",
-    title: "Quản lý Năng lượng và Tối ưu hóa Pin",
-    paragraphs: [
-      "Một trong những kỹ năng quan trọng nhất của phi công drone chuyên nghiệp là khả năng quản lý dung lượng pin còn lại. Việc sử dụng cột nhiệt kết hợp với chế độ bay lượn (gliding) có thể tăng thời gian hoạt động lên tới 25-30% so với bay thông thường.",
-      "Chúng ta sẽ nghiên cứu biểu đồ tiêu thụ điện năng dựa trên vận tốc gió và trọng lượng tải trọng. Các bài tập thực hành sẽ giúp bạn rèn luyện phản xạ tính toán khoảng cách an toàn để quay về điểm xuất phát (RTH - Return to Home) dựa trên các biến số môi trường thay đổi liên tục.",
-    ],
-  },
-]);
 
 // 1. API Fetch dữ liệu Aero-X
 const fetchAllData = async () => {
@@ -213,10 +224,11 @@ const handleNextLesson = async ({ currentId, nextId }) => {
           <h2
             class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 font-mono"
           >
-            Mục tiêu nhiệm vụ // {{ currentLesson.title }}
+            Mục tiêu nhiệm vụ //
+            {{ currentChapter?.title || "Chương không xác định" }}
           </h2>
           <h1 class="text-3xl font-bold text-slate-900">
-            Khóa học SkyLink Drone
+            {{ currentLesson.title }}
           </h1>
         </div>
 
@@ -225,13 +237,19 @@ const handleNextLesson = async ({ currentId, nextId }) => {
         >
           <!-- Gán URL video -->
           <iframe
-            v-if="
-              currentLesson.videoUrl &&
-              currentLesson.videoUrl.includes('youtube')
-            "
-            :src="currentLesson.videoUrl.replace('watch?v=', 'embed/')"
+            v-if="isYoutube"
+            :src="videoEmbedUrl"
             class="w-full h-full"
             frameborder="0"
+            allow="
+              accelerometer;
+              autoplay;
+              clipboard-write;
+              encrypted-media;
+              gyroscope;
+              picture-in-picture;
+              web-share;
+            "
             allowfullscreen
           ></iframe>
 
@@ -264,12 +282,12 @@ const handleNextLesson = async ({ currentId, nextId }) => {
               >
                 <i class="ph ph-target"></i> Tín hiệu: Ổn định
               </div>
-              <div
+              <!-- <div
                 class="text-right text-xs text-white/80 font-mono drop-shadow-md"
               >
                 <div>LAT: 45.5231 N</div>
                 <div>LON: 122.6765 W</div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
@@ -283,7 +301,7 @@ const handleNextLesson = async ({ currentId, nextId }) => {
             </h3>
             <div
               class="text-slate-600 text-sm leading-relaxed mb-6 prose max-w-none"
-              v-html="currentLesson.content"
+              v-html="currentLesson.description"
             ></div>
             <div
               class="flex items-center gap-4 text-xs font-semibold text-slate-700"
