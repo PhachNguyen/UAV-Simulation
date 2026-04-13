@@ -104,8 +104,8 @@ const handleUpdateLesson = async () => {
   if (!currentLesson.value) return;
   try {
     isLoading.value = true;
-    await api.put(
-      `/courses/lessons/${currentLesson.value.id}`,
+    await api.post(
+      `/courses/lessons/${currentLesson.value.id}/save-content`,
       currentLesson.value,
     );
     alert("Đã lưu bài học thành công!");

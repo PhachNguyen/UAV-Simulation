@@ -1,196 +1,165 @@
 <script setup>
-import { ref, computed } from "vue";
-import {
-  Menu,
-  ChevronDown,
-  Check,
-  Play,
-  Lock,
-  LayoutList,
-} from "lucide-vue-next";
-import gsap from "gsap";
+import { computed } from "vue";
 
 const props = defineProps({
-  courseData: { type: Array, default: () => [] },
-  activeId: [String, Number],
-  completedIds: { type: Array, default: () => [] },
+  // Cấu trúc khóa học (Chapters -> Lessons) lấy từ BE
+  structure: { type: Array, default: () => [] },
+  // ID bài học đang mở
+  activeLessonId: { type: [Number, String], default: null },
+  // Mảng ID các bài đã hoàn thành (Ví dụ: [1, 2, 5])
+  completedLessons: { type: Array, default: () => [] },
 });
 
-const emit = defineEmits(["select"]);
-const isCollapsed = ref(false);
+const emit = defineEmits(["select-lesson"]);
 
-// Tối ưu: Chuyển sang Set để kiểm tra bài đã hoàn thành với tốc độ O(1)
-const completedSet = computed(() => new Set(props.completedIds.map(Number)));
+// 1. Tự động tính % tiến độ
+const progress = computed(() => {
+  const allLessons = props.structure.flatMap((ch) => ch.lessons || []);
+  if (allLessons.length === 0) return 0;
 
-/**
- * Logic mở khóa bài học
- */
-const getLessonStatus = (sIdx, lIdx) => {
-  const currentSection = props.courseData?.[sIdx];
-  if (!currentSection || !currentSection.lessons) {
-    return { isCompleted: false, isUnlocked: false };
-  }
+  const completedCount = allLessons.filter((l) =>
+    props.completedLessons.includes(l.id),
+  ).length;
+  return Math.round((completedCount / allLessons.length) * 100);
+});
 
-  const lesson = currentSection.lessons[lIdx];
-  if (!lesson) return { isCompleted: false, isUnlocked: false };
+// 2. Tìm tên Chương hiện tại dựa trên bài đang học
+const currentModule = computed(() => {
+  const chapter = props.structure.find((ch) =>
+    ch.lessons?.some((l) => l.id === props.activeLessonId),
+  );
+  return chapter ? chapter.title : "Chưa chọn bài";
+});
 
-  const idNum = Number(lesson.id);
-  const isCompleted = completedSet.value.has(idNum);
-
-  // 1. Đã học xong thì luôn mở
-  if (isCompleted) return { isCompleted, isUnlocked: true };
-
-  // 2. Bài đầu tiên của toàn bộ khóa học luôn mở
-  if (sIdx === 0 && lIdx === 0) return { isCompleted, isUnlocked: true };
-
-  // 3. Kiểm tra bài trước đó
-  let prevLesson = null;
-  if (lIdx > 0) {
-    prevLesson = currentSection.lessons[lIdx - 1];
-  } else {
-    const prevSection = props.courseData?.[sIdx - 1];
-    if (prevSection?.lessons?.length > 0) {
-      prevLesson = prevSection.lessons[prevSection.lessons.length - 1];
-    }
-  }
-
-  const isUnlocked =
-    !prevLesson || completedSet.value.has(Number(prevLesson.id));
-  return { isCompleted, isUnlocked };
+// 3. Helper kiểm tra trạng thái bài học
+const getLessonStatus = (lessonId) => {
+  if (lessonId === props.activeLessonId) return "active";
+  if (props.completedLessons.includes(lessonId)) return "completed";
+  return "locked";
 };
 
-const isUnlocked = (sIdx, lIdx) => getLessonStatus(sIdx, lIdx).isUnlocked;
-
-const handleSelect = (lesson, sIdx, lIdx) => {
-  if (isUnlocked(sIdx, lIdx)) {
-    emit("select", lesson);
-  }
+const handleLessonClick = (lessonId) => {
+  emit("select-lesson", lessonId);
 };
 </script>
+
 <template>
-  <aside
-    :class="[
-      'bg-white  transition-all duration-300 overflow-y-auto border-r border-slate-200',
-      isCollapsed ? 'w-20' : 'w-80',
-    ]"
-  >
-    <!-- Title -->
-    <div class="p-5 flex items-center justify-between overflow-auto">
-      <h2 v-show="!isCollapsed" class="text-xs font-black uppercase">
-        Nội dung bài giảng
-      </h2>
-      <button
-        @click="isCollapsed = !isCollapsed"
-        class="p-2 hover:bg-slate-100 rounded-xl"
-      >
-        <Menu class="w-5 h-5" />
-      </button>
+  <aside class="w-full lg:w-[400px] flex flex-col gap-6">
+    <div
+      class="bg-white rounded-lg p-5 border border-slate-200 flex items-center justify-between shadow-sm"
+    >
+      <div class="flex-1 mr-6">
+        <div class="flex justify-between items-end mb-2">
+          <span class="text-xs font-bold text-slate-700 uppercase"
+            >Tiến độ khóa học</span
+          >
+          <span class="text-xs font-bold text-slate-900">{{ progress }}%</span>
+        </div>
+        <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-[#0b1f3f] transition-all duration-700 ease-out"
+            :style="{ width: progress + '%' }"
+          ></div>
+        </div>
+      </div>
+      <div class="text-right text-[10px]">
+        <div class="text-slate-500 uppercase mb-1 font-semibold">
+          Mô-đun hiện tại:
+        </div>
+        <div class="font-bold text-slate-800 line-clamp-1">
+          {{ currentModule }}
+        </div>
+      </div>
     </div>
 
-    <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto p-3 space-y-4">
-      <div v-for="(section, sIdx) in courseData" :key="section.id">
-        <button
-          v-show="!isCollapsed"
-          @click="section.isOpen = !section.isOpen"
-          class="cursor-pointer w-full flex items-center justify-between px-3 py-2 mb-2 rounded-xl hover:bg-slate-50 transition-colors group"
-        >
-          <div class="flex items-center gap-2.5">
-            <div
-              class="p-1.5 rounded-lg bg-slate-100 group-hover:bg-teal-50 group-hover:text-teal-600 text-slate-500 transition-colors"
-            >
-              <LayoutList class="w-3.5 h-3.5" />
-            </div>
+    <div
+      class="bg-white border border-slate-200 rounded-lg flex flex-col overflow-hidden sticky top-6 shadow-md"
+    >
+      <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">
+          Chương trình đào tạo SkyLink
+        </h3>
+      </div>
 
-            <span
-              class="text-[11px] font-black text-slate-600 uppercase tracking-wider group-hover:text-slate-900 transition-colors"
+      <div class="overflow-y-auto max-h-[calc(100vh-300px)] sidebar-scroll">
+        <div v-for="chapter in structure" :key="chapter.id">
+          <div
+            class="bg-slate-50 px-5 py-3 border-y border-slate-100 sticky top-0 z-10"
+          >
+            <h4
+              class="text-[10px] font-bold text-slate-500 uppercase tracking-widest"
             >
-              {{ section.title }}
-            </span>
+              {{ chapter.title }}
+            </h4>
           </div>
 
-          <ChevronDown
-            :class="[
-              'w-3.5 h-3.5 text-slate-400 transition-transform duration-300',
-              section.isOpen ? 'rotate-180 text-teal-600' : '',
-            ]"
-          />
-        </button>
-        <!-- Truong hợp colláped -->
-        <div v-show="section.isOpen || isCollapsed" class="space-y-1">
-          <!-- <LayoutList class="w-3.5 h-3.5" /> -->
-          <div
-            v-for="(lesson, lIdx) in section.lessons"
-            :key="lesson.id"
-            @click="handleSelect(lesson, sIdx, lIdx)"
-            :class="[
-              'group flex items-center gap-3 p-3 rounded-2xl border-2 transition-all',
-              activeId === lesson.id
-                ? 'bg-teal-50 border-teal-200'
-                : 'border-transparent hover:bg-slate-50',
-              !isUnlocked(sIdx, lIdx)
-                ? 'opacity-50 cursor-not-allowed'
-                : 'cursor-pointer',
-            ]"
-          >
+          <div class="divide-y divide-slate-50">
             <div
+              v-for="lesson in chapter.lessons"
+              :key="lesson.id"
+              @click="handleLessonClick(lesson.id)"
               :class="[
-                'w-8 h-8 rounded-xl flex items-center justify-center',
-                completedSet.has(Number(lesson.id))
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-slate-100 text-slate-400',
+                'p-4 pl-12 relative flex flex-col gap-1 transition-all group cursor-pointer',
+                getLessonStatus(lesson.id) === 'active'
+                  ? 'bg-blue-50 border-l-4 border-blue-900'
+                  : 'hover:bg-slate-50',
               ]"
             >
-              <Check
-                v-if="completedSet.has(Number(lesson.id))"
-                class="w-4 h-4"
-              />
-              <Lock v-else-if="!isUnlocked(sIdx, lIdx)" class="w-3 h-3" />
-              <Play v-else class="w-3 h-3 fill-current" />
-            </div>
+              <i
+                v-if="getLessonStatus(lesson.id) === 'completed'"
+                class="ph-fill ph-check-circle text-teal-500 absolute left-5 top-1/2 -translate-y-1/2 text-xl"
+              ></i>
 
-            <div v-show="!isCollapsed" class="flex-1 min-w-0">
-              <h4
+              <i
+                v-else-if="getLessonStatus(lesson.id) === 'active'"
+                class="ph-fill ph-play-circle text-blue-900 absolute left-[17px] top-1/2 -translate-y-1/2 text-xl animate-pulse"
+              ></i>
+
+              <i
+                v-else
+                class="ph-fill ph-lock-key text-slate-300 absolute left-5 top-1/2 -translate-y-1/2 text-lg"
+              ></i>
+
+              <div
                 :class="[
-                  'text-sm font-bold truncate',
-                  activeId === lesson.id ? 'text-slate-900' : 'text-slate-600',
+                  'text-sm font-semibold',
+                  getLessonStatus(lesson.id) === 'active'
+                    ? 'text-blue-900'
+                    : 'text-slate-700',
                 ]"
               >
                 {{ lesson.title }}
-              </h4>
-              <!-- Hastag -->
-              <div class="flex flex-wrap gap-1 mt-1">
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono uppercase">
+                {{ lesson.duration || "10:00" }}
                 <span
-                  class="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[8px] font-black uppercase rounder-xl border border-slate-300"
+                  v-if="getLessonStatus(lesson.id) === 'active'"
+                  class="text-blue-600 font-bold"
+                  >• Đang học</span
                 >
-                  # Lý thuyết
-                </span>
-
-                <span
-                  v-if="lesson.model3DPath"
-                  class="px-1.5 py-0.5 rounded-md bg-teal-50 text-teal-600 text-[8px] font-black uppercase rounder-xl border border-slate-300"
-                >
-                  # Mô phỏng 3D
-                </span>
-
-                <span
-                  v-if="isUnlocked(sIdx, lIdx)"
-                  class="px-1.5 py-0.5 text-[8px] font-bold text-slate-400 uppercase"
-                >
-                  {{ lesson.duration || gsap.utils.random(5, 50, 1) }}
-                  phút
-                </span>
-                <span
-                  v-else
-                  class="px-1.5 py-0.5 text-[8px] font-bold text-rose-400 uppercase"
-                >
-                  Đang khóa
-                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </nav>
+
+      <div class="p-5 bg-slate-50 border-t border-slate-100">
+        <button
+          class="w-full bg-[#0b1f3f] hover:bg-slate-800 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2"
+        >
+          Bài giảng tiếp theo <i class="ph-bold ph-arrow-right"></i>
+        </button>
+      </div>
+    </div>
   </aside>
 </template>
+
+<style scoped>
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+</style>

@@ -38,6 +38,10 @@ const routes = [
   },
   {
     path: "/test",
+    component: () => import("../pages/DetailCourse.vue"),
+  },
+  {
+    path: "/test1",
     component: () => import("../pages/Test.vue"),
   },
   // {
