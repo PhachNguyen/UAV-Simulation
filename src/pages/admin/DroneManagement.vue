@@ -1,61 +1,74 @@
 <template>
-  <div class="space-y-6">
+  <div class="space-y-8 min-h-screen bg-[#f8fafc] p-2 md:p-6 rounded-3xl">
     <div
-      class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+      class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200/60 pb-6"
     >
       <div>
-        <h1 class="text-2xl font-black text-slate-900 uppercase tracking-tight">
+        <h1
+          class="text-3xl text-slate-900 uppercase tracking-tighter flex items-center gap-3"
+        >
           Quản lý sản phẩm
         </h1>
-        <p class="text-sm text-slate-500">
-          Tổng cộng {{ drones.length }} thiết bị đang trong hệ thống
+        <p class="text-sm font-medium text-slate-500 mt-2">
+          Theo dõi và cấu hình
+          <span class="text-slate-900 font-bold">{{ totalItems }}</span> UAV
+          phục vụ hệ thống bài giảng.
         </p>
       </div>
       <button
         @click="$router.push('/admin/drones/add')"
-        class="cursor-pointer flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-teal-400 px-6 py-2.5 rounded-xl font-black transition-all shadow-xl shadow-slate-900/10 active:scale-95 border border-slate-800"
+        class="group flex items-center gap-3 bg-slate-900 hover:bg-blue-600 text-white px-6 py-3.5 rounded-xl transition-all shadow-xl shadow-slate-900/10 active:scale-95"
       >
-        <Plus :size="20" class="text-white" />
-        <span class="tracking-tight text-white">THÊM UAV MỚI</span>
+        <Plus :size="20" class="group-hover:rotate-90 transition-transform" />
+        <span class="tracking-widest text-[11px] uppercase">Thêm UAV mới</span>
       </button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
       <div
         v-for="stat in quickStats"
         :key="stat.label"
-        class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"
+        class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
       >
+        <div
+          class="absolute -right-4 -top-4 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity"
+        >
+          <component :is="stat.icon" :size="100" />
+        </div>
         <p
-          class="text-[10px] font-black text-slate-400 uppercase tracking-widest"
+          class="text-[14px] font-bold text-slate-400 uppercase tracking-widest mb-3"
         >
           {{ stat.label }}
         </p>
-        <div class="flex items-end justify-between mt-2">
-          <h3 class="text-2xl font-black text-slate-900">{{ stat.value }}</h3>
-          <component :is="stat.icon" :class="stat.color" :size="24" />
+        <div class="flex items-center justify-between relative z-10">
+          <h3 class="text-3xl text-slate-900 tracking-tighter">
+            {{ stat.value }}
+          </h3>
+          <div :class="`p-2.5 rounded-xl bg-opacity-10 ${stat.bgColor}`">
+            <component :is="stat.icon" :class="stat.color" :size="20" />
+          </div>
         </div>
       </div>
     </div>
 
     <div
-      class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap gap-4 items-center"
+      class="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-wrap gap-3 items-center"
     >
-      <div class="relative flex-1 min-w-[200px]">
+      <div class="relative flex-1 min-w-[280px]">
         <Search
-          class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
           :size="18"
         />
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Tìm theo tên hoặc mã hiệu..."
-          class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-teal-500/20 outline-none text-sm"
+          placeholder="Truy vấn mã hiệu UAV, chủng loại..."
+          class="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none text-sm font-medium transition-all"
         />
       </div>
       <select
         v-model="statusFilter"
-        class="bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl text-sm font-bold text-slate-600 outline-none"
+        class="bg-slate-50 border-none px-6 py-3 rounded-xl text-[12px] font-bold text-slate-600 outline-none cursor-pointer hover:bg-slate-100 transition-colors"
       >
         <option value="All">Tất cả trạng thái</option>
         <option value="Active">Đang hoạt động</option>
@@ -65,189 +78,240 @@
     </div>
 
     <div
-      class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm"
+      class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm"
     >
-      <table class="w-full text-left border-collapse">
-        <thead class="bg-slate-50 border-b border-slate-100">
-          <tr>
-            <th class="p-4 text-[11px] font-black text-slate-400 uppercase">
-              Thiết bị
-            </th>
-            <th class="p-4 text-[11px] font-black text-slate-400 uppercase">
-              Trạng thái
-            </th>
-            <th class="p-4 text-[11px] font-black text-slate-400 uppercase">
-              Pin
-            </th>
-            <th class="p-4 text-[11px] font-black text-slate-400 uppercase">
-              Firmware
-            </th>
-            <th class="p-4 text-[11px] font-black text-slate-400 uppercase">
-              Vị trí cuối
-            </th>
-            <th
-              class="p-4 text-[11px] font-black text-slate-400 uppercase text-right"
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-100">
+              <th
+                class="p-5 text-[10px] text-slate-400 uppercase tracking-widest font-black"
+              >
+                Mô hình UAV
+              </th>
+              <th
+                class="p-5 text-[10px] text-slate-400 uppercase tracking-widest font-black"
+              >
+                Phân loại
+              </th>
+              <th
+                class="p-5 text-[10px] text-slate-400 uppercase tracking-widest font-black"
+              >
+                Tích hợp mô phỏng
+              </th>
+              <th
+                class="p-5 text-[10px] text-slate-400 uppercase tracking-widest font-black"
+              >
+                Cảm biến thực hành
+              </th>
+              <th
+                class="p-5 text-[10px] text-slate-400 uppercase tracking-widest font-black"
+              >
+                Khả năng bay
+              </th>
+              <th
+                class="p-5 text-[10px] text-slate-400 uppercase tracking-widest font-black"
+              >
+                Phạm vi hoạt động
+              </th>
+              <th
+                class="p-5 text-[10px] text-slate-400 uppercase tracking-widest font-black text-right"
+              >
+                Thiết lập
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            <tr
+              v-for="drone in filteredDrones"
+              :key="drone.id"
+              class="hover:bg-slate-50/80 transition-all group"
             >
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-50">
-          <tr
-            v-for="drone in filteredDrones"
-            :key="drone.id"
-            class="hover:bg-slate-50/50 transition-colors"
-          >
-            <td class="p-4">
-              <div class="flex items-center gap-3">
+              <td class="p-5">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="w-14 h-14 bg-white rounded-xl overflow-hidden p-1.5 border border-slate-200 shadow-sm group-hover:border-blue-400 transition-colors shrink-0"
+                  >
+                    <img
+                      v-if="drone.image"
+                      :src="`http://localhost:5000${drone.image}`"
+                      class="w-full h-full object-contain"
+                    />
+                    <Box v-else class="w-full h-full p-2 text-slate-300" />
+                  </div>
+                  <div>
+                    <p class="text-sm font-black text-slate-900 tracking-tight">
+                      {{ drone.name }}
+                    </p>
+                    <div
+                      class="flex items-center gap-1 mt-1 text-[10px] text-slate-500 font-medium font-mono"
+                    >
+                      <Cpu :size="12" /> v{{ drone.firmware || "1.0.0" }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <td class="p-5">
+                <div class="flex flex-col items-start gap-2">
+                  <span
+                    class="text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200"
+                  >
+                    {{ drone.category || "Standard UAV" }}
+                  </span>
+                  <span
+                    :class="[
+                      'text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 px-2 py-0.5 rounded-full',
+                      getStatusClass(drone.status),
+                    ]"
+                  >
+                    <span
+                      class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"
+                    ></span>
+                    {{ drone.status || "Active" }}
+                  </span>
+                </div>
+              </td>
+
+              <td class="p-5">
                 <div
-                  class="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center"
+                  v-if="drone.model3d"
+                  class="flex items-center gap-2 text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-100 w-fit"
                 >
-                  <img
-                    v-if="drone.image"
-                    :src="`http://localhost:5000${drone.image}`"
-                    class="w-full h-full object-cover"
-                  />
-                  <Box v-else class="text-slate-400" />
+                  <Box :size="14" />
+                  <span class="text-[10px] font-black uppercase tracking-widest"
+                    >Có mô hình 3D</span
+                  >
                 </div>
-                <div>
-                  <p class="text-sm font-bold text-slate-900">
-                    {{ drone.name }}
-                  </p>
-                  <p class="text-[10px] text-slate-400 font-mono uppercase">
-                    {{ drone.category || "N/A" }}
-                  </p>
+                <div
+                  v-else
+                  class="flex items-center gap-2 text-slate-400 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100 w-fit"
+                >
+                  <XCircle :size="14" />
+                  <span class="text-[10px] font-bold uppercase tracking-widest"
+                    >Chưa nạp</span
+                  >
                 </div>
-              </div>
-            </td>
+              </td>
 
-            <td class="p-4">
-              <div class="flex flex-col gap-1">
-                <span class="text-xs font-bold text-slate-600">
-                  {{ drone.stats?.battery || "N/A" }}
-                </span>
-                <div class="w-12 bg-slate-100 h-1 rounded-full overflow-hidden">
-                  <div class="bg-teal-500 h-full w-[80%]"></div>
+              <td class="p-5">
+                <div class="flex flex-wrap gap-1.5 max-w-[160px]">
+                  <template v-if="drone.sensors && drone.sensors.length">
+                    <span
+                      v-for="sensor in drone.sensors.slice(0, 2)"
+                      :key="sensor"
+                      class="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2 py-1 rounded truncate max-w-[100px]"
+                    >
+                      {{ sensor }}
+                    </span>
+                    <span
+                      v-if="drone.sensors.length > 2"
+                      class="text-[9px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded"
+                    >
+                      +{{ drone.sensors.length - 2 }}
+                    </span>
+                  </template>
+                  <span v-else class="text-[10px] text-slate-400 italic"
+                    >Không có dữ liệu</span
+                  >
                 </div>
-              </div>
-            </td>
+              </td>
 
-            <td class="p-4 text-right">
-              <div class="flex justify-end gap-2">
-                <button
-                  @click="$router.push(`/admin/drones/edit/${drone.id}`)"
-                  class="p-2 hover:bg-teal-50 text-slate-400 hover:text-teal-600 rounded-lg transition-all"
+              <td class="p-5">
+                <div
+                  class="flex items-center gap-2 text-[11px] font-medium text-slate-600"
+                  title="Thời gian bay"
                 >
-                  <Settings :size="18" />
-                </button>
-                <button
-                  @click="handleDelete(drone.id)"
-                  class="p-2 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-all"
+                  <Clock :size="14" class="text-slate-400" />
+                  <span class="font-bold text-slate-800">{{
+                    drone.flight_time || 0
+                  }}</span>
+                  phút
+                </div>
+              </td>
+
+              <td class="p-5">
+                <div
+                  class="flex items-center gap-2 text-[11px] font-medium text-slate-600"
+                  title="Phạm vi hoạt động"
                 >
-                  <Trash2 :size="18" />
-                </button>
-              </div>
-            </td>
-            <td class="p-4 text-xs font-bold text-slate-500">
-              {{ drone.firmware }}
-            </td>
-            <td class="p-4 text-xs text-slate-500">{{ drone.lastLocation }}</td>
-            <td class="p-4 text-right">
-              <div class="flex justify-end gap-2">
-                <button
-                  class="p-2 hover:bg-teal-50 text-slate-400 hover:text-teal-600 rounded-lg transition-all"
-                  title="Cấu hình"
+                  <Navigation :size="14" class="text-slate-400" />
+                  <span class="font-bold text-slate-800">{{
+                    drone.range || 0
+                  }}</span>
+                  km
+                </div>
+              </td>
+
+              <td class="p-5 text-right">
+                <div
+                  class="flex justify-end gap-1 opacity-50 group-hover:opacity-100 transition-opacity"
                 >
-                  <Settings :size="18" />
-                </button>
-                <button
-                  class="p-2 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-lg transition-all"
-                  title="Xem lịch sử bay"
-                >
-                  <History :size="18" />
-                </button>
-                <button
-                  @click="handleDelete(drone.id)"
-                  class="cursor-pointer p-2 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-all"
-                  title="Xóa"
-                >
-                  <Trash2 :size="18" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  <button
+                    @click="$router.push(`/admin/drones/edit/${drone.id}`)"
+                    class="p-2 hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-lg transition-all"
+                    title="Cấu hình hệ thống"
+                  >
+                    <Settings :size="18" />
+                  </button>
+                  <button
+                    class="p-2 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-lg transition-all"
+                    title="Xem chi tiết bài giảng"
+                  >
+                    <BookOpen :size="18" />
+                  </button>
+                  <button
+                    @click="handleDelete(drone.id)"
+                    class="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-all"
+                    title="Xóa thiết bị"
+                  >
+                    <Trash2 :size="18" />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div
-        class="bg-white px-4 py-3 flex items-center justify-between border-t border-slate-100 sm:px-6 rounded-b-2xl"
+        class="bg-white px-6 py-4 flex flex-col sm:flex-row items-center justify-between border-t border-slate-100 gap-4"
       >
-        <div class="flex-1 flex justify-between sm:hidden">
+        <p
+          class="text-[11px] font-bold text-slate-400 uppercase tracking-widest"
+        >
+          Hiển thị trang {{ currentPage }} / {{ totalPages }}
+        </p>
+        <div class="flex gap-1.5">
           <button
             @click="changePage(currentPage - 1)"
             :disabled="currentPage === 1"
-            class="relative inline-flex items-center px-4 py-2 border border-slate-200 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+            class="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            Trước
+            <ChevronLeft :size="18" />
           </button>
+
+          <button
+            v-for="page in totalPages"
+            :key="page"
+            @click="changePage(page)"
+            :class="[
+              currentPage === page
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 border-blue-600'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200',
+              'w-9 h-9 flex items-center justify-center rounded-lg border text-xs  transition-all cursor-pointer',
+            ]"
+          >
+            {{ page }}
+          </button>
+
           <button
             @click="changePage(currentPage + 1)"
             :disabled="currentPage === totalPages"
-            class="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-200 text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50"
+            class="p-2 rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
-            Sau
+            <ChevronRight :size="18" />
           </button>
-        </div>
-
-        <div
-          class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
-        >
-          <div>
-            <p class="text-sm text-slate-500">
-              Tổng:
-              <!-- <span class="font-bold text-slate-900">{{ currentPage }}</span> /
-              <span class="font-bold text-slate-900">{{ totalPages }}</span> -->
-              <span class="text-slate-500 text-sm"
-                >{{ totalItems }} thiết bị</span
-              >
-            </p>
-          </div>
-
-          <div>
-            <nav
-              class="relative z-0 inline-flex rounded-xl shadow-sm -space-x-px"
-              aria-label="Pagination"
-            >
-              <button
-                @click="changePage(currentPage - 1)"
-                :disabled="currentPage === 1"
-                class="cursor-pointer relative inline-flex items-center px-2 py-2 rounded-l-xl border border-slate-200 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50"
-              >
-                <ChevronLeft :size="18" />
-              </button>
-
-              <button
-                v-for="page in totalPages"
-                :key="page"
-                @click="changePage(page)"
-                :class="[
-                  currentPage === page
-                    ? 'z-10 bg-slate-900 border-slate-900 text-white '
-                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50',
-                  'relative inline-flex items-center px-4 py-2 border text-sm font-black transition-colors cursor-pointer',
-                ]"
-              >
-                {{ page }}
-              </button>
-
-              <button
-                @click="changePage(currentPage + 1)"
-                :disabled="currentPage === totalPages"
-                class="relative inline-flex items-center px-2 py-2 rounded-r-xl border border-slate-200 bg-white text-sm font-medium text-slate-500 hover:bg-slate-50 disabled:opacity-50"
-              >
-                <ChevronRight :size="18" />
-              </button>
-            </nav>
-          </div>
         </div>
       </div>
     </div>
@@ -256,7 +320,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import api from "@/utils/apis/axios"; // Đường dẫn tới file axios.js của bạn
+import api from "@/utils/apis/axios";
 import { useToast } from "vue-toastification";
 import {
   Plus,
@@ -269,121 +333,117 @@ import {
   AlertTriangle,
   XCircle,
   BatteryCharging,
+  ChevronLeft,
+  ChevronRight,
+  Navigation,
 } from "lucide-vue-next";
 
 const toast = useToast();
 const drones = ref([]);
 const totalPages = ref(1);
 const currentPage = ref(1);
-const itemsPerPage = ref(2); // Số lượng UAV trên mỗi trang
+const itemsPerPage = ref(10);
 const totalItems = ref(0);
 const loading = ref(true);
 const searchQuery = ref("");
 const statusFilter = ref("All");
 
-// 1. Hàm lấy danh sách Drone từ Backend
+// Hàm fetch danh sách
 const fetchDrones = async (page = 1) => {
   loading.value = true;
   try {
     const response = await api.get(`/drones`, {
-      params: {
-        page: page,
-        limit: itemsPerPage.value,
-      },
+      params: { page, limit: itemsPerPage.value },
     });
-    // Lưu dữ liệu từ cấu trúc mới của BE
     drones.value = response.data.drones;
     totalPages.value = response.data.totalPages;
     currentPage.value = response.data.currentPage;
     totalItems.value = response.data.totalItems;
   } catch (error) {
-    toast.error("Không thể tải danh sách");
+    toast.error("Không thể tải danh sách thiết bị");
   } finally {
     loading.value = false;
   }
 };
 
-// Hàm chuyển trang
 const changePage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
     fetchDrones(page);
-    // Cuộn lên đầu bảng cho mượt
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 };
 
-// 2. Hàm xóa Drone
 const handleDelete = async (id) => {
-  if (!confirm("Bạn có chắc chắn muốn xóa thiết bị này?")) return;
-
+  if (!confirm("Bạn có chắc chắn muốn xóa UAV này khỏi hệ thống?")) return;
   try {
     await api.delete(`/drones/${id}`);
     toast.success("Đã xóa thiết bị thành công");
-    // Cập nhật lại danh sách tại chỗ để không phải load lại trang
     drones.value = drones.value.filter((d) => d.id !== id);
+    totalItems.value--;
   } catch (error) {
-    toast.error("Lỗi khi xóa thiết bị");
+    toast.error("Lỗi radar khi xóa thiết bị");
   }
 };
 
-// 3. Tính toán thống kê nhanh từ dữ liệu thực tế
+// Cấu hình Quick Stats để tự động lấy dữ liệu và hiển thị đẹp
 const quickStats = computed(() => [
   {
-    label: "Tổng thiết bị",
-    value: drones.value.length,
+    label: "Mạng lưới UAV",
+    value: totalItems.value,
     icon: Box,
-    color: "text-blue-500",
+    color: "text-blue-600",
+    bgColor: "bg-white",
   },
   {
-    label: "Đang hoạt động",
+    label: "Sẵn sàng hoạt động",
     value: drones.value.filter((d) => d.status === "active" || !d.status)
-      .length, // Mặc định active
+      .length,
     icon: CheckCircle2,
-    color: "text-teal-500",
+    color: "text-emerald-500",
+    bgColor: "bg-white",
   },
   {
-    label: "Hệ thống 3D",
-    value: drones.value.filter((d) => d.model3d).length,
-    icon: Settings,
-    color: "text-purple-500",
+    label: "Bảo trì định kỳ",
+    value: drones.value.filter((d) => d.status === "maintenance").length,
+    icon: AlertTriangle,
+    color: "text-amber-500",
+    bgColor: "bg-white",
   },
   {
-    label: "Lỗi/Ngoại tuyến",
+    label: "Mất kết nối",
     value: drones.value.filter((d) => d.status === "offline").length,
     icon: XCircle,
-    color: "text-red-500",
+    color: "text-rose-500",
+    bgColor: "bg-white",
   },
 ]);
 
-// 4. Logic lọc và tìm kiếm
+// Lọc tìm kiếm
 const filteredDrones = computed(() => {
   return drones.value.filter((d) => {
     const matchSearch =
       d.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       (d.category &&
         d.category.toLowerCase().includes(searchQuery.value.toLowerCase()));
-
-    // Vì DB của bạn dùng status dạng 'active', 'inactive' nên cần khớp logic ở đây
     const matchStatus =
       statusFilter.value === "All" ||
-      d.status === statusFilter.value.toLowerCase();
-
+      (d.status || "active") === statusFilter.value.toLowerCase();
     return matchSearch && matchStatus;
   });
 });
 
-// Chuyển đổi màu sắc trạng thái
+// Class Badge cho trạng thái
 const getStatusClass = (status) => {
   switch (status?.toLowerCase()) {
     case "active":
     case "ready":
-      return "bg-emerald-100 text-emerald-600";
+      return "bg-emerald-50 text-emerald-600";
     case "maintenance":
-      return "bg-amber-100 text-amber-600";
+      return "bg-amber-50 text-amber-600";
     case "offline":
-      return "bg-slate-100 text-slate-400";
+      return "bg-rose-50 text-rose-600";
     default:
-      return "bg-teal-100 text-teal-600";
+      return "bg-emerald-50 text-emerald-600"; // Default là Active
   }
 };
 

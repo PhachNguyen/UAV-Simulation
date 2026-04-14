@@ -4,7 +4,7 @@
   >
     <div class="h-40 flex items-center justify-center mb-4">
       <img
-        :src="drone.image"
+        :src="`http://localhost:5000${drone.image}`"
         :alt="drone.name"
         class="max-h-full object-contain hover:scale-105 transition-transform duration-500"
       />
