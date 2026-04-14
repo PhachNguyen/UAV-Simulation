@@ -79,7 +79,7 @@ const props = defineProps({
   currentMarkerId: { type: Number, default: 1 },
   customHotspots: Array, // Nhận từ BE ở trang Detail
 });
-
+let needsRender = true;
 const emit = defineEmits(["select-hotspot", "pick-coords", "on-load"]);
 
 // --- STATE ---
@@ -141,7 +141,8 @@ const initScene = () => {
     container.value.clientWidth,
     container.value.clientHeight,
   );
-  core.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  // core.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  core.renderer.setPixelRatio(1);
   container.value.appendChild(core.renderer.domElement);
 
   core.labelRenderer = new CSS2DRenderer();
@@ -168,6 +169,9 @@ const initScene = () => {
   // 5. Controls
   core.controls = new OrbitControls(core.camera, core.renderer.domElement);
   core.controls.enableDamping = true;
+  core.controls.addEventListener("change", () => {
+    needsRender = true; // Báo hiệu cần vẽ lại khi người dùng xoay/zoom chuột
+  });
 
   loadModel();
 };
@@ -299,15 +303,21 @@ const flyToSpot = (spot, label) => {
     z: worldPos.z + 6,
     duration: 1.2,
     ease: "power3.inOut",
+    onUpdate: () => {
+      needsRender = true;
+    }, // Ép render khi camera đang bay
   });
 
   // CẬP NHẬT ĐIỂM NHÌN (target) CÙNG LÚC ĐỂ CAMERA LUÔN HƯỚNG VỀ HOTSPOT
   gsap.to(core.controls.target, {
-    x: worldPos.x, // Giữ nguyên trục X để có góc nhìn tốt hơn
-    y: worldPos.y, // Nâng cao điểm nhìn lên một chút để có góc nhìn đẹp hơn
+    x: worldPos.x,
+    y: worldPos.y,
     z: worldPos.z,
     duration: 1.2,
-    onUpdate: () => core.controls.update(),
+    onUpdate: () => {
+      core.controls.update();
+      needsRender = true; // Ép render
+    },
   });
 };
 
@@ -371,17 +381,45 @@ const createMarkerSprite = (pos, number) => {
   return sprite;
 };
 // --- CLEANUP ---
+// --- ĐÃ SỬA: Dọn dẹp cả Texture ---
 const cleanupExistingModel = () => {
   if (!core.currentModel) return;
+
+  // Xóa model khỏi scene
   core.scene.remove(core.currentModel);
+
   core.currentModel.traverse((n) => {
     if (n.isMesh) {
-      n.geometry.dispose();
-      Array.isArray(n.material)
-        ? n.material.forEach((m) => m.dispose())
-        : n.material.dispose();
+      // 1. Xóa hình học (Geometry)
+      if (n.geometry) n.geometry.dispose();
+
+      // 2. Xóa vật liệu (Material) và Textures
+      if (n.material) {
+        // Chuyển về mảng để xử lý đồng nhất (vì một mesh có thể có 1 hoặc nhiều vật liệu)
+        const materials = Array.isArray(n.material) ? n.material : [n.material];
+
+        materials.forEach((m) => {
+          if (!m) return; // Bỏ qua nếu vật liệu bị null/undefined
+
+          // Giải phóng tất cả các map (texture) một cách chính xác
+          if (m.map) m.map.dispose();
+          if (m.lightMap) m.lightMap.dispose();
+          if (m.bumpMap) m.bumpMap.dispose();
+          if (m.normalMap) m.normalMap.dispose();
+          if (m.specularMap) m.specularMap.dispose();
+          if (m.envMap) m.envMap.dispose();
+          if (m.aoMap) m.aoMap.dispose(); // Đã fix lỗi
+          if (m.emissiveMap) m.emissiveMap.dispose(); // Đã fix lỗi
+          if (m.metalnessMap) m.metalnessMap.dispose();
+          if (m.roughnessMap) m.roughnessMap.dispose();
+
+          // Xóa chính vật liệu đó
+          m.dispose();
+        });
+      }
     }
   });
+
   core.currentModel = null;
 };
 
@@ -396,13 +434,20 @@ watch(
 );
 
 // --- LIFECYCLE ---
+// 2. Thay thế hàm animate() hiện tại bằng hàm thông minh này:
 const animate = () => {
   core.animationId = requestAnimationFrame(animate);
-  core.controls?.update();
-  core.renderer?.render(core.scene, core.camera);
-  core.labelRenderer?.render(core.scene, core.camera);
-};
 
+  // controls.update() trả về true nếu nó đang có quán tính trượt (damping)
+  const isDamping = core.controls?.update();
+
+  // CHỈ RENDER khi người dùng thao tác HOẶC khi đang có quán tính trượt
+  if (needsRender || isDamping) {
+    core.renderer?.render(core.scene, core.camera);
+    core.labelRenderer?.render(core.scene, core.camera);
+    needsRender = false; // Reset lại cờ sau khi vẽ xong
+  }
+};
 const handleResize = () => {
   if (!container.value) return;
   const w = container.value.clientWidth;
@@ -420,14 +465,34 @@ onMounted(() => {
   window.addEventListener("resize", handleResize);
 });
 
+// --- ĐÃ SỬA: Giải phóng toàn bộ khi rời trang ---
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
-  cancelAnimationFrame(core.animationId);
+
+  // 1. Dừng vòng lặp animation
+  if (core.animationId) {
+    cancelAnimationFrame(core.animationId);
+  }
+
+  // 2. Dọn dẹp Model & Textures khỏi GPU
+  cleanupExistingModel();
+
+  // 3. Xóa các sự kiện chuột của Controls
+  if (core.controls) {
+    core.controls.dispose();
+  }
+
+  // 4. Hủy WebGL Renderer và ép giải phóng Context
   if (core.renderer) {
     core.renderer.dispose();
+    core.renderer.forceContextLoss(); // Ép trình duyệt nhả bộ nhớ GPU ngay lập tức
     core.renderer.domElement.remove();
   }
-  if (core.labelRenderer) core.labelRenderer.domElement.remove();
+
+  // 5. Hủy HTML Renderer
+  if (core.labelRenderer) {
+    core.labelRenderer.domElement.remove();
+  }
 });
 
 defineExpose({ flyToSpot });

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
-
+import { useRouter } from "vue-router";
+const router = useRouter();
 const props = defineProps({
   structure: { type: Array, default: () => [] },
   activeLessonId: { type: [Number, String], default: null },
@@ -8,7 +9,11 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["select-lesson", "next-lesson"]);
-
+//  Di chuyển đến trang mô phỏng lái
+const goToSimulation = () => {
+  // Thay '/simulation' bằng đường dẫn (path) thực tế của cậu trong router
+  router.push("/simulation");
+};
 // 1. Tự động tính % tiến độ (Thêm ?. để tránh lỗi nếu chapter bị null)
 const progress = computed(() => {
   if (!props.structure) return 0;
@@ -112,7 +117,7 @@ const handleLessonClick = (lessonId) => {
       </div>
       <div class="text-right text-[10px]">
         <div class="text-slate-500 uppercase mb-1 font-semibold">
-          Mô-đun hiện tại:
+          Bài giảng đang học:
         </div>
         <div class="font-bold text-slate-800 line-clamp-1">
           {{ currentModule }}
@@ -212,9 +217,18 @@ const handleLessonClick = (lessonId) => {
       <div class="p-5 bg-slate-50 border-t border-slate-100">
         <button
           @click="goToNextLesson"
-          class="w-full bg-[#0b1f3f] hover:bg-slate-800 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 active:scale-95"
+          class="cursor-pointer w-full bg-[#0b1f3f] hover:bg-slate-800 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 active:scale-95"
         >
           Bài giảng tiếp theo <i class="ph-bold ph-arrow-right"></i>
+        </button>
+        <button
+          @click="goToSimulation"
+          class="w-full mt-3 bg-blue-500 cursor-pointer hover:bg-blue-600 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 group"
+        >
+          <i
+            class="ph-bold ph-airplane-takeoff text-lg group-hover:animate-bounce"
+          ></i>
+          Huấn luyện mô phỏng lái
         </button>
       </div>
 

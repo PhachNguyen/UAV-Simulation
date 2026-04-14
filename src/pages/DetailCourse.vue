@@ -224,7 +224,7 @@ const handleNextLesson = async ({ currentId, nextId }) => {
           <h2
             class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 font-mono"
           >
-            Mục tiêu nhiệm vụ //
+            Bài giảng //
             {{ currentChapter?.title || "Chương không xác định" }}
           </h2>
           <h1 class="text-3xl font-bold text-slate-900">

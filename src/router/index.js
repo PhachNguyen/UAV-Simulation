@@ -129,15 +129,15 @@ const routes = [
     component: () => import("@/pages/Course.vue"),
   },
   {
-    path: "/blog",
+    path: "/drone/:id",
     name: "Blog",
     component: () => import("@/pages/Blog.vue"),
   },
-  {
-    path: "/drone/:id",
-    name: "droneDetail",
-    component: ProductDetail,
-  },
+  // {
+  //   path: "/drone/:id",
+  //   name: "droneDetail",
+  //   component: ProductDetail,
+  // },
   {
     path: "/no-fly-zones",
     name: "NFZ",
