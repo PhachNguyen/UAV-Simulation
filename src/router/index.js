@@ -66,6 +66,12 @@ const routes = [
         component: () => import("../pages/admin/AddDroneView.vue"),
       },
       {
+        path: "chapter/:id",
+        name: "LessonEditor",
+        component: () => import("../pages/admin/LessonEditor.vue"),
+        props: true, // Cho phép nhận id như một props
+      },
+      {
         path: "lesson/:id/sections",
         name: "SectionEditor",
         component: () => import("../pages/admin/SectionEditor.vue"),

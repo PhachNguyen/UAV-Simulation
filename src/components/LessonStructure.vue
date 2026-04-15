@@ -141,12 +141,12 @@ const toggleChapter = (chapterId) => {
           </div>
         </div>
 
-        <button
+        <!-- <button
           @click="emit('add-chapter')"
           class="w-full py-4 border-2 border-dashed border-[#dee2e6] text-slate-400 text-[10px] font-black uppercase rounded-lg hover:border-[#0b1f3f] hover:text-[#0b1f3f] transition-all flex items-center justify-center gap-2 mt-4 bg-slate-50/50"
         >
           <Plus class="w-4 h-4" /> Thêm Chương mới
-        </button>
+        </button> -->
       </div>
 
       <div

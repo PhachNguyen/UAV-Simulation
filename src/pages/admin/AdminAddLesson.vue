@@ -60,6 +60,7 @@
             />
           </div>
           <button
+            @click="openModal"
             class="bg-[#475569] hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-md"
           >
             <Plus :size="18" /> Thêm Chương Mới
@@ -141,7 +142,7 @@
             <div
               class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"
             >
-              Mục nhỏ
+              Nội dung
             </div>
           </div>
         </div>
@@ -149,15 +150,17 @@
         <div
           class="col-span-2 flex items-center gap-2 text-xs font-bold text-slate-700"
         >
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đang áp dụng
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Xuất bản
         </div>
 
         <div
           class="col-span-1 flex items-center justify-end gap-2 text-slate-400"
         >
           <button
-            @click="$router.push(`/admin/chapters/edit/${chapter.id}`)"
-            class="hover:text-blue-600 transition-colors p-2"
+            @click="
+              $router.push({ name: 'LessonEditor', params: { id: chapter.id } })
+            "
+            class="cursor-pointer hover:text-gray-600 transition-colors p-2"
           >
             <Edit3 :size="16" />
           </button>
@@ -170,6 +173,52 @@
         </div>
       </div>
     </div>
+    <BaseModal
+      v-model="isModalOpen"
+      title="Thiết lập Chương mới"
+      subtitle="Cấu trúc khung đào tạo SkyLink"
+      :icon="Layers"
+      size="md"
+    >
+      <div class="space-y-6">
+        <div class="space-y-2">
+          <label class="text-[11px] font-black uppercase text-slate-400 ml-1"
+            >Tiêu đề chương học</label
+          >
+          <input
+            v-model="chapterForm.title"
+            type="text"
+            class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 font-bold"
+          />
+        </div>
+        <div class="space-y-2">
+          <label class="text-[11px] font-black uppercase text-slate-400 ml-1"
+            >Mô tả nội dung</label
+          >
+          <textarea
+            v-model="chapterForm.description"
+            rows="4"
+            class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-blue-500 font-medium"
+          ></textarea>
+        </div>
+      </div>
+
+      <template #footer>
+        <button
+          @click="closeModal"
+          class="px-6 py-3 font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-all"
+        >
+          Hủy bỏ
+        </button>
+        <button
+          @click="handleSaveChapter"
+          :disabled="isSaving"
+          class="px-8 py-3 bg-slate-900 text-white font-black rounded-xl shadow-lg hover:bg-blue-600 transition-all uppercase text-[11px] tracking-widest disabled:opacity-50"
+        >
+          {{ isSaving ? "Đang lưu..." : "Lưu dữ liệu" }}
+        </button>
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -189,12 +238,67 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-vue-next";
+import BaseModal from "@/components/BaseModal.vue";
 
 const toast = useToast();
 const chaptersList = ref([]);
 const searchQuery = ref("");
 const isLoading = ref(true);
+// Thêm chappter
+const isModalOpen = ref(false);
+const isSaving = ref(false);
+// Chọn chương để thêm bài giảng (nếu cần)
+const activeChapter = ref(null);
+const isLoadingLessons = ref(false); // Tải bài giảng khi chọn chương
+const chapterForm = ref({
+  title: "",
+  description: "",
+  order: null, // Order sẽ do BE hoặc DB tự set mặc định (như code cũ cậu nói)
+});
+// Mở modal và reset form
+const openModal = () => {
+  chapterForm.value = {
+    title: "",
+    description: "",
+    order: chaptersList.value.length + 1,
+  };
+  isModalOpen.value = true;
+};
 
+// Đóng modal
+const closeModal = () => {
+  isModalOpen.value = false;
+};
+// API tạo chương mới
+// Hàm xử lý Lưu Chương Mới (Gọi API POST)
+const handleSaveChapter = async () => {
+  // Validation cơ bản
+  if (!chapterForm.value.title.trim()) {
+    toast.error("Vui lòng nhập tên chương!");
+    return;
+  }
+
+  try {
+    isSaving.value = true;
+
+    // Gọi API đã cấu hình trong courseRoutes.js
+    const response = await api.post("/courses", chapterForm.value);
+
+    toast.success("Đã thêm chương học mới thành công!");
+
+    // Thêm trực tiếp dữ liệu mới vào đầu mảng UI (khỏi cần gọi lại API GET)
+    // Đảm bảo cấu trúc có mảng lessons rỗng để render UI không bị lỗi
+    const newChapter = { ...response.data, lessons: [] };
+    chaptersList.value.unshift(newChapter);
+
+    closeModal();
+  } catch (error) {
+    console.error("Lỗi khi thêm chương:", error);
+    toast.error("Lỗi hệ thống khi thêm chương học.");
+  } finally {
+    isSaving.value = false;
+  }
+};
 // Fetch Dữ liệu Chương từ Backend
 const fetchChapters = async () => {
   try {
@@ -241,7 +345,7 @@ const handleDelete = async (id) => {
     )
   ) {
     try {
-      await api.delete(`/chapters/${id}`); // Sử dụng route xóa chương của cậu
+      await api.delete(`/courses/${id}`); // Sử dụng route xóa chương của cậu
       toast.success("Đã xóa chương và các nội dung liên quan!");
       chaptersList.value = chaptersList.value.filter((c) => c.id !== id);
     } catch (error) {
@@ -249,6 +353,23 @@ const handleDelete = async (id) => {
     }
   }
 };
+// Fetch lesson theo chappter
+// Hàm gọi API lấy chi tiết 1 chương (bao gồm cả lessons)
+const viewChapterDetails = async (chapterId) => {
+  try {
+    isLoadingLessons.value = true;
 
+    // Gọi API GET /courses/:id mà cậu đã viết ở Backend
+    const response = await api.get(`/courses/${chapterId}`);
+
+    // Gán dữ liệu trả về vào activeChapter để hiển thị màn hình 2
+    activeChapter.value = response.data;
+  } catch (error) {
+    console.error("Lỗi khi tải chi tiết chương:", error);
+    toast.error("Không thể tải danh sách bài giảng của chương này!");
+  } finally {
+    isLoadingLessons.value = false;
+  }
+};
 onMounted(fetchChapters);
 </script>
