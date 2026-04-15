@@ -41,7 +41,7 @@
     </div> -->
 
     <Transition name="slide-up">
-      <div v-if="activeSpot" class="hotspot-detail-card">
+      <div v-if="activeSpot && !admin" class="hotspot-detail-card">
         <button @click="activeSpot = null" class="close-btn">&times;</button>
         <div class="detail-header flex items-center gap-3 mb-2">
           <div class="spot-id">{{ activeSpot.id }}</div>
@@ -214,6 +214,17 @@ const handleModelSuccess = (gltf) => {
 };
 
 const loadModel = () => {
+  if (
+    !props.modelSrc ||
+    props.modelSrc.includes("null") ||
+    props.modelSrc.includes("undefined")
+  ) {
+    console.warn(
+      " Bỏ qua load 3D: Đường dẫn mô hình không hợp lệ ->",
+      props.modelSrc,
+    );
+    return; // Chặn ngay không cho GLTFLoader chạy
+  }
   const source = props.modelSrc || product.value?.model3d;
   if (!source) return;
 
@@ -322,17 +333,39 @@ const flyToSpot = (spot, label) => {
 };
 
 const initRaycaster = () => {
+  // Lắng nghe sự kiện click trên chính khung Canvas
   core.renderer.domElement.addEventListener("click", (event) => {
-    if (!core.currentModel) return;
+    // Chỉ xử lý khi đã load Model và đang ở chế độ Admin (thêm điểm)
+    if (!core.currentModel || !props.admin) return;
 
+    // 1. Tính toán tọa độ chuột chuẩn hóa (Normalized Device Coordinates)
     const rect = core.renderer.domElement.getBoundingClientRect();
     core.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     core.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+    // 2. Bắn tia Ray từ Camera xuyên qua vị trí chuột
     core.raycaster.setFromCamera(core.mouse, core.camera);
+
+    // 3. Kiểm tra xem tia Ray có chạm vào Máy bay (currentModel) không
     const intersects = core.raycaster.intersectObject(core.currentModel, true);
 
-    initRaycaster;
+    if (intersects.length > 0) {
+      // Lấy điểm va chạm đầu tiên (điểm gần nhất trên bề mặt máy bay)
+      const hitPoint = intersects[0].point;
+
+      // Chuyển đổi tọa độ World sang Local của Model (vì model có thể bị xoay/scale)
+      const localPos = core.currentModel.worldToLocal(hitPoint.clone());
+
+      // Phát tín hiệu (Emit) tọa độ về trang Editor
+      emit("pick-coords", {
+        x: localPos.x,
+        y: localPos.y,
+        z: localPos.z,
+      });
+
+      // Hiển thị một marker tạm thời (Blue) ngay tại điểm vừa click để Phách thấy
+      showTemporaryMarker(localPos);
+    }
   });
 };
 

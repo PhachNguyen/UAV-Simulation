@@ -31,8 +31,14 @@ const emit = defineEmits([
 ]);
 
 // Trạng thái lưu trữ các ID chương đang mở (mặc định mở chương đầu tiên)
-const expandedChapters = ref(new Set([props.structure[0]?.id]));
-
+// Kiểm tra nếu structure tồn tại và có phần tử thì mới lấy ID của chương đầu tiên
+const expandedChapters = ref(
+  new Set(
+    props.structure && props.structure.length > 0
+      ? [props.structure[0].id]
+      : [],
+  ),
+);
 // Hàm đóng/mở chương
 const toggleChapter = (chapterId) => {
   if (expandedChapters.value.has(chapterId)) {

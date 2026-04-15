@@ -23,14 +23,34 @@ import {
 import LessonStructure from "@/components/LessonStructure.vue";
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import api from "@/utils/apis/axios";
+// Nhận diện xem URL có phải là của Youtube không
+const isYouTubeVideo = computed(() => {
+  if (!currentLesson.value?.videoUrl) return false;
+  const url = currentLesson.value.videoUrl;
+  return url.includes("youtube.com") || url.includes("youtu.be");
+});
 
+// Chuyển đổi link Youtube thường thành link Embed để nhúng vào iframe
+const youtubeEmbedUrl = computed(() => {
+  if (!isYouTubeVideo.value) return "";
+  const url = currentLesson.value.videoUrl;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  const videoId = match && match[2].length === 11 ? match[2] : null;
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+});
 /** --- 1. STATE QUẢN LÝ --- **/
 const isLoading = ref(false);
-const courseStructure = ref([]);
+const courseStructure = ref(null); // Hoặc [] tùy cấu trúc của cậu
 const activeLessonId = ref(null);
 const uploadProgress = ref(0);
 const isVideoUploading = ref(false);
 
+// CÁC BIẾN MỚI CẦN THÊM ĐỂ SỬA LỖI
+const modelInput = ref(null); // Thay thế cho fileRefs.model
+const isModelUploading = ref(false);
+const latestPickedCoords = ref(null); // Sửa lỗi "latestPickedCoords is not defined"
 const router = useRouter();
 const route = useRoute();
 const goToSections = (lessonId) => {
@@ -79,20 +99,20 @@ const videoSource = computed(() => {
 const fetchCourseData = async () => {
   try {
     isLoading.value = true;
-
-    // 1. Lấy ID chương từ route params (khớp với router chappter/:id)
     const chapterId = route.params.id;
-
-    // 2. Gọi API lấy riêng 1 chương
     const { data } = await api.get(`/courses/${chapterId}`);
 
-    // 3. Format dữ liệu trả về và bọc vào mảng [data]
-    // để component LessonStructure vẫn render được
     courseStructure.value = [
       {
         ...data,
         lessons: (data.lessons || []).map((lesson) => ({
           ...lesson,
+          // THÊM DÒNG NÀY: Ép chữ "null" thành giá trị null thật sự
+          model3DPath:
+            lesson.model3DPath === "null" || !lesson.model3DPath
+              ? null
+              : lesson.model3DPath,
+
           hotspots:
             typeof lesson.hotspots === "string"
               ? JSON.parse(lesson.hotspots)
@@ -106,12 +126,10 @@ const fetchCourseData = async () => {
       },
     ];
 
-    // Tự động chọn bài đầu tiên của chương này
-    if (courseStructure.value[0]?.lessons?.[0]) {
+    if (courseStructure.value[0]?.lessons?.length > 0) {
       activeLessonId.value = courseStructure.value[0].lessons[0].id;
     }
   } catch (error) {
-    console.error("Lỗi fetch:", error);
     toast.error("Không thể tải dữ liệu chương!");
   } finally {
     isLoading.value = false;
@@ -251,6 +269,7 @@ const addHotspot = () => {
     title: "Linh kiện mới",
     desc: "",
     pos: { x: 0, y: 0, z: 0 },
+    isNew: true,
   };
 
   currentLesson.value.hotspots.push(newSpot);
@@ -269,21 +288,20 @@ const startEditSpot = (index) => {
 
 // 3. XỬ LÝ TỌA ĐỘ TỪ 3D (Cực kỳ quan trọng)
 const handlePickCoords = (coords) => {
-  // Nếu không ở chế độ picking hoặc không có bài học thì thoát
   if (!isPickingLocation.value || !currentLesson.value) return;
 
   const spots = currentLesson.value.hotspots;
-  // Xác định index cần cập nhật (ưu tiên editingIndex)
+  // Lấy điểm cuối cùng đang được thêm hoặc điểm đang sửa
   const targetIndex =
     editingIndex.value !== null ? editingIndex.value : spots.length - 1;
 
   if (spots[targetIndex]) {
     spots[targetIndex].pos = {
-      x: Number(coords.x),
-      y: Number(coords.y),
-      z: Number(coords.z),
+      x: coords.x,
+      y: coords.y,
+      z: coords.z,
     };
-    // Ép Vue cập nhật lại mảng để render lại marker trên 3D
+    // Ép Vue cập nhật lại mảng để Marker trên 3D nhảy sang vị trí mới
     currentLesson.value.hotspots = [...spots];
   }
 };
@@ -312,9 +330,47 @@ const toggleSimulation = () => {
   if (currentLesson.value) {
     currentLesson.value.hasSimulation = !currentLesson.value.hasSimulation;
 
-    // Nếu tắt mô phỏng, có thể xóa tọa độ đang chấm dở
+    // Nếu tắt mô phỏng, xóa các trạng thái đang chấm dở
     if (!currentLesson.value.hasSimulation) {
       latestPickedCoords.value = null;
+      editingIndex.value = null;
+      isPickingLocation.value = false;
+    }
+  }
+};
+//  Upload model 3D
+// 1. Hàm Upload Model 3D (.glb)
+const handleModelUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file || !currentLesson.value) return;
+
+  try {
+    isModelUploading.value = true;
+    const url = await uploadFile(file, "model3d"); // Sử dụng hàm uploadFile dùng chung
+    if (url) {
+      currentLesson.value.model3DPath = url;
+      toast.success("Đã tải mô hình 3D lên thành công!");
+    }
+  } catch (error) {
+    console.error("Lỗi upload model:", error);
+    toast.error("Không thể tải mô hình lên server.");
+  } finally {
+    isModelUploading.value = false;
+  }
+};
+
+// 2. Hàm Xóa Media (Video/Model)
+const clearMedia = (type) => {
+  if (!currentLesson.value) return;
+
+  if (type === "model") {
+    if (
+      confirm(
+        "Xóa mô hình 3D sẽ làm mất toàn bộ các điểm linh kiện đã chấm. Bạn chắc chứ?",
+      )
+    ) {
+      currentLesson.value.model3DPath = null;
+      currentLesson.value.hotspots = []; // Reset luôn danh sách điểm
     }
   }
 };
@@ -442,9 +498,11 @@ onMounted(fetchCourseData);
             <div class="grid md:grid-cols-2 gap-8 items-start">
               <div class="space-y-4">
                 <label
-                  class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest"
-                  >Bài giảng Video</label
+                  class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest block"
                 >
+                  Bài giảng Video
+                </label>
+
                 <input
                   type="file"
                   ref="fileInput"
@@ -454,11 +512,11 @@ onMounted(fetchCourseData);
                 />
 
                 <div
-                  class="w-full relative aspect-video rounded-xl border-2 border-dashed border-[#0b1f3f] overflow-hidden bg-[#f8f9fa]"
+                  class="w-full relative aspect-video rounded-xl border-2 border-dashed border-[#0b1f3f] overflow-hidden bg-[#f8f9fa] group/player"
                 >
                   <div
                     v-if="isVideoUploading"
-                    class="absolute inset-0 bg-white flex flex-col items-center justify-center p-6"
+                    class="absolute inset-0 bg-white flex flex-col items-center justify-center p-6 z-10"
                   >
                     <div
                       class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border mb-2"
@@ -472,47 +530,83 @@ onMounted(fetchCourseData);
                       >{{ uploadProgress }}% Uploading...</span
                     >
                   </div>
+
+                  <iframe
+                    v-else-if="isYouTubeVideo && youtubeEmbedUrl"
+                    :src="youtubeEmbedUrl"
+                    class="w-full h-full absolute inset-0 z-0"
+                    frameborder="0"
+                    allow="
+                      accelerometer;
+                      autoplay;
+                      clipboard-write;
+                      encrypted-media;
+                      gyroscope;
+                      picture-in-picture;
+                    "
+                    allowfullscreen
+                  ></iframe>
+
+                  <video
+                    v-else-if="videoSource && !isYouTubeVideo"
+                    :src="videoSource"
+                    controls
+                    class="w-full h-full object-contain absolute inset-0 z-0 bg-black"
+                  ></video>
+
                   <div
-                    v-else-if="!videoSource"
+                    v-else
                     @click="fileInput.click()"
-                    class="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white transition-all"
+                    class="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-white transition-all z-0"
                   >
                     <Video class="w-10 h-10 text-slate-300 mb-4" />
                     <p class="text-[11px] text-slate-500 font-bold">
-                      Kéo video hoặc nhấn để chọn
+                      Kéo thả video hoặc nhấn để chọn file
                     </p>
                   </div>
-                  <div v-else class="absolute inset-0 bg-black group/player">
-                    <video
-                      :src="videoSource"
-                      controls
-                      class="w-full h-full object-contain"
-                    ></video>
-                    <div
-                      class="absolute top-4 right-4 opacity-0 group-hover/player:opacity-100 flex gap-2"
+
+                  <div
+                    v-if="currentLesson.videoUrl && !isVideoUploading"
+                    class="absolute top-4 right-4 opacity-0 group-hover/player:opacity-100 flex gap-2 z-20 transition-opacity"
+                  >
+                    <button
+                      @click="fileInput.click()"
+                      class="p-2 bg-black/40 hover:bg-black/60 backdrop-blur-md rounded-lg text-white transition-all"
+                      title="Tải file khác"
                     >
-                      <button
-                        @click="fileInput.click()"
-                        class="p-2 bg-white/20 backdrop-blur-md rounded-lg text-white"
-                      >
-                        <RefreshCw class="w-4 h-4" />
-                      </button>
-                      <button
-                        @click="removeVideo"
-                        class="p-2 bg-red-500/80 rounded-lg text-white"
-                      >
-                        <X class="w-4 h-4" />
-                      </button>
-                    </div>
+                      <RefreshCw class="w-4 h-4" />
+                    </button>
+                    <button
+                      @click="removeVideo"
+                      class="p-2 bg-red-500/80 hover:bg-red-600 rounded-lg text-white transition-all"
+                      title="Xóa video"
+                    >
+                      <X class="w-4 h-4" />
+                    </button>
                   </div>
+                </div>
+
+                <div class="relative mt-4">
+                  <Youtube
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-red-500"
+                    :size="18"
+                  />
+                  <input
+                    v-model="currentLesson.videoUrl"
+                    type="text"
+                    placeholder="Hoặc dán link Youtube vào đây..."
+                    class="w-full pl-10 pr-4 py-3 bg-white border border-[#dee2e6] rounded-xl focus:border-[#0b1f3f] outline-none text-sm transition-all shadow-sm"
+                  />
                 </div>
               </div>
 
               <div class="space-y-4">
                 <label
-                  class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest"
-                  >Tài liệu Nguồn</label
+                  class="text-[10px] font-black text-[#4a4a4a] uppercase tracking-widest block"
                 >
+                  Tài liệu Nguồn
+                </label>
+
                 <input
                   type="file"
                   ref="resourceInput"
@@ -521,32 +615,37 @@ onMounted(fetchCourseData);
                   accept=".pdf,.docx"
                   @change="handleResourceUpload"
                 />
+
                 <div
                   @click="resourceInput.click()"
-                  class="w-full aspect-video border-2 border-dashed border-[#0b1f3f] rounded-xl flex flex-col items-center justify-center bg-[#f8f9fa] cursor-pointer hover:bg-white transition-all"
+                  class="w-full aspect-video border-2 border-dashed border-[#0b1f3f] rounded-xl flex flex-col items-center justify-center bg-[#f8f9fa] cursor-pointer hover:bg-white transition-all shadow-sm"
                 >
                   <FileText class="w-10 h-10 text-slate-300 mb-4" />
                   <p class="text-[11px] text-slate-500 font-bold">
                     Chọn tài liệu PDF/DOCX
                   </p>
                 </div>
+
                 <div class="space-y-2 mt-4">
                   <transition-group name="list">
                     <div
                       v-for="(file, index) in uploadedFiles"
                       :key="file.name + index"
-                      class="flex items-center justify-between p-3 bg-white border border-[#dee2e6] rounded-lg shadow-sm"
+                      class="flex items-center justify-between p-3 bg-white border border-[#dee2e6] rounded-xl shadow-sm"
                     >
                       <div class="flex items-center gap-3">
-                        <FileText class="w-4 h-4 text-[#4a4a4a]" />
+                        <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                          <FileText class="w-4 h-4" />
+                        </div>
                         <span
-                          class="text-[11px] font-bold text-[#1a1a1a] truncate max-w-[150px]"
-                          >{{ file.name }}</span
+                          class="text-[11px] font-bold text-[#1a1a1a] truncate max-w-[180px]"
                         >
+                          {{ file.name }}
+                        </span>
                       </div>
                       <button
                         @click="removeResource(index)"
-                        class="p-1.5 text-slate-300 hover:text-red-500"
+                        class="p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors"
                       >
                         <Trash2 class="w-4 h-4" />
                       </button>
@@ -583,7 +682,7 @@ onMounted(fetchCourseData);
       <!-- Trường hợp nếu bài giảng có mô phỏng 3D -->
       <div v-if="currentLesson">
         <section
-          class="bg-white rounded-xl border border-[#dee2e6] overflow-hidden shadow-sm font-inter mt-6"
+          class="bg-white rounded-xl border border-[#dee2e6] overflow-hidden shadow-sm mt-6"
         >
           <div
             class="px-8 py-5 border-b border-[#dee2e6] flex justify-between items-center bg-[#fcfcfc]"
@@ -602,16 +701,29 @@ onMounted(fetchCourseData);
             <div class="flex items-center gap-4">
               <button
                 v-if="currentLesson.hasSimulation"
+                @click="modelInput.click()"
+                class="text-[10px] font-black uppercase px-4 py-2 rounded-xl transition-all flex items-center gap-2 shadow-sm"
+                :class="
+                  currentLesson.model3DPath
+                    ? 'bg-slate-100 text-slate-600'
+                    : 'bg-teal-600 text-white'
+                "
+              >
+                <RefreshCw v-if="currentLesson.model3DPath" class="w-3 h-3" />
+                <UploadCloud v-else class="w-3 h-3" />
+                {{ currentLesson.model3DPath ? "Đổi file" : "Tải Model" }}
+              </button>
+
+              <button
+                v-if="currentLesson.hasSimulation && currentLesson.model3DPath"
                 @click="addHotspot"
-                class="text-[10px] font-black uppercase bg-teal-50 text-teal-700 px-4 py-2 rounded-xl hover:bg-teal-100 transition-all flex items-center gap-2"
+                class="text-[10px] font-black uppercase bg-teal-50 text-teal-700 px-4 py-2 rounded-xl hover:bg-teal-100 flex items-center gap-2"
               >
                 <Plus class="w-3 h-3" /> Thêm điểm
               </button>
 
               <button
-                @click="
-                  currentLesson.hasSimulation = !currentLesson.hasSimulation
-                "
+                @click="toggleSimulation"
                 :class="[
                   'w-12 h-6 rounded-full transition-all relative p-1',
                   currentLesson.hasSimulation ? 'bg-[#0b1f3f]' : 'bg-slate-300',
@@ -634,54 +746,55 @@ onMounted(fetchCourseData);
               v-if="currentLesson.hasSimulation"
               class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
             >
-              <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+              <div class="lg:col-span-8">
                 <div
-                  class="relative group border-2 border-[#0b1f3f] rounded-3xl overflow-hidden shadow-2xl bg-slate-900 aspect-video"
+                  class="relative group border-2 border-[#0b1f3f] rounded-3xl overflow-hidden shadow-2xl bg-slate-900 aspect-video flex items-center justify-center"
                 >
-                  <Uav3DViewer
-                    ref="uavViewerRef"
-                    :admin="true"
-                    :modelSrc="`http://localhost:5000${currentLesson.model3DPath}`"
-                    :customHotspots="displayHotspots"
-                    :currentMarkerId="null"
-                    @pick-coords="handlePickCoords"
-                  />
+                  <template v-if="currentLesson.model3DPath">
+                    <Uav3DViewer
+                      ref="uavViewerRef"
+                      :admin="true"
+                      :modelSrc="`http://localhost:5000${currentLesson.model3DPath}`"
+                      :customHotspots="displayHotspots"
+                      :currentMarkerId="null"
+                      @pick-coords="handlePickCoords"
+                    />
 
-                  <div
-                    v-if="editingIndex !== null"
-                    class="absolute inset-0 pointer-events-none border-4 border-teal-500/30 animate-pulse"
-                  ></div>
+                    <div
+                      v-if="isPickingLocation"
+                      class="absolute inset-0 pointer-events-none border-4 border-teal-500/30 animate-pulse z-10"
+                    ></div>
 
-                  <div
-                    class="absolute top-4 left-4 pointer-events-none bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10"
-                  >
-                    <p
-                      class="text-[9px] text-white font-black uppercase tracking-widest flex items-center gap-2"
+                    <button
+                      @click="clearMedia('model')"
+                      class="absolute top-4 right-4 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-lg z-10 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <span
-                        :class="[
-                          'w-2 h-2 rounded-full animate-pulse',
-                          editingIndex !== null ? 'bg-teal-400' : 'bg-red-500',
-                        ]"
-                      ></span>
-                      {{
-                        editingIndex !== null
-                          ? `Chỉnh sửa điểm ${editingIndex + 1}: Click lên model`
-                          : "Chế độ Admin"
-                      }}
+                      <Trash2 :size="16" />
+                    </button>
+                  </template>
+
+                  <div
+                    v-else
+                    @click="modelInput.click()"
+                    class="flex flex-col items-center justify-center cursor-pointer text-center p-12"
+                  >
+                    <Box class="w-16 h-16 text-slate-700 mb-4" />
+                    <h4
+                      class="text-white text-lg font-black uppercase tracking-tight"
+                    >
+                      Chưa có mô hình 3D
+                    </h4>
+                    <p
+                      class="text-slate-500 text-[10px] font-bold uppercase mt-2"
+                    >
+                      Nhấn để tải lên file .glb
                     </p>
                   </div>
                 </div>
-
-                <p
-                  class="text-[10px] text-slate-400 font-bold uppercase tracking-tight text-center"
-                >
-                  Mẹo: Click chuột trái để xoay, con lăn để zoom
-                </p>
               </div>
 
               <div
-                class="lg:col-span-5 xl:col-span-4 space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar"
+                class="lg:col-span-4 space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar"
               >
                 <div
                   v-if="currentLesson.hotspots.length === 0"
@@ -729,12 +842,13 @@ onMounted(fetchCourseData);
                   <div class="flex items-center gap-2 mb-3">
                     <span
                       class="w-5 h-5 bg-[#0b1f3f] text-white text-[9px] font-black rounded flex items-center justify-center shadow-sm"
-                      >{{ index + 1 }}</span
                     >
+                      {{ index + 1 }}
+                    </span>
                     <input
                       v-model="spot.title"
                       class="bg-transparent font-black text-[11px] text-[#0b1f3f] uppercase outline-none border-b border-transparent focus:border-[#0b1f3f] flex-1"
-                      placeholder="Tên..."
+                      placeholder="Tên linh kiện..."
                     />
                   </div>
 
@@ -759,24 +873,19 @@ onMounted(fetchCourseData);
                     v-model="spot.desc"
                     rows="1"
                     class="w-full p-2 bg-slate-50/50 border border-slate-100 rounded-lg text-[10px] outline-none focus:border-[#0b1f3f] resize-none"
-                    placeholder="Ghi chú..."
+                    placeholder="Ghi chú linh kiện..."
                   ></textarea>
                 </div>
               </div>
             </div>
-
-            <div
-              v-else
-              class="py-20 text-center border-2 border-dashed border-slate-100 rounded-3xl bg-slate-50/30"
-            >
-              <Box class="w-12 h-12 text-slate-200 mx-auto mb-4" />
-              <p
-                class="text-xs text-slate-400 font-bold uppercase tracking-widest"
-              >
-                Trình mô phỏng 3D đang tắt
-              </p>
-            </div>
           </div>
+          <input
+            type="file"
+            ref="modelInput"
+            class="hidden"
+            accept=".glb,.gltf"
+            @change="handleModelUpload"
+          />
         </section>
       </div>
       <div v-else class="">Vui lòng chọn bài học</div>
