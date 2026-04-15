@@ -1,46 +1,72 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import LessonStructure from "@/components/LessonStructure.vue";
 import api from "@/utils/apis/axios";
+import { useRouter, useRoute } from "vue-router"; // Bổ sung useRoute
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
-import { onMounted } from "vue";
+import {
+  Type,
+  Plus,
+  Trash2,
+  Save,
+  RefreshCw,
+  RotateCcw,
+  ArrowLeft,
+} from "lucide-vue-next";
+
 // --- TRẠNG THÁI (STATE) ---
 const isSidebarOpen = ref(true);
-const activeLessonId = ref(1);
+const activeLessonId = ref(null);
 const isLoading = ref(false);
 const courseStructure = ref([]);
 
-/** --- 3. API & CRUD LOGIC --- **/
+// Điều hướng
+const router = useRouter();
+const route = useRoute(); // Khai báo route để lấy ID từ URL
+const chapterId = route.query.chapterId;
+/** --- 1. API & LẤY DỮ LIỆU --- **/
 const fetchCourseData = async () => {
   try {
     isLoading.value = true;
-    const { data } = await api.get("/courses");
-    courseStructure.value = (data.chapters || []).map((chapter) => ({
+
+    // 1. Lấy API đúng 1 chương
+    const { data } = await api.get(`/courses/${chapterId}`);
+
+    // 2. SỬA CHỖ NÀY: Bọc data vào mảng [data]
+    courseStructure.value = [data].map((chapter) => ({
       ...chapter,
       lessons: (chapter.lessons || []).map((lesson) => ({
         ...lesson,
         content: lesson.content || "",
-        hotspots: lesson.hotspots || [],
+        hotspots:
+          typeof lesson.hotspots === "string"
+            ? JSON.parse(lesson.hotspots)
+            : lesson.hotspots || [],
         sections: lesson.sections || [],
         resources: lesson.resources || [],
       })),
     }));
-    // Tự động chọn bài đầu tiên
-    if (courseStructure.value[0]?.lessons?.[0]) {
+
+    // 3. Lấy ID từ URL
+    const urlLessonId = parseInt(route.params.id);
+    if (urlLessonId) {
+      activeLessonId.value = urlLessonId;
+    } else if (courseStructure.value[0]?.lessons?.[0]) {
       activeLessonId.value = courseStructure.value[0].lessons[0].id;
     }
   } catch (error) {
-    console.error("Lỗi fetch:", error);
+    console.error("Lỗi fetch toàn bộ khóa học:", error);
   } finally {
     isLoading.value = false;
   }
 };
+
 onMounted(fetchCourseData);
 
-// --- COMPUTED ---
+// --- 2. COMPUTED: TỰ ĐỘNG LẤY BÀI ĐANG CHỌN ---
 const currentLesson = computed(() => {
-  // Tìm trong tất cả lessons của tất cả chapters
+  if (!activeLessonId.value) return null;
   for (const chapter of courseStructure.value) {
     const lesson = chapter.lessons.find((l) => l.id === activeLessonId.value);
     if (lesson) return lesson;
@@ -48,41 +74,32 @@ const currentLesson = computed(() => {
   return null;
 });
 
-// --- HÀNH ĐỘNG (METHODS) ---
-const toggleSidebar = () => {
-  isSidebarOpen.value = !isSidebarOpen.value;
-};
-
+// --- 3. HÀNH ĐỘNG (METHODS) ---
 const selectLesson = (id) => {
   activeLessonId.value = id;
+  // Cập nhật lại URL mà không reload trang
+  router.replace(`/admin/lesson/${id}/sections`);
 };
 
-// Cập nhật hàm lưu bài học để gửi cả nội dung HTML lên Server
 const saveChanges = async () => {
   if (!currentLesson.value) return;
-
   try {
     isLoading.value = true;
-
-    // Gửi nguyên trạng mảng sections (cái có ID, cái không có ID)
     const payload = {
       title: currentLesson.value.title,
       content: currentLesson.value.content,
-      sections: currentLesson.value.sections,
+      sections: currentLesson.value.sections, // Gửi nguyên mảng
       hotspots: currentLesson.value.hotspots,
     };
 
-    // Gọi API POST (như Phách muốn)
     const { data } = await api.post(
       `/courses/lessons/${currentLesson.value.id}/save-content`,
       payload,
     );
 
-    // CẬP NHẬT LẠI LOCAL STATE
-    // Bước này cực kỳ quan trọng để "biến" các mục null ID thành có ID thực
+    // Cập nhật lại local state
     currentLesson.value.sections = data.sections;
-
-    alert("Hệ thống SkyLink: Đã đồng bộ toàn bộ dữ liệu thành công!");
+    alert("Hệ thống SkyLink: Đã lưu nội dung văn bản thành công!");
   } catch (error) {
     console.error(error);
     alert("Lỗi: Không thể lưu dữ liệu.");
@@ -93,13 +110,7 @@ const saveChanges = async () => {
 
 const addSection = () => {
   if (!currentLesson.value) return;
-
-  // Khởi tạo mảng sections nếu chưa có
-  if (!currentLesson.value.sections) {
-    currentLesson.value.sections = [];
-  }
-
-  // Thêm một mục mới vào mảng
+  if (!currentLesson.value.sections) currentLesson.value.sections = [];
   currentLesson.value.sections.push({
     title: "Tiêu đề mục mới",
     content: "",
@@ -111,7 +122,8 @@ const removeSection = (index) => {
     currentLesson.value.sections.splice(index, 1);
   }
 };
-/** --- 5. STRUCTURE & SIDEBAR --- **/
+
+/** --- 4. CÁC HÀM CỦA SIDEBAR --- **/
 const handleAddChapter = async () => {
   const { data } = await api.post("/courses", {
     title: "Chương mới",
@@ -119,6 +131,7 @@ const handleAddChapter = async () => {
   });
   courseStructure.value.push({ ...data, lessons: [] });
 };
+
 const handleAddLesson = async (chapterId) => {
   const chapter = courseStructure.value.find((c) => c.id === chapterId);
   const { data } = await api.post(`/courses/${chapterId}/lessons`, {
@@ -126,8 +139,9 @@ const handleAddLesson = async (chapterId) => {
     order: chapter.lessons.length + 1,
   });
   chapter.lessons.push({ ...data, resources: [], hotspots: [], sections: [] });
-  activeLessonId.value = data.id;
+  selectLesson(data.id); // Tự động chọn bài vừa tạo
 };
+
 const handleRemoveItem = async ({ cIndex, lIndex }) => {
   if (!confirm("Xác nhận xóa?")) return;
   const chapter = courseStructure.value[cIndex];
@@ -205,15 +219,29 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
         </div>
         <div v-else-if="currentLesson" class="mx-auto p-10">
           <header class="mb-8">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="p-2 bg-blue-50 rounded-lg">
-                <Type class="w-4 h-4 text-blue-600" />
+            <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center gap-4">
+                <button
+                  @click="router.back()"
+                  class="cursor-pointer p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-gray-200 hover:border-gray-500 transition-all group shadow-sm"
+                  title="Quay lại"
+                >
+                  <ArrowLeft
+                    class="w-5 h-5 text-slate-400 group-hover:text-gray-500"
+                  />
+                </button>
+
+                <div class="flex items-center gap-3">
+                  <div class="p-2 bg-blue-50 rounded-lg">
+                    <Type class="w-4 h-4 text-gray-600" />
+                  </div>
+                  <span
+                    class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]"
+                  >
+                    Thông tin bài giảng
+                  </span>
+                </div>
               </div>
-              <span
-                class="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]"
-              >
-                Thông tin bài giảng
-              </span>
             </div>
 
             <div class="relative group">
@@ -252,10 +280,10 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
             >
               <button
                 @click="removeSection(index)"
-                class="absolute -right-4 top-0 p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                class="cursor-pointer absolute -right-4 top-0 p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
                 title="Xóa mục này"
               >
-                <Trash2 class="w-4 h-4 bg-red-600" />
+                <Trash2 class="w-4 h-4 text-red-400" />
               </button>
 
               <div
@@ -284,7 +312,7 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
                 >
                   <QuillEditor
                     v-model:content="section.content"
-                    contentType="text"
+                    contentType="html"
                     theme="snow"
                     placeholder="Nhập nội dung cho mục này..."
                   />

@@ -53,9 +53,30 @@ const isModelUploading = ref(false);
 const latestPickedCoords = ref(null); // Sửa lỗi "latestPickedCoords is not defined"
 const router = useRouter();
 const route = useRoute();
+//  Hàm chuyển đến trang tạo nội dung bài giảng (Sections) và truyền kèm chapterId để biết đang tạo nội dung cho chương nào
 const goToSections = (lessonId) => {
-  // Đính kèm ID vào URL: ví dụ /admin/lesson/15/sections
-  router.push(`/admin/lesson/${lessonId}/sections`);
+  // 1. Tìm ID của Chương chứa bài học này
+  let currentChapterId = null;
+
+  for (const chapter of courseStructure.value) {
+    // Nếu trong mảng lessons của chương này có chứa lessonId đang tìm
+    if (chapter.lessons?.some((l) => l.id === lessonId)) {
+      currentChapterId = chapter.id;
+      break;
+    }
+  }
+
+  // 2. Lưu vào LocalStorage (Để các trang khác có thể lấy ra dùng dễ dàng)
+  if (currentChapterId) {
+    localStorage.setItem("savedChapterId", currentChapterId);
+  }
+
+  // 3. Chuyển trang và truyền kèm chapterId lên URL (Cách này an toàn nhất khi F5)
+  router.push({
+    path: `/admin/lesson/${lessonId}/sections`,
+    query: { chapterId: currentChapterId },
+    // URL sẽ có dạng: /admin/lesson/15/sections?chapterId=2
+  });
 };
 // Biến mô phỏng
 // const isSimulationEnabled = ref(false);
@@ -136,7 +157,7 @@ const fetchCourseData = async () => {
   }
 };
 
-// Hàm lưu toàn bộ thay đổi của bài học hiện tại lên Server
+// Hàm lưu toàn bộ thay đổi của bài học hiện tại lên Server ( Bỏ)
 const handleUpdateLesson = async () => {
   if (!currentLesson.value) return;
   try {
@@ -148,6 +169,51 @@ const handleUpdateLesson = async () => {
     alert("Đã lưu bài học thành công!");
   } catch (error) {
     alert("Lỗi khi lưu bài học");
+  } finally {
+    isLoading.value = false;
+  }
+};
+//
+// Tạo hàm lưu bài học thành công thì chuyển  về tạo nội dung
+// Hàm gộp: Lưu dữ liệu hiện tại rồi mới chuyển sang soạn thảo Sections
+const saveAndGoToSections = async () => {
+  if (!currentLesson.value) return;
+
+  try {
+    isLoading.value = true;
+
+    // BƯỚC 1: Lưu toàn bộ dữ liệu (Video, 3D, Hotspots) lên Server
+    await api.post(
+      `/courses/lessons/${currentLesson.value.id}/save-content`,
+      currentLesson.value,
+    );
+
+    // BƯỚC 2: Tìm ID của Chương chứa bài học này để phục vụ Sidebar ở trang sau
+    const lessonId = currentLesson.value.id;
+    let currentChapterId = null;
+
+    for (const chapter of courseStructure.value) {
+      if (chapter.lessons?.some((l) => l.id === lessonId)) {
+        currentChapterId = chapter.id;
+        break;
+      }
+    }
+
+    // BƯỚC 3: Lưu vào LocalStorage làm bản backup
+    if (currentChapterId) {
+      localStorage.setItem("savedChapterId", currentChapterId);
+    }
+
+    // BƯỚC 4: Chuyển hướng sang trang tạo nội dung chương (Sections)
+    router.push({
+      path: `/admin/lesson/${lessonId}/sections`,
+      query: { chapterId: currentChapterId },
+    });
+  } catch (error) {
+    console.error("Lỗi luồng lưu và chuyển trang:", error);
+    alert(
+      "Hệ thống SkyLink: Không thể lưu bài học. Vui lòng kiểm tra lại kết nối!",
+    );
   } finally {
     isLoading.value = false;
   }
@@ -409,7 +475,7 @@ onMounted(fetchCourseData);
         <ChevronRight class="w-3 h-3" />
         <span
           class="hover:text-[#0b1f3f] cursor-pointer"
-          @click="goToCourseStructure(lesson.id)"
+          @click="router.push('/admin/course/add')"
           >Khóa học UAV</span
         >
         <ChevronRight class="w-3 h-3" />
@@ -444,7 +510,7 @@ onMounted(fetchCourseData);
             </div>
             <!-- Trang chuyển đến tạo nội dung bài giảng -->
             <button
-              @click="goToSections(currentLesson.id)"
+              @click="saveAndGoToSections"
               class="flex items-center gap-3 px-6 py-3 bg-[#0b1f3f] text-white rounded-2xl hover:bg-[#162e54] transition-all shadow-lg hover:shadow-[#0b1f3f]/20 active:scale-95"
             >
               <div class="text-left">
@@ -672,6 +738,7 @@ onMounted(fetchCourseData);
 
         <LessonStructure
           :structure="courseStructure"
+          :active-lesson-id="activeLessonId"
           status="Nháp"
           @select-lesson="selectLesson"
           @add-chapter="handleAddChapter"
