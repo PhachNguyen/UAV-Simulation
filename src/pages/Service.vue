@@ -73,7 +73,7 @@
     </div>
 
     <div
-      class="bg-[#2C3A47] text-slate-300 py-4 flex justify-center items-center gap-2 text-sm relative z-10 w-full mt-auto border-t border-slate-700"
+      class="bg-[#2C3A47] text-slate-300 py-4 flex justify-center items-center gap-2 text-sm relative z-10 w-full border-t border-slate-700"
     >
       <button
         @click="prevPage"
@@ -162,21 +162,13 @@ onMounted(() => {
 });
 const filterData = ref(["Flight Time", "Range", "Camera Resolution"]);
 // Mock data mô phỏng theo nội dung trong hình ảnh
-const baseSpecs = {
-  flightTime: "45 min",
-  weight: "1.5kg",
-  range: "10km",
-  speed: "80 km/h",
-  camera: "8K Hasselblad",
-  sensors: "LiDAR & Thermal",
-};
 
 const drones = ref([]);
 const isLoading = ref(false);
 const pagination = ref({
   currentPage: 1,
   totalPages: 1,
-  limit: 2, // Hiển thị 8 drone mỗi trang
+  limit: 7, // Hiển thị 8 drone mỗi trang
 });
 // 2. Hàm Fetch dữ liệu từ BE
 const fetchDrones = async () => {
@@ -255,6 +247,6 @@ watch(() => pagination.value.currentPage, fetchDrones);
 // Hàm xử lý khi nhấn vào nút chi tiết
 const onViewDetails = (id) => {
   console.log("Xem chi tiết UAV có ID:", id);
-  router.push(`/drone/${id}`);
+  router.push(`/test2/${id}`);
 };
 </script>

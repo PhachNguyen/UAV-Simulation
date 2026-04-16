@@ -41,7 +41,7 @@
     </div> -->
 
     <Transition name="slide-up">
-      <div v-if="activeSpot && !admin" class="hotspot-detail-card">
+      <div v-if="activeSpot" class="hotspot-detail-card">
         <button @click="activeSpot = null" class="close-btn">&times;</button>
         <div class="detail-header flex items-center gap-3 mb-2">
           <div class="spot-id">{{ activeSpot.id }}</div>
@@ -458,10 +458,31 @@ const cleanupExistingModel = () => {
 
 // --- WATCHERS ---
 watch(() => props.modelSrc, loadModel);
+// Tìm watch props.customHotspots trong Uav3DViewer.vue và sửa thành:
+// 1. Sửa Watcher của customHotspots
 watch(
   () => props.customHotspots,
   (newVal) => {
-    if (newVal && core.currentModel) setupHotspots(newVal);
+    // QUAN TRỌNG: Tắt ngay khung thông tin chi tiết của bài cũ
+    activeSpot.value = null;
+
+    if (newVal && core.currentModel) {
+      // 2. Dọn dẹp triệt để trước khi vẽ bài mới
+      const objectsToRemove = core.currentModel.children.filter(
+        (child) =>
+          child.isCSS2DObject || // Xóa nhãn số
+          (child.name && child.name.startsWith("marker-")), // Xóa các Sprite tròn
+      );
+
+      objectsToRemove.forEach((obj) => {
+        core.currentModel.remove(obj);
+        if (obj.element) obj.element.remove(); // Xóa hẳn thẻ HTML khỏi DOM
+      });
+
+      // 3. Vẽ bộ marker mới
+      setupHotspots(newVal);
+      needsRender = true;
+    }
   },
   { deep: true },
 );
@@ -544,7 +565,7 @@ defineExpose({ flyToSpot });
 /* Hotspot Detail Card */
 .hotspot-detail-card {
   position: absolute;
-  bottom: 1.5rem;
+  top: 10px;
   right: 1.5rem;
   z-index: 40;
   width: 500px;
@@ -555,6 +576,10 @@ defineExpose({ flyToSpot });
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   color: white;
+
+  /* Thêm dòng này để card không phình quá to làm mất title */
+  display: flex;
+  flex-direction: column;
 }
 .close-btn {
   position: absolute;
@@ -592,6 +617,12 @@ defineExpose({ flyToSpot });
   font-size: 11px;
   line-height: 1.6;
   opacity: 0.9;
+
+  /* CẬP NHẬT MỚI ĐỂ HẾT CHE KHUẤT */
+  max-height: 180px; /* Giới hạn chiều cao tối đa của vùng text */
+  overflow-y: auto; /* Hiện thanh cuộn nếu text quá dài */
+  padding-right: 10px; /* Khoảng trống để không bị đè vào thanh cuộn */
+  margin-bottom: 5px;
 }
 .detail-footer {
   margin-top: 1rem;

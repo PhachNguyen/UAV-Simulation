@@ -402,20 +402,20 @@ const quickStats = computed(() => [
     color: "text-emerald-500",
     bgColor: "bg-white",
   },
-  {
-    label: "Bảo trì định kỳ",
-    value: drones.value.filter((d) => d.status === "maintenance").length,
-    icon: AlertTriangle,
-    color: "text-amber-500",
-    bgColor: "bg-white",
-  },
-  {
-    label: "Mất kết nối",
-    value: drones.value.filter((d) => d.status === "offline").length,
-    icon: XCircle,
-    color: "text-rose-500",
-    bgColor: "bg-white",
-  },
+  // {
+  //   label: "Bảo trì định kỳ",
+  //   value: drones.value.filter((d) => d.status === "maintenance").length,
+  //   icon: AlertTriangle,
+  //   color: "text-amber-500",
+  //   bgColor: "bg-white",
+  // },
+  // {
+  //   label: "Mất kết nối",
+  //   value: drones.value.filter((d) => d.status === "offline").length,
+  //   icon: XCircle,
+  //   color: "text-rose-500",
+  //   bgColor: "bg-white",
+  // },
 ]);
 
 // Lọc tìm kiếm

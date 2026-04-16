@@ -11,7 +11,7 @@
       }"
     ></div>
 
-    <div class="max-w-7xl mx-auto px-6 mb-12 relative z-10">
+    <!-- <div class="max-w-7xl mx-auto px-6 mb-12 relative z-10">
       <div
         class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-l-2 border-blue-600 pl-6"
       >
@@ -35,7 +35,7 @@
           Tương tác trực tiếp trên mô hình 3D
         </div>
       </div>
-    </div>
+    </div> -->
 
     <div class="w-full h-[500px] md:h-[650px] relative mb-16 group">
       <div
@@ -61,7 +61,12 @@
         <Target class="w-24 h-24 text-blue-400 stroke-[0.5]" />
       </div>
 
-      <Uav3DViewer @select-hotspot="onHotspotSelect" />
+      <Uav3DViewer
+        :admin="false"
+        :modelSrc="modelUrl"
+        :customHotspots="hotspots"
+        @select-hotspot="onHotspotSelect"
+      />
 
       <div
         class="absolute left-10 top-1/2 -translate-y-1/2 space-y-4 hidden lg:block"
@@ -159,6 +164,8 @@ import Uav3DViewer from "@/components/Uav3DViewer.vue";
 defineProps({
   hotspots: Array,
   activeSpotId: [Number, String],
+  modelUrl: String, // <--- THÊM DÒNG NÀY
+  isSimulating: Boolean, // <--- THÊM DÒNG NÀY
 });
 const emit = defineEmits(["update:activeSpotId"]);
 

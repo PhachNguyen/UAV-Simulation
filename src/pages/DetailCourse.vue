@@ -4,6 +4,7 @@ import CourseSidebar from "../layout/CourseSidebar.vue";
 import { onMounted } from "vue";
 import api from "@/utils/apis/axios";
 import { compute } from "three/tsl";
+const isSimulating = ref(false);
 import { computed } from "vue";
 // 1. Quản lý trạng thái tiến độ
 const progress = ref(70);
@@ -11,6 +12,8 @@ const progress = ref(70);
 const courseStructure = ref([]); // Lưu chapters + lessons
 const completedLessonIds = ref([]); // Lưu mảng ID đã hoàn thành: [1, 2, 3]
 const activeLessonId = ref(null);
+import ProductSimulation from "@/components/ProductSimulation.vue";
+import Uav3DViewer from "@/components/Uav3DViewer.vue";
 const isLoading = ref(false);
 // 2. Dữ liệu chương trình đào tạo (Sidebar)
 // const curriculum = ref([
@@ -36,6 +39,18 @@ const isLoading = ref(false);
 //     ],
 //   },
 // ]);
+//  Fetch model3D
+// Thêm vào sau computed currentLesson
+
+const model3DUrl = computed(() => {
+  // Thêm dấu ?. sau currentLesson.value
+  const path = currentLesson.value?.model3DPath;
+
+  if (!path) return "";
+
+  // Nối domain backend nếu là đường dẫn tương đối
+  return path.startsWith("http") ? path : `http://localhost:5000${path}`;
+});
 //  Fetch data
 // Tìm Chapter hiện tại dựa trên activeLessonId
 const currentChapter = computed(() => {
@@ -390,7 +405,65 @@ const handleNextLesson = async ({ currentId, nextId }) => {
         @next-lesson="handleNextLesson"
       />
     </main>
+    <section
+      v-if="currentLesson?.model3DPath"
+      class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-2xl mt-4 max-w-[1400px] mx-auto w-full"
+    >
+      <div
+        class="px-8 py-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50"
+      >
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-blue-500/10 rounded-lg">
+            <i class="ph ph-cube text-blue-400 text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white uppercase tracking-widest">
+              Hệ thống Mô phỏng 3D
+            </h3>
+            <p
+              class="text-[10px] text-slate-500 font-bold uppercase mt-0.5 font-mono"
+            >
+              [ TRẠNG THÁI: KIỂM TRA LINH KIỆN TƯƠNG TÁC ]
+            </p>
+          </div>
+        </div>
 
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+          <span
+            class="text-[9px] font-black text-teal-400 uppercase tracking-tighter"
+            >Live Telemetry</span
+          >
+        </div>
+      </div>
+
+      <div class="relative h-[700px] bg-[#080808]">
+        <Uav3DViewer
+          :key="activeLessonId"
+          :admin="false"
+          :modelSrc="model3DUrl"
+          :customHotspots="currentLesson.hotspots"
+        />
+
+        <div class="absolute bottom-6 left-6 pointer-events-none">
+          <div
+            class="bg-black/40 backdrop-blur-md border border-white/10 p-3 rounded-xl text-white/60 text-[10px] font-bold uppercase tracking-widest space-y-1"
+          >
+            <div class="flex items-center gap-2">
+              <i class="ph ph-mouse"></i> Chuột trái: Xoay mô hình
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="ph ph-magnifying-glass-plus"></i> Cuộn chuột: Phóng
+              to/thu nhỏ
+            </div>
+            <div class="flex items-center gap-2">
+              <i class="ph ph-cursor-click"></i> Click điểm: Xem chi tiết linh
+              kiện
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
     <footer class="bg-white border-t border-slate-200 mt-auto">
       <div
         class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono"

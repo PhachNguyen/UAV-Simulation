@@ -43,6 +43,14 @@ const routes = [
   {
     path: "/test1",
     component: () => import("../pages/Test.vue"),
+    meta: { hideHeaderFooter: true },
+  },
+  {
+    // Thêm :id để truyền mã định danh của drone vào trang chi tiết
+    path: "/test2/:id",
+    name: "ProductDetail",
+    component: () => import("../pages/ProductPagever2.vue"),
+    meta: { hideHeaderFooter: true },
   },
   // {
   //   path: "/test1",

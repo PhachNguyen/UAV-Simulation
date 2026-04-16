@@ -64,11 +64,50 @@ const selectImage = (url) => {
 };
 
 // 1. Hàm fetch dữ liệu từ BE
+// Blog.vue
+
 const fetchDroneDetail = async () => {
   try {
     isLoading.value = true;
     const { data } = await api.get(`/drones/${route.params.id}`);
-    drone.value = data;
+
+    // 1. Giải mã các trường JSON String (nếu có)
+    const parsedSensors =
+      typeof data.sensors === "string"
+        ? JSON.parse(data.sensors)
+        : data.sensors || [];
+    const parsedThumbnails =
+      typeof data.thumbnail === "string"
+        ? JSON.parse(data.thumbnail)
+        : data.thumbnail || [];
+    let rawHotspots =
+      typeof data.hotspots === "string"
+        ? JSON.parse(data.hotspots)
+        : data.hotspots || [];
+
+    // 2. Chuyển đổi cấu trúc Hotspots (Sửa lỗi "position" từ seed.js sang "pos" cho 3D Viewer)
+    const formattedHotspots = rawHotspots.map((spot) => {
+      if (spot.position && typeof spot.position === "string") {
+        const coords = spot.position.split(" ");
+        return {
+          ...spot,
+          pos: {
+            x: Number(coords[0]),
+            y: Number(coords[1]),
+            z: Number(coords[2]),
+          },
+        };
+      }
+      return spot;
+    });
+
+    // 3. Gán dữ liệu đã "sạch" vào biến drone
+    drone.value = {
+      ...data,
+      sensors: parsedSensors,
+      thumbnail: parsedThumbnails,
+      hotspots: formattedHotspots,
+    };
 
     // Gán ảnh mặc định ban đầu là ảnh chính
     activeImage.value = `http://localhost:5000${data.image}`;
@@ -119,30 +158,59 @@ const highlightsData = computed(() => {
 });
 // Specs: Đổ dữ liệu từ các trường flight_time, weight... vào
 const detailedSpecs = computed(() => {
-  if (!drone.value) return {};
+  if (!drone.value) return { flight: [], physical: [], transmission: [] };
+
+  // Hàm bổ trợ để hiển thị giá trị hoặc N/A
+  const displayVal = (val, unit) => {
+    return val && val > 0 ? `${val} ${unit}` : "N/A (Đang cập nhật)";
+  };
+
   return {
     flight: [
-      { label: "Thời gian bay", value: `${drone.value.flight_time} PHÚT` },
-      { label: "Vận tốc tối đa", value: `${drone.value.max_speed} KM/H` },
-      { label: "Phạm vi", value: `${drone.value.range} KM` },
-      { label: "Camera", value: drone.value.camera || "N/A" },
+      {
+        label: "Thời gian bay",
+        value: displayVal(drone.value.range, "PHÚT"),
+      },
+      {
+        label: "Vận tốc tối đa",
+        value: displayVal(drone.value.max_speed, "KM/H"),
+      },
+      {
+        label: "Phạm vi hoạt động",
+        value: displayVal(drone.value.range, "KM"),
+      },
+      {
+        label: "Hệ thống Camera",
+        value: drone.value.camera || "N/A",
+      },
     ],
-    physical: [
-      { label: "Trọng lượng", value: `${drone.value.weight} KG`, icon: Weight },
-      { label: "Chỉ số IP", value: "IP55", icon: CloudRain }, // Có thể thêm trường này vào Model sau
-      { label: "Quy mô", value: `Scale: ${drone.value.scale}`, icon: Ruler },
-    ],
+    // physical: [
+    //   {
+    //     label: "Trọng lượng",
+    //     value: drone.value.weight > 0 ? `${drone.value.weight} KG` : "N/A",
+    //     icon: Weight,
+    //   },
+    //   {
+    //     label: "Tỷ lệ mô hình",
+    //     value: `Scale: ${drone.value.scale || "1:1"}`,
+    //     icon: Ruler,
+    //   },
+    // ],
     transmission: [
       {
         label: "Cảm biến tích hợp",
-        value: drone.value.sensors?.join(", ") || "N/A",
+        // Hiển thị danh sách sensors: ["ds", "đư", "fd"] -> "ds, đư, fd"
+        value:
+          drone.value.sensors?.length > 0
+            ? drone.value.sensors.join(", ").toUpperCase()
+            : "Chưa tích hợp cảm biến",
       },
     ],
   };
 });
-const toggleSim = () => {
-  isSimulating.value = !isSimulating.value;
-};
+// const toggleSim = () => {
+//   isSimulating.value = !isSimulating.value;
+// };
 </script>
 
 <template>
@@ -158,6 +226,7 @@ const toggleSim = () => {
   >
     <ProductOverview
       :gallery="galleryData"
+      :description="drone.description"
       :activeImage="activeImage"
       @update:image="(url) => (activeImage = url)"
       :productName="drone.name"
@@ -165,7 +234,6 @@ const toggleSim = () => {
 
     <ProductDescription
       :description="drone.description"
-      :highlights="highlightsData"
       :productName="drone.name"
     />
 
@@ -175,7 +243,8 @@ const toggleSim = () => {
       :isSimulating="isSimulating"
       :modelUrl="`http://localhost:5000${drone.model3d}`"
       :hotspots="drone.hotspots"
-      @toggle="toggleSim"
+      @toggle="isSimulating = !isSimulating"
+      @update:activeSpotId="(id) => console.log('Hotspot được chọn:', id)"
     />
   </div>
 </template>

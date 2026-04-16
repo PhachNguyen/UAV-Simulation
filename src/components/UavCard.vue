@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col p-5"
+    class="cursor-pointer bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col p-5"
   >
     <div class="h-40 flex items-center justify-center mb-4">
       <img
@@ -12,23 +12,18 @@
 
     <div class="flex-1 flex flex-col">
       <h4
-        class="text-[#1A5276] text-xl font-bold mb-3 tracking-tight leading-tight"
+        class="text-[#1A5276] text-xl font-bold mb-2 tracking-tight leading-tight"
       >
         {{ drone.name }}
       </h4>
 
       <p class="text-[11px] font-black text-slate-800 mb-2 uppercase">
-        THÔNG SỐ CHÍNH
+        Mô tả ngắn về {{ drone.name }} :
       </p>
-
+      <!-- <div>{{ drone.description }}</div> -->
       <div
         class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] text-slate-700 mb-6"
       >
-        <!-- <div class="flex items-start">
-          <span class="mr-1 mt-[1px]">&bull;</span>
-          <span class="font-bold mr-1 whitespace-nowrap">Thời gian bay:</span>
-          <span class="truncate">{{ drone.specs.flightTime }}</span>
-        </div> -->
         <div class="flex items-start">
           <span class="mr-1 mt-[1px]">&bull;</span>
           <span class="font-bold mr-1">Trọng lượng:</span>
@@ -61,10 +56,11 @@
         </div>
       </div>
 
-      <div class="mt-auto pt-2 border-t border-slate-100">
+      <div class="mt-auto border-t border-slate-100">
         <button
           @click="$emit('details', drone.id)"
-          class="w-full bg-[#31708f] hover:bg-[#245269] text-white py-2 rounded-md font-medium text-sm transition-colors"
+          class="cursor-pointer w-full bg-[#1d293d] hover:bg-[#0f172a] text-white py-2 rounded-md font-medium text-sm transition-colors"
+          :title="`Xem chi tiết về ${drone.name}`"
         >
           Tìm hiểu thêm
         </button>

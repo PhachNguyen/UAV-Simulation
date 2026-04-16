@@ -17,9 +17,16 @@
           <p>
             <span
               class="text-[#0b1f3f] font-black underline decoration-[#00bcd4] decoration-2 underline-offset-4"
-              >AeroGuardian X9</span
+              >{{ productName }}</span
             >
-            là tinh hoa của kỹ thuật hàng không hiện đại... (nội dung rút gọn)
+            là tinh hoa của kỹ thuật hàng không hiện đại, đại diện cho bước nhảy
+            vọt trong công nghệ thiết kế không người lái. Được trang bị hệ thống
+            khung sườn chế tác từ sợi carbon nguyên khối siêu nhẹ, thiết bị đạt
+            được sự cân bằng tối ưu giữa trọng lượng và sức bền vật lý. Mọi chi
+            tiết khí động học đều được tinh chỉnh thông qua hàng nghìn giờ mô
+            phỏng CFD, giúp tối ưu hóa luồng khí, giảm thiểu tiếng ồn và gia
+            tăng thời gian vận hành liên tục trong những điều kiện môi trường
+            khắc nghiệt nhất.
           </p>
           <div
             class="p-8 bg-[#f8f9fa] border-l-8 border-[#0b1f3f] rounded-r-2xl space-y-3 relative overflow-hidden group"
@@ -27,10 +34,7 @@
             <Target
               class="absolute -right-4 -bottom-4 w-32 h-32 text-[#0b1f3f] opacity-[0.03]"
             />
-            <p class="italic text-[#1a1a1a] text-xl font-semibold">
-              "X9 không chỉ cung cấp hình ảnh; nó cung cấp sự an tâm tuyệt
-              đối..."
-            </p>
+            {{ description }}
           </div>
         </div>
       </div>
@@ -55,6 +59,7 @@
               >
                 <component :is="item.icon" class="w-6 h-6" />
               </div>
+
               <div class="space-y-1">
                 <h4
                   class="font-black uppercase text-xs tracking-widest text-white"
@@ -74,6 +79,36 @@
 </template>
 
 <script setup>
-import { Layers, Target, Award } from "lucide-vue-next";
-defineProps(["highlights", "description"]);
+import {
+  Layers,
+  Target,
+  Award,
+  ShieldCheck,
+  Zap,
+  Navigation,
+  CloudRain,
+} from "lucide-vue-next";
+defineProps(["description", "productName"]);
+const highlights = [
+  {
+    title: "Bảo mật AES-256",
+    desc: "Mã hóa dữ liệu cấp quân sự, đảm bảo an toàn tuyệt đối cho đường truyền tín hiệu điều khiển.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Phản hồi cực nhanh",
+    desc: "Độ trễ tín hiệu dưới 28ms nhờ công nghệ truyền tải OcuSync 4.0 thế hệ mới nhất.",
+    icon: Zap,
+  },
+  {
+    title: "Định vị RTK",
+    desc: "Hệ thống định vị vệ tinh kép cho sai số vị trí ở mức centimet, tối ưu cho khảo sát địa hình.",
+    icon: Navigation,
+  },
+  {
+    title: "Kháng thời tiết IP55",
+    desc: "Vận hành ổn định trong điều kiện mưa nhẹ và gió mạnh nhờ thiết kế khung carbon nguyên khối.",
+    icon: CloudRain,
+  },
+];
 </script>

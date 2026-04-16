@@ -41,9 +41,7 @@
         </h1>
       </div>
       <p class="text-[#4a4a4a] leading-relaxed text-sm font-medium">
-        Giải pháp giám sát tầm xa tối giản và hiệu quả. AeroGuardian X9 kết hợp
-        thiết kế công nghiệp tinh tế với hệ thống truyền tải dữ liệu bảo mật
-        AES-256.
+        {{ description }}
       </p>
       <div class="flex flex-col gap-3">
         <button
@@ -63,6 +61,6 @@
 
 <script setup>
 import { Download, Compass } from "lucide-vue-next";
-defineProps(["gallery", "activeImage", "productName"]);
+defineProps(["gallery", "activeImage", "productName", "description"]);
 defineEmits(["update:image"]);
 </script>

@@ -133,7 +133,7 @@ const fetchCourseData = async () => {
             lesson.model3DPath === "null" || !lesson.model3DPath
               ? null
               : lesson.model3DPath,
-
+          
           hotspots:
             typeof lesson.hotspots === "string"
               ? JSON.parse(lesson.hotspots)
@@ -446,7 +446,7 @@ onMounted(fetchCourseData);
   <div
     class="min-h-screen bg-[#f8f9fa] text-[#1a1a1a] font-inter antialiased pb-20"
   >
-    <header
+    <!-- <header
       class="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-50"
     >
       <h1 class="text-2xl font-extrabold text-[#0b1f3f]">Quản trị Bài học</h1>
@@ -461,11 +461,12 @@ onMounted(fetchCourseData);
           Lưu & Xuất bản
         </button>
       </div>
-    </header>
+    </header> -->
 
     <main class="max-w-[1440px] mx-auto px-8 py-8">
       <nav
         class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2"
+        style="user-select: none; margin-bottom: 10px; padding: 0px 8px"
       >
         <span
           class="hover:text-[#0b1f3f] cursor-pointer"
@@ -499,7 +500,7 @@ onMounted(fetchCourseData);
                 <h1
                   class="text-xl font-black text-[#0b1f3f] uppercase tracking-tight"
                 >
-                  Chi tiết nội dung
+                  Chi tiết nội dung bài giảng
                 </h1>
                 <p
                   class="text-[10px] text-slate-400 font-bold uppercase tracking-widest"

@@ -2,7 +2,7 @@
   <aside class="w-full lg:w-64 flex-shrink-0 flex flex-col">
     <SidebarSection title="Phân loại" :items="categories" />
 
-    <SidebarSection v-if="filters.length" title="Filters" :items="filters" />
+    <!-- <SidebarSection v-if="filters.length" title="Filters" :items="filters" /> -->
   </aside>
 </template>
 

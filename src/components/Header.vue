@@ -44,12 +44,12 @@ onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 const navLinks = [
   { name: "Tổng quan", href: "/" },
 
-  { name: "Sản Phẩm", href: "/products" },
+  // { name: "Sản Phẩm", href: "/products" },
   { name: "Mô phỏng lái", href: "/simulation" },
-  { name: "Khóa học", href: "/course" },
-  { name: "Khóa học ver2", href: "/test" },
-  { name: "Trưng bày", href: "/services" },
-  { name: "Detail ver2", href: "/blog" },
+  // { name: "Khóa học", href: "/course" },
+  { name: "Khóa học ", href: "/test" },
+  { name: "Thư viện Drones", href: "/services" },
+  // { name: "Detail ver2", href: "/blog" },
 ];
 </script>
 <template>

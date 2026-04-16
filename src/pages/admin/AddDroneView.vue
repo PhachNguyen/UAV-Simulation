@@ -368,7 +368,7 @@
               <h3
                 class="font-black text-slate-800 text-xs uppercase tracking-[0.2em] flex items-center gap-2"
               >
-                <Layers :size="16" class="text-orange-500" /> Thư viện ảnh
+                <Layers :size="16" class="" /> Thư viện ảnh
               </h3>
               <label
                 class="text-[10px] font-black uppercase bg-orange-50 text-orange-700 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-orange-100 transition-colors"
@@ -541,6 +541,31 @@ const fetchDroneDetail = async () => {
   if (!isEdit.value) return;
   try {
     const { data } = await api.get(`/drones/${droneId}`);
+
+    // 1. Xử lý Hotspots - Chuyển đổi position string sang pos object
+    let rawHotspots =
+      typeof data.hotspots === "string"
+        ? JSON.parse(data.hotspots)
+        : data.hotspots || [];
+
+    const formattedHotspots = rawHotspots.map((spot) => {
+      // Nếu dữ liệu từ seed có dạng "0 -0.8 0"
+      if (spot.position && typeof spot.position === "string") {
+        const coords = spot.position.split(" ");
+        return {
+          ...spot,
+          pos: {
+            x: Number(coords[0]),
+            y: Number(coords[1]),
+            z: Number(coords[2]),
+          },
+        };
+      }
+      // Nếu đã đúng cấu trúc {pos: {x,y,z}} thì giữ nguyên
+      return spot;
+    });
+
+    // 2. Cập nhật Form
     Object.assign(form, {
       name: data.name,
       category: data.category,
@@ -555,24 +580,23 @@ const fetchDroneDetail = async () => {
           ? JSON.parse(data.sensors)
           : data.sensors || [],
       scale: data.scale || 0.15,
-      hotspots:
-        typeof data.hotspots === "string"
-          ? JSON.parse(data.hotspots)
-          : data.hotspots || [],
+      hotspots: formattedHotspots,
     });
 
     const backendUrl = "http://localhost:5000";
     previews.image = data.image ? backendUrl + data.image : null;
     previews.model3d = data.model3d ? backendUrl + data.model3d : null;
-    if (data.thumbnails) {
-      const thumbUrls =
-        typeof data.thumbnails === "string"
-          ? JSON.parse(data.thumbnails)
-          : data.thumbnails;
-      previews.thumbnails = thumbUrls.map((url) => backendUrl + url);
-    }
+
+    // 3. Xử lý Thư viện ảnh (Đồng bộ thumbnail và thumbnails)
+    const thumbData = data.thumbnail || data.thumbnails || [];
+    const thumbList =
+      typeof thumbData === "string" ? JSON.parse(thumbData) : thumbData;
+
+    previews.thumbnails = thumbList.map((url) => backendUrl + url);
+    form.thumbnails = [...thumbList]; // Giữ lại link để không bị mất khi Save
   } catch (error) {
-    toast.error("Không thể lấy thông tin UAV!");
+    console.error("Lỗi fetch chi tiết UAV:", error);
+    toast.error("Hệ thống SkyLink: Không thể đồng bộ dữ liệu UAV!");
   }
 };
 onMounted(fetchDroneDetail);
