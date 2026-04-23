@@ -183,9 +183,10 @@ const routes = [
     component: () => import("@/pages/users/Data.vue"),
   },
   {
-    path: "/missions/history",
+    path: "/history",
     name: "History",
     component: () => import("@/pages/users/History.vue"),
+    meta: { hideHeaderFooter: true }, // Ẩn header/footer
   },
   {
     path: "/monitor/live-map",

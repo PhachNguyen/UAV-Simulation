@@ -50,6 +50,7 @@ const navLinks = [
   { name: "Khóa học ", href: "/test" },
   { name: "Thư viện Drones", href: "/services" },
   // { name: "Detail ver2", href: "/blog" },
+  { name: "Test db drone", href: "/history" },
 ];
 </script>
 <template>

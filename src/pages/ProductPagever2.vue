@@ -148,7 +148,7 @@
 <div
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
           >
-            <h2 class="text-lg font-bold mb-5">Một số lưu ý</h2>
+            <h2 class="text-lg font-bold mb-5">Thông tin cần thiết</h2>
             <div class="grid grid-cols-2 gap-y-6 gap-x-2">
               <div
                 v-for="spec in technicalSpecs"
@@ -160,7 +160,7 @@
                 </div>
                 <div>
                   <p class="text-xs font-semibold text-slate-900 leading-tight">
-                    {{ spec.label }}
+                    {{ spec.title }}
                   </p>
                   <p class="text-xs text-slate-500 mt-1">{{ spec.value }}</p>
                 </div>
@@ -239,7 +239,7 @@ const selectedIndex = ref(0);
 const isLoading = ref(false); // Khai báo biến loading
 const drone = ref({});
 const gallery = ref([]); // Khởi tạo gallery rỗng để chờ API
-
+const technicalSpecs = ref([]);
 const goBack = () => {
   router.push('/services');
 };
@@ -256,7 +256,8 @@ const fetchDroneDetail = async () => {
     
     // Map lại đường dẫn ảnh từ server (giả sử server chạy ở port 5000)
     gallery.value = parsedThumbnails.map(img => `http://localhost:5000${img}`);
-
+    const specsFromBE = data.specifications || [];
+    technicalSpecs.value = specsFromBE;
     // Xử lý Hotspots
     let rawHotspots = typeof data.hotspots === "string"
         ? JSON.parse(data.hotspots)
