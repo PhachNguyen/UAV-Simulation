@@ -54,9 +54,7 @@ const toggleChapter = (chapterId) => {
     <div
       class="bg-white rounded-xl border border-[#dee2e6] p-6 shadow-sm space-y-6 sticky top-24 max-h-[85vh] overflow-y-auto"
     >
-      <h3 class="text-sm font-black text-[#0b1f3f] uppercase tracking-[0.2em]">
-        Cấu trúc Bài học
-      </h3>
+      <h3 class="text-sm font-black text-[#0b1f3f]">Cấu trúc Bài học</h3>
 
       <div class="space-y-4">
         <div

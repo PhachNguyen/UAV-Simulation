@@ -3,36 +3,34 @@
     <Transition name="fade-backdrop">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/50 p-4"
         @click.self="$emit('update:modelValue', false)"
       >
         <Transition name="modal-scale">
           <div
             v-if="modelValue"
             :class="[
-              'bg-white rounded-[2rem] shadow-2xl relative overflow-hidden flex flex-col transition-all duration-300',
+              'bg-white rounded-2xl shadow-xl relative flex flex-col transition-all duration-300',
               sizeClasses[size],
             ]"
           >
             <div
-              class="px-8 py-6 flex items-center justify-between border-b border-slate-50"
+              class="px-6 py-5 flex items-start justify-between border-b border-gray-100"
             >
               <div class="flex items-center gap-4">
                 <div
                   v-if="icon"
-                  class="w-12 h-12 bg-slate-50 text-slate-900 rounded-2xl flex items-center justify-center"
+                  class="w-12 h-12 bg-blue-50 text-[#1a2b4c] rounded-xl flex items-center justify-center shrink-0 border border-blue-100/50"
                 >
-                  <component :is="icon" :size="24" />
+                  <component :is="icon" :size="22" stroke-width="2.5" />
                 </div>
                 <div>
-                  <h3
-                    class="text-xl font-black text-slate-900 leading-none uppercase tracking-tight"
-                  >
+                  <h3 class="text-lg font-bold text-gray-900">
                     <slot name="title">{{ title }}</slot>
                   </h3>
                   <p
                     v-if="subtitle"
-                    class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1.5"
+                    class="text-sm font-medium text-gray-500 mt-0.5"
                   >
                     {{ subtitle }}
                   </p>
@@ -42,19 +40,22 @@
               <button
                 v-if="showClose"
                 @click="$emit('update:modelValue', false)"
-                class="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"
+                class="p-2 -mr-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                title="Đóng"
               >
                 <X :size="20" />
               </button>
             </div>
 
-            <div class="flex-1 px-8 py-6 overflow-y-auto max-h-[70vh]">
+            <div
+              class="flex-1 px-6 py-6 overflow-y-auto max-h-[75vh] custom-scrollbar"
+            >
               <slot></slot>
             </div>
 
             <div
               v-if="$slots.footer"
-              class="px-8 py-6 bg-slate-50/50 border-t border-slate-50 flex justify-end gap-3"
+              class="px-6 py-4 bg-gray-50/80 border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl"
             >
               <slot name="footer"></slot>
             </div>
@@ -74,13 +75,13 @@ defineProps({
   subtitle: { type: String, default: "" },
   icon: { type: Object, default: null },
   showClose: { type: Boolean, default: true },
-  size: { type: String, default: "md" }, // sm, md, lg, xl
+  size: { type: String, default: "md" }, // sm, md, lg, xl, full
 });
 
 defineEmits(["update:modelValue"]);
 
 const sizeClasses = {
-  sm: "w-full max-w-md",
+  sm: "w-full max-w-sm",
   md: "w-full max-w-xl",
   lg: "w-full max-w-3xl",
   xl: "w-full max-w-5xl",
@@ -99,28 +100,34 @@ const sizeClasses = {
   opacity: 0;
 }
 
-/* Hiệu ứng phóng to/thu nhỏ Modal */
+/* Hiệu ứng phóng to/thu nhỏ Modal mượt mà hơn */
 .modal-scale-enter-active {
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .modal-scale-leave-active {
-  transition: all 0.25s ease-in;
+  transition: all 0.2s ease-in;
 }
 .modal-scale-enter-from {
   opacity: 0;
-  transform: scale(0.9) translateY(20px);
+  transform: scale(0.95) translateY(15px);
 }
 .modal-scale-leave-to {
   opacity: 0;
-  transform: scale(0.95);
+  transform: scale(0.98) translateY(10px);
 }
 
-/* Tùy chỉnh thanh cuộn cho body modal */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 4px;
+/* Tùy chỉnh thanh cuộn cho body modal đồng bộ với app */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
   border-radius: 10px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #94a3b8;
 }
 </style>
