@@ -4,18 +4,24 @@
       class="flex items-center justify-between bg-white p-4 rounded-t-xl border-b border-gray-200 shadow-sm mb-6"
     >
       <div class="flex items-center gap-4">
+        <button
+          type="button"
+          @click="$router.back()"
+          class="p-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all group shadow-sm cursor-pointer"
+          title="Quay lại danh sách"
+        >
+          <ArrowLeft
+            class="w-5 h-5 text-gray-400 group-hover:text-[#1a2b4c] transition-colors"
+          />
+        </button>
+
         <h1 class="text-2xl font-bold text-gray-900">
           {{
             isEdit
-              ? "Cấu hình UAV: " + (form.name || "Đang cập nhật...")
-              : "Thêm mới UAV"
+              ? "Thông tin Drone: " + (form.name || "Đang cập nhật...")
+              : "Thêm mới Drone"
           }}
         </h1>
-        <span
-          class="flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 text-sm font-semibold rounded-full"
-        >
-          <span class="w-2 h-2 rounded-full bg-green-500"></span> SkyLink System
-        </span>
       </div>
 
       <div class="flex items-center gap-4">
@@ -38,21 +44,30 @@
           @click.prevent="handleSave"
           class="px-6 py-2 bg-[#1a2b4c] text-white rounded-lg text-sm font-semibold hover:bg-[#13203a] flex items-center gap-2 shadow-sm cursor-pointer transition-colors"
         >
-          <Zap :size="16" class="text-blue-300" />
           {{ isEdit ? "Lưu thay đổi" : "Lưu thiết bị" }}
         </button>
       </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
+    <!--  Thông tin Mô hình 3D -->
+    <div
+      :class="[
+        'bg-white rounded-xl shadow-sm border p-6 mb-6 transition-colors',
+        errors.model3d
+          ? 'border-red-400 ring-4 ring-red-50'
+          : 'border-gray-200',
+      ]"
+    >
+      <div class="flex items-center justify-between mb-2">
         <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
           <Box :size="20" class="text-[#1a2b4c]" /> Không gian Mô phỏng 3D
+          <span class="text-red-500">*</span>
         </h2>
         <label
-          class="text-sm text-white bg-teal-600 hover:bg-teal-700 px-4 py-2 rounded-lg font-bold cursor-pointer transition-colors shadow-sm flex items-center gap-2"
+          @click="clearError('model3d')"
+          class="text-sm text-white bg-gray-700 hover:bg-gray-900 px-4 py-2 rounded-lg font-bold cursor-pointer transition-colors shadow-sm flex items-center gap-2"
         >
-          <UploadCloud :size="16" /> Đổi File 3D (.GLB)
+          <UploadCloud :size="16" /> Đổi File (.GLB)
           <input
             type="file"
             @change="handleFileUpload($event, 'model3d')"
@@ -62,6 +77,10 @@
         </label>
       </div>
 
+      <p v-if="errors.model3d" class="text-[11px] font-bold text-red-500 mb-4">
+        {{ errors.model3d }}
+      </p>
+      <div v-else class="mb-6"></div>
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-8">
           <div
@@ -81,7 +100,11 @@
                 class="absolute inset-0 pointer-events-none border-4 border-teal-500/60 animate-pulse z-10"
               ></div>
             </template>
-            <div v-else class="text-center">
+            <div
+              v-else
+              @click="clearError('model3d')"
+              class="text-center w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors"
+            >
               <Box :size="48" class="mx-auto text-gray-400 mb-3" />
               <p class="text-gray-300 font-medium text-base">
                 Chưa tải lên mô hình 3D
@@ -89,12 +112,23 @@
               <p class="text-gray-500 text-sm mt-1">
                 Hãy tải lên một file định dạng .glb để bắt đầu
               </p>
+              <label
+                class="mt-4 text-sm text-gray-900 bg-white hover:bg-gray-200 px-4 py-2 rounded-lg font-bold cursor-pointer transition-colors"
+              >
+                Tải lên ngay
+                <input
+                  type="file"
+                  @change="handleFileUpload($event, 'model3d')"
+                  class="hidden"
+                  accept=".glb"
+                />
+              </label>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-4 flex flex-col h-[500px]">
-          <div class="flex justify-between items-center mb-3">
+          <div class="flex justify-between items-center mb-1">
             <h3 class="text-sm font-bold text-gray-900">
               Danh sách Điểm chú thích
             </h3>
@@ -107,8 +141,15 @@
             </button>
           </div>
 
+          <p
+            v-if="errors.hotspots"
+            class="text-[11px] font-bold text-red-500 mb-2"
+          >
+            {{ errors.hotspots }}
+          </p>
+
           <div
-            class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 pb-2"
+            class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 pb-2 mt-2"
           >
             <div
               v-if="!form.hotspots || form.hotspots.length === 0"
@@ -164,8 +205,14 @@
                 >
                 <input
                   v-model="spot.title"
+                  @focus="clearError('hotspots')"
                   placeholder="Tên bộ phận (VD: Động cơ)..."
-                  class="bg-transparent font-bold text-sm text-gray-900 outline-none border-b border-gray-300 focus:border-[#1a2b4c] w-full pb-1"
+                  :class="[
+                    'bg-transparent font-bold text-sm text-gray-900 outline-none border-b w-full pb-1 transition-colors',
+                    errors.hotspots && !spot.title.trim()
+                      ? 'border-red-400 placeholder-red-300'
+                      : 'border-gray-300 focus:border-[#1a2b4c]',
+                  ]"
                 />
               </div>
 
@@ -220,6 +267,15 @@
           </div>
         </div>
       </div>
+    </div>
+    <!-- Thông tin Drone -->
+    <div class="flex items-center gap-3 mb-4 mt-8">
+      <div class="p-2 bg-white border border-gray-200 rounded-lg shadow-sm">
+        <FileText :size="20" class="text-[#1a2b4c]" />
+      </div>
+      <h1 class="text-xl font-bold text-gray-900">
+        Thông tin chi tiết về Drone
+      </h1>
     </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
@@ -325,13 +381,14 @@
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-bold text-gray-900 mb-2"
-                >Tên thiết bị (Model) <span class="text-red-500">*</span></label
-              >
+              <label class="block text-sm font-bold text-gray-900 mb-2">
+                Tên thiết bị (Model) <span class="text-red-500">*</span>
+              </label>
               <input
                 v-model="form.name"
                 type="text"
                 placeholder="VD: DJI Mavic 3 Enterprise"
+                @focus="clearError('name')"
                 :class="[
                   'w-full border rounded-lg px-4 py-2.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#1a2b4c] transition-shadow',
                   errors.name ? 'border-red-400' : 'border-gray-300',
@@ -342,9 +399,9 @@
               </p>
             </div>
             <div>
-              <label class="block text-sm font-bold text-gray-900 mb-2"
-                >Mô tả tổng quan</label
-              >
+              <label class="block text-sm font-bold text-gray-900 mb-2">
+                Mô tả tổng quan
+              </label>
               <textarea
                 v-model="form.description"
                 rows="4"
@@ -355,47 +412,84 @@
           </div>
 
           <div class="pt-4 border-t border-gray-100">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-2">
               <h3 class="text-base font-bold text-gray-900">
-                Thông số kỹ thuật
+                Thông tin cần thiết
               </h3>
               <button
                 type="button"
                 @click.prevent="addSpec"
                 class="text-xs font-bold text-[#1a2b4c] hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-md flex items-center gap-1 cursor-pointer transition-colors"
               >
-                <Plus :size="14" /> Thêm thông số
+                <Plus :size="14" /> Thêm mục
               </button>
             </div>
 
+            <p
+              v-if="errors.specifications"
+              class="text-[11px] font-bold text-red-500 mb-3"
+            >
+              {{ errors.specifications }}
+            </p>
+
             <div
-              class="space-y-3 bg-gray-50/50 p-4 rounded-xl border border-gray-200"
+              class="space-y-4 bg-gray-50/50 p-4 rounded-xl border border-gray-200"
             >
               <div
                 v-for="spec in form.specifications"
                 :key="spec.id"
-                class="flex gap-3 items-center group"
+                class="flex gap-4 items-start group"
               >
-                <input
-                  v-model="spec.title"
-                  type="text"
-                  placeholder="Thuộc tính (VD: Tốc độ tối đa)"
-                  class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:border-blue-400 transition-colors shadow-sm"
-                />
-                <input
-                  v-model="spec.value"
-                  type="text"
-                  placeholder="Giá trị (VD: 21 m/s)"
-                  class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:border-blue-400 transition-colors shadow-sm"
-                />
+                <div class="flex-1 flex flex-col gap-1.5">
+                  <label
+                    class="text-[11px] font-bold text-gray-600 uppercase tracking-wide"
+                  >
+                    Tiêu đề <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="spec.title"
+                    type="text"
+                    placeholder="VD: Tốc độ tối đa"
+                    @focus="clearError('specifications')"
+                    :class="[
+                      'w-full border rounded-lg px-4 py-2 text-sm bg-white focus:outline-none transition-shadow',
+                      errors.specifications && !spec.title.trim()
+                        ? 'border-red-400 focus:ring-2 focus:ring-red-100'
+                        : 'border-gray-300 focus:border-blue-400 shadow-sm',
+                    ]"
+                  />
+                </div>
+
+                <div class="flex-1 flex flex-col gap-1.5">
+                  <label
+                    class="text-[11px] font-bold text-gray-600 uppercase tracking-wide"
+                  >
+                    Giá trị <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    v-model="spec.value"
+                    type="text"
+                    placeholder="VD: 21 m/s"
+                    @focus="clearError('specifications')"
+                    :class="[
+                      'w-full border rounded-lg px-4 py-2 text-sm bg-white focus:outline-none transition-shadow',
+                      errors.specifications && !spec.value.trim()
+                        ? 'border-red-400 focus:ring-2 focus:ring-red-100'
+                        : 'border-gray-300 focus:border-blue-400 shadow-sm',
+                    ]"
+                  />
+                </div>
+
                 <button
                   type="button"
                   @click.prevent="removeSpec(spec.id)"
-                  class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg shrink-0 cursor-pointer transition-colors"
+                  class="p-2 mt-6 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg shrink-0 cursor-pointer transition-colors"
+                  title="Xóa thông số"
                 >
                   <Trash2 :size="18" />
                 </button>
               </div>
+
               <div
                 v-if="form.specifications.length === 0"
                 class="py-6 text-center border-2 border-dashed border-gray-200 rounded-xl bg-white"
@@ -421,11 +515,13 @@ import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import {
   Box,
   MapPin,
+  ArrowLeft,
   Zap,
   UploadCloud,
   Trash2,
   Plus,
   Edit3,
+  FileText,
   Check,
 } from "lucide-vue-next";
 
@@ -456,7 +552,12 @@ const previews = reactive({
 });
 
 const errors = reactive({});
-
+// HÀM XÓA LỖI KHI CLICK VÀO FORM
+const clearError = (field) => {
+  if (errors[field]) {
+    delete errors[field];
+  }
+};
 // Thông số kỹ thuật
 const addSpec = () =>
   form.specifications.push({ id: Date.now(), title: "", value: "" });
@@ -464,18 +565,56 @@ const removeSpec = (id) =>
   (form.specifications = form.specifications.filter((s) => s.id !== id));
 
 // Validation
+// VALIDATION NÂNG CAO
 const validateForm = () => {
+  // Xóa các lỗi cũ trước khi check lại
   Object.keys(errors).forEach((key) => delete errors[key]);
   let isValid = true;
+
+  // 1. Kiểm tra Tên thiết bị
   if (!form.name.trim()) {
-    errors.name = "Bắt buộc nhập tên thiết bị";
+    errors.name = "Vui lòng nhập tên thiết bị.";
+    isValid = false;
+  } else if (form.name.length > 100) {
+    errors.name = "Tên thiết bị không được vượt quá 100 ký tự.";
     isValid = false;
   }
-  if (!isEdit.value && !form.image) {
-    errors.image = "Bắt buộc tải ảnh đại diện";
+
+  // 2. Kiểm tra Ảnh đại diện (Chỉ bắt buộc khi tạo mới)
+  if (!isEdit.value && !form.image && !previews.image) {
+    errors.image = "Bắt buộc phải có ảnh đại diện.";
     isValid = false;
   }
-  if (!isValid) toast.error("Vui lòng bổ sung các thông tin bắt buộc!");
+
+  // 3. Kiểm tra Thông số kỹ thuật (Nếu có thêm thì không được để trống ô nào)
+  if (form.specifications.length > 0) {
+    const hasEmptySpecs = form.specifications.some(
+      (spec) => !spec.title.trim() || !spec.value.trim(),
+    );
+    if (hasEmptySpecs) {
+      errors.specifications =
+        "Vui lòng điền đầy đủ Tên và Giá trị cho các thông số kỹ thuật.";
+      isValid = false;
+    }
+  }
+
+  // 4. Kiểm tra Điểm chú thích 3D (Nếu có chấm điểm thì phải đặt tên linh kiện)
+  if (form.hotspots.length > 0) {
+    const hasEmptyHotspots = form.hotspots.some((spot) => !spot.title.trim());
+    if (hasEmptyHotspots) {
+      errors.hotspots =
+        "Vui lòng đặt Tên bộ phận cho tất cả các điểm chú thích 3D.";
+      isValid = false;
+    }
+  }
+
+  // Hiển thị thông báo nếu có lỗi
+  if (!isValid) {
+    toast.error(
+      "Vui lòng kiểm tra lại các thông tin còn trống hoặc chưa hợp lệ!",
+    );
+  }
+
   return isValid;
 };
 

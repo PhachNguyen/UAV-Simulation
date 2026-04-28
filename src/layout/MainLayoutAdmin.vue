@@ -39,8 +39,12 @@
           :key="item.name"
           :to="item.path"
           class="flex items-center p-3 rounded-xl transition-all group relative font-medium"
-          :class="[isSidebarOpen ? 'gap-3.5' : 'justify-center']"
-          active-class="bg-[#5b6275] !text-white shadow-md shadow-slate-500/20"
+          :class="[
+            isSidebarOpen ? 'gap-3.5' : 'justify-center',
+            route.path.includes(item.path)
+              ? 'bg-[#5b6275] text-white shadow-md shadow-slate-500/20'
+              : 'text-slate-600 hover:bg-slate-50',
+          ]"
         >
           <component
             :is="item.icon"
