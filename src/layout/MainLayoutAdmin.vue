@@ -197,7 +197,7 @@ const menuItems = [
   { name: "Bảng điều khiển", path: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Thư viện Drone", path: "/admin/drones", icon: PlaneTakeoff },
   { name: "Quản lý bài giảng", path: "/admin/course", icon: GraduationCap },
-  { name: "Lịch bay", path: "/admin/schedule", icon: Calendar },
+  { name: "Quản lý tài khoản", path: "/admin/users", icon: Calendar },
 ];
 
 const logout = () => {
