@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from "vue";
 import LessonStructure from "@/components/LessonStructure.vue";
 import api from "@/utils/apis/axios";
-import { useRouter, useRoute } from "vue-router"; // Bổ sung useRoute
+import { useRouter, useRoute } from "vue-router";
 import { QuillEditor } from "@vueup/vue-quill";
 import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import {
@@ -13,27 +13,26 @@ import {
   RefreshCw,
   RotateCcw,
   ArrowLeft,
+  LayoutTemplate,
 } from "lucide-vue-next";
-
+import Swal from "sweetalert2";
 // --- TRẠNG THÁI (STATE) ---
-const isSidebarOpen = ref(true);
 const activeLessonId = ref(null);
 const isLoading = ref(false);
+const isSaving = ref(false);
 const courseStructure = ref([]);
 
 // Điều hướng
 const router = useRouter();
-const route = useRoute(); // Khai báo route để lấy ID từ URL
+const route = useRoute();
 const chapterId = route.query.chapterId;
+
 /** --- 1. API & LẤY DỮ LIỆU --- **/
 const fetchCourseData = async () => {
   try {
     isLoading.value = true;
-
-    // 1. Lấy API đúng 1 chương
     const { data } = await api.get(`/courses/${chapterId}`);
 
-    // 2. SỬA CHỖ NÀY: Bọc data vào mảng [data]
     courseStructure.value = [data].map((chapter) => ({
       ...chapter,
       lessons: (chapter.lessons || []).map((lesson) => ({
@@ -48,7 +47,6 @@ const fetchCourseData = async () => {
       })),
     }));
 
-    // 3. Lấy ID từ URL
     const urlLessonId = parseInt(route.params.id);
     if (urlLessonId) {
       activeLessonId.value = urlLessonId;
@@ -64,7 +62,7 @@ const fetchCourseData = async () => {
 
 onMounted(fetchCourseData);
 
-// --- 2. COMPUTED: TỰ ĐỘNG LẤY BÀI ĐANG CHỌN ---
+// --- 2. COMPUTED ---
 const currentLesson = computed(() => {
   if (!activeLessonId.value) return null;
   for (const chapter of courseStructure.value) {
@@ -77,18 +75,17 @@ const currentLesson = computed(() => {
 // --- 3. HÀNH ĐỘNG (METHODS) ---
 const selectLesson = (id) => {
   activeLessonId.value = id;
-  // Cập nhật lại URL mà không reload trang
-  router.replace(`/admin/lesson/${id}/sections`);
+  router.replace(`/admin/lesson/${id}/sections?chapterId=${chapterId}`);
 };
 
 const saveChanges = async () => {
   if (!currentLesson.value) return;
   try {
-    isLoading.value = true;
+    isSaving.value = true;
     const payload = {
       title: currentLesson.value.title,
       content: currentLesson.value.content,
-      sections: currentLesson.value.sections, // Gửi nguyên mảng
+      sections: currentLesson.value.sections,
       hotspots: currentLesson.value.hotspots,
     };
 
@@ -97,14 +94,13 @@ const saveChanges = async () => {
       payload,
     );
 
-    // Cập nhật lại local state
     currentLesson.value.sections = data.sections;
-    alert("Hệ thống SkyLink: Đã lưu nội dung văn bản thành công!");
+    alert("Đã lưu nội dung văn bản thành công!");
   } catch (error) {
     console.error(error);
     alert("Lỗi: Không thể lưu dữ liệu.");
   } finally {
-    isLoading.value = false;
+    isSaving.value = false;
   }
 };
 
@@ -112,18 +108,18 @@ const addSection = () => {
   if (!currentLesson.value) return;
   if (!currentLesson.value.sections) currentLesson.value.sections = [];
   currentLesson.value.sections.push({
-    title: "Tiêu đề mục mới",
+    title: "",
     content: "",
   });
 };
 
 const removeSection = (index) => {
-  if (confirm("Xác nhận xóa mục này?")) {
+  if (confirm("Bạn có chắc chắn muốn xóa mục này?")) {
     currentLesson.value.sections.splice(index, 1);
   }
 };
 
-/** --- 4. CÁC HÀM CỦA SIDEBAR --- **/
+/** --- 4. CÁC HÀM SIDEBAR --- **/
 const handleAddChapter = async () => {
   const { data } = await api.post("/courses", {
     title: "Chương mới",
@@ -139,108 +135,112 @@ const handleAddLesson = async (chapterId) => {
     order: chapter.lessons.length + 1,
   });
   chapter.lessons.push({ ...data, resources: [], hotspots: [], sections: [] });
-  selectLesson(data.id); // Tự động chọn bài vừa tạo
+  selectLesson(data.id);
 };
 
 const handleRemoveItem = async ({ cIndex, lIndex }) => {
-  if (!confirm("Xác nhận xóa?")) return;
-  const chapter = courseStructure.value[cIndex];
-  if (lIndex !== undefined) {
-    await api.delete(`/courses/lessons/${chapter.lessons[lIndex].id}`);
-    chapter.lessons.splice(lIndex, 1);
-  } else {
-    await api.delete(`/courses/${chapter.id}`);
-    courseStructure.value.splice(cIndex, 1);
+  // Xác định xem người dùng đang muốn xóa Bài giảng hay xóa cả Chương
+  const isLesson = lIndex !== undefined;
+  const titleText = isLesson
+    ? "Xác nhận xóa Bài giảng?"
+    : "Xác nhận xóa Chương học?";
+  const warningText = isLesson
+    ? "Bài giảng này cùng toàn bộ nội dung bên trong sẽ bị xóa. Bạn chắc chắn chứ?"
+    : "CẢNH BÁO: Xóa chương sẽ xóa toàn bộ bài giảng trực thuộc! Bạn không thể hoàn tác.";
+
+  // 1. Hiển thị hộp thoại xác nhận
+  const result = await Swal.fire({
+    title: titleText,
+    text: warningText,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#1a2b4c", // Màu Navy đồng bộ hệ thống
+    cancelButtonColor: "#64748b", // Màu Slate
+    confirmButtonText: "Đồng ý xóa",
+    cancelButtonText: "Hủy bỏ",
+    reverseButtons: true,
+    customClass: {
+      popup: "rounded-2xl",
+      confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+      cancelButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+    },
+  });
+
+  // 2. Xử lý sau khi người dùng xác nhận
+  if (result.isConfirmed) {
+    try {
+      Swal.showLoading(); // Hiện hiệu ứng loading trong lúc chờ API
+
+      const chapter = courseStructure.value[cIndex];
+
+      // Gọi API xóa và cập nhật state FE
+      if (isLesson) {
+        await api.delete(`/courses/lessons/${chapter.lessons[lIndex].id}`);
+        chapter.lessons.splice(lIndex, 1);
+      } else {
+        await api.delete(`/courses/${chapter.id}`);
+        courseStructure.value.splice(cIndex, 1);
+      }
+
+      // 3. Thông báo thành công
+      Swal.fire({
+        title: "Đã xóa!",
+        text: isLesson
+          ? "Bài giảng đã được gỡ bỏ thành công."
+          : "Chương học đã được gỡ bỏ thành công.",
+        icon: "success",
+        confirmButtonColor: "#1a2b4c",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Lỗi xóa nội dung:", error);
+      Swal.fire({
+        title: "Thất bại!",
+        text: "Đã xảy ra lỗi trong quá trình xóa dữ liệu. Vui lòng thử lại.",
+        icon: "error",
+        confirmButtonColor: "#1a2b4c",
+      });
+    }
   }
 };
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col font-inter bg-[#f4f7f9]">
-    <!-- <header
-      class="bg-[#0b1f3f] text-white h-14 flex items-center justify-between px-6 shrink-0 z-20 shadow-md"
+  <div
+    class="h-screen bg-gray-100 p-4 lg:p-6 flex gap-6 overflow-hidden font-sans"
+  >
+    <main
+      class="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden relative"
     >
-      <div class="flex items-center gap-4">
-        <span
-          class="material-symbols-outlined cursor-pointer hover:bg-white/10 p-1 rounded"
-          >menu</span
-        >
-        <h1 class="text-lg font-bold tracking-tight">
-          SkyLink Admin
-          <span class="font-light opacity-50">| UAV Content CMS</span>
-        </h1>
-      </div>
-      <div class="flex items-center gap-4">
-        <span class="material-symbols-outlined cursor-pointer"
-          >account_circle</span
-        >
-        <span class="material-symbols-outlined cursor-pointer">settings</span>
-      </div>
-    </header> -->
-    <!--  Qúa trình -->
-    <!-- <nav
-      class="bg-white border-b border-gray-200 px-6 py-3 flex items-center text-sm text-gray-500 shrink-0"
-    >
-      <button
-        @click="toggleSidebar"
-        class="mr-4 flex items-center justify-center w-8 h-8 hover:bg-gray-100 rounded-full transition-colors"
+      <div
+        v-if="isLoading"
+        class="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-4"
       >
-        <span
-          class="material-symbols-outlined text-[#0b1f3f] transition-transform duration-300"
-          :class="{ 'rotate-180': !isSidebarOpen }"
-        >
-          chevron_left
-        </span>
-      </button>
-      <div class="flex items-center gap-2">
-        <span>Bài học</span>
-        <span class="material-symbols-outlined text-xs">chevron_right</span>
-        <span>Khóa học UAV Nâng cao</span>
-        <span class="material-symbols-outlined text-xs">chevron_right</span>
-        <span
-          class="text-[#0b1f3f] font-bold uppercase tracking-wider text-[11px]"
-          >Trình biên tập</span
-        >
+        <RefreshCw class="w-10 h-10 animate-spin text-[#1a2b4c]" />
+        <p class="text-gray-500 font-medium">Đang tải dữ liệu bài giảng...</p>
       </div>
-    </nav> -->
 
-    <main class="flex flex-1 overflow-hidden relative">
-      <section
-        class="flex-1 overflow-y-auto bg-white m-6 rounded-3xl border border-gray-200 shadow-xl transition-all duration-300"
-      >
-        <div
-          v-if="isLoading"
-          class="flex flex-col items-center justify-center h-full gap-4"
-        >
-          <RefreshCw class="w-10 h-10 animate-spin text-blue-500" />
-          <p class="text-slate-400 font-medium animate-pulse">
-            Đang tải dữ liệu Aero-X...
-          </p>
-        </div>
-        <div v-else-if="currentLesson" class="mx-auto p-10">
+      <div v-else-if="currentLesson" class="flex flex-col h-full">
+        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
           <header class="mb-8">
-            <div class="flex items-center justify-between mb-6">
-              <div class="flex items-center gap-4">
-                <button
-                  @click="router.back()"
-                  class="cursor-pointer p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-gray-200 hover:border-gray-500 transition-all group shadow-sm"
-                  title="Quay lại"
-                >
-                  <ArrowLeft
-                    class="w-5 h-5 text-slate-400 group-hover:text-gray-500"
-                  />
-                </button>
-
-                <div class="flex items-center gap-3">
-                  <div class="p-2 bg-blue-50 rounded-lg">
-                    <Type class="w-4 h-4 text-gray-600" />
-                  </div>
-                  <span
-                    class="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]"
-                  >
-                    Thông tin bài giảng
-                  </span>
-                </div>
+            <div class="flex items-center gap-4 mb-6">
+              <button
+                @click="router.back()"
+                class="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-[#1a2b4c] transition-all group shadow-sm cursor-pointer"
+                title="Quay lại"
+              >
+                <ArrowLeft
+                  class="w-5 h-5 text-gray-400 group-hover:text-[#1a2b4c] transition-colors"
+                />
+              </button>
+              <div
+                class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-gray-700 rounded-md border border-blue-100"
+              >
+                <LayoutTemplate :size="16" />
+                <span class="text-xs font-bold uppercase tracking-wider">
+                  Trình soạn thảo
+                </span>
               </div>
             </div>
 
@@ -249,72 +249,52 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
                 v-model="currentLesson.title"
                 type="text"
                 placeholder="Nhập tiêu đề chính của bài giảng..."
-                class="w-full text-3xl font-black text-[#0b1f3f] border-none border-b-2 border-transparent focus:border-blue-500 focus:ring-0 p-0 pb-2 transition-all placeholder:text-slate-200"
+                class="w-full text-2xl font-bold text-gray-900 border-b-2 border-gray-200 focus:border-[#1a2b4c] focus:ring-0 p-0 pb-2 transition-all outline-none bg-transparent"
               />
-              <div
-                class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all group-focus-within:w-full"
-              ></div>
             </div>
           </header>
 
-          <div class="space-y-12">
-            <!-- <div class="space-y-4">
-              <div class="flex items-center justify-between px-2">
-                <h3
-                  class="text-[11px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2"
-                >
-                  <Layout class="w-3 h-3" /> Tiêu đề bài giảng
-                </h3>
-              </div>
-              <input
-                v-model="currentLesson.title"
-                type="text"
-                class="w-full text-3xl font-black text-[#0b1f3f] border-none border-b-2 border-transparent focus:border-blue-500 focus:ring-0 p-0 pb-2 transition-all"
-              />
-            </div> -->
-
+          <div class="space-y-6">
             <div
               v-for="(section, index) in currentLesson.sections"
               :key="index"
-              class="relative group"
+              class="relative group bg-gray-50 p-6 rounded-xl border border-gray-200 transition-all hover:border-blue-300"
             >
               <button
                 @click="removeSection(index)"
-                class="cursor-pointer absolute -right-4 top-0 p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                class="absolute right-4 top-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                 title="Xóa mục này"
               >
-                <Trash2 class="w-4 h-4 text-red-400" />
+                <Trash2 :size="18" />
               </button>
 
-              <div
-                class="space-y-6 bg-slate-50/30 p-6 rounded-3xl border border-dashed border-slate-200"
-              >
-                <div class="space-y-2">
-                  <div
-                    class="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest"
+              <div class="space-y-4">
+                <div>
+                  <label
+                    class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block flex items-center gap-2"
                   >
                     <span
-                      class="w-5 h-5 bg-[#0b1f3f] text-white rounded flex items-center justify-center text-[8px]"
+                      class="w-5 h-5 bg-[#1a2b4c] text-white rounded flex items-center justify-center text-[10px]"
                       >{{ index + 1 }}</span
                     >
                     Tiêu đề mục
-                  </div>
+                  </label>
                   <input
                     v-model="section.title"
                     type="text"
                     placeholder="Ví dụ: 1.1 Khái niệm cơ bản..."
-                    class="w-full bg-transparent text-lg font-bold text-[#0b1f3f] border-none focus:ring-0 p-0"
+                    class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 font-semibold text-gray-900 focus:border-[#1a2b4c] focus:ring-1 focus:ring-[#1a2b4c] outline-none transition-all"
                   />
                 </div>
 
                 <div
-                  class="quill-wrapper shadow-sm border border-white rounded-2xl overflow-hidden bg-white"
+                  class="bg-white rounded-lg border border-gray-300 overflow-hidden shadow-sm"
                 >
                   <QuillEditor
                     v-model:content="section.content"
                     contentType="html"
                     theme="snow"
-                    placeholder="Nhập nội dung cho mục này..."
+                    placeholder="Nhập nội dung chi tiết cho mục này..."
                   />
                 </div>
               </div>
@@ -322,64 +302,62 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
 
             <button
               @click="addSection"
-              class="w-full py-8 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-3 text-slate-400 hover:border-blue-400 hover:text-blue-500 hover:bg-blue-50/30 transition-all group"
+              class="w-full py-6 mt-4 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-[#1a2b4c] hover:text-[#1a2b4c] hover:bg-blue-50/50 transition-all cursor-pointer"
             >
               <div
-                class="p-3 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform"
+                class="p-2 bg-white rounded-lg shadow-sm border border-gray-100"
               >
-                <Plus class="w-6 h-6" />
+                <Plus :size="20" />
               </div>
-              <span class="text-[11px] font-black uppercase tracking-[0.2em]"
-                >Thêm mục nội dung mới</span
-              >
+              <span class="text-sm font-semibold">Thêm nội dung mới</span>
             </button>
           </div>
+        </div>
 
+        <div
+          class="p-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between shrink-0"
+        >
           <div
-            class="mt-12 flex items-center justify-between border-t border-slate-100 pt-8 pb-12"
+            class="flex items-center gap-2 text-xs font-semibold text-gray-500"
           >
-            <div class="flex items-center gap-4">
-              <button
-                @click="saveChanges"
-                :disabled="isLoading"
-                class="group relative flex items-center gap-3 bg-[#0b1f3f] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 hover:-translate-y-1 active:scale-95 transition-all disabled:opacity-50 disabled:translate-y-0"
-              >
-                <div v-if="isLoading" class="flex items-center gap-2">
-                  <RefreshCw class="w-4 h-4 animate-spin text-teal-400" />
-                  <span>Đang đồng bộ...</span>
-                </div>
-                <div v-else class="flex items-center gap-2">
-                  <Save
-                    class="w-4 h-4 text-teal-400 group-hover:rotate-12 transition-transform"
-                  />
-                  <span>Lưu & Xuất bản</span>
-                </div>
+            <span
+              class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
+            ></span>
+            Hệ thống ổn định
+          </div>
 
-                <div
-                  class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"
-                ></div>
-              </button>
-
-              <button
-                @click="router.back()"
-                class="flex items-center gap-2 px-6 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
-              >
-                <RotateCcw class="w-4 h-4" />
-                Hủy thay đổi
-              </button>
-            </div>
-
-            <div
-              class="flex items-center gap-2 text-[10px] font-bold text-slate-300 uppercase tracking-widest"
+          <div class="flex items-center gap-3">
+            <button
+              @click="router.back()"
+              class="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-all cursor-pointer"
             >
-              <div
-                class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"
-              ></div>
-              Sẵn sàng lưu trữ
-            </div>
+              Hủy thay đổi
+            </button>
+            <button
+              @click="saveChanges"
+              :disabled="isSaving"
+              class="flex items-center gap-2 bg-[#1a2b4c] text-white px-6 py-2.5 rounded-lg text-sm font-semibold shadow-sm hover:bg-[#13203a] transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <RefreshCw v-if="isSaving" :size="16" class="animate-spin" />
+              <Save v-else :size="16" />
+              {{ isSaving ? "Đang lưu..." : "Lưu dữ liệu" }}
+            </button>
           </div>
         </div>
-      </section>
+      </div>
+
+      <div
+        v-else
+        class="flex flex-col items-center justify-center h-full text-gray-400"
+      >
+        <LayoutTemplate :size="48" class="mb-4 opacity-50" />
+        <p class="font-medium text-lg text-gray-500">Chưa chọn bài giảng</p>
+        <p class="text-sm">
+          Hãy chọn một bài giảng ở menu bên trái để bắt đầu soạn thảo.
+        </p>
+      </div>
+    </main>
+    <aside class="w-80 flex flex-col">
       <LessonStructure
         :structure="courseStructure"
         :active-lesson-id="activeLessonId"
@@ -388,36 +366,45 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
         @add-lesson="handleAddLesson"
         @remove-item="handleRemoveItem"
         status="Nháp"
-      ></LessonStructure>
-    </main>
+        class="h-full"
+      />
+    </aside>
   </div>
 </template>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap");
-
-.font-inter {
-  font-family: "Inter", sans-serif;
-}
-
-/* Tùy chỉnh thanh cuộn cho hi-tech */
-::-webkit-scrollbar {
+/* Tùy chỉnh thanh cuộn cho khu vực Editor */
+.custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
-::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
-::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
   border-radius: 10px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #94a3b8;
 }
-/* Ép kích thước cho vùng soạn thảo để không bị vỡ layout */
-:deep(.ql-container) {
-  min-height: 450px;
 
-  font-size: 16px;
+/* Ghi đè CSS của Quill Editor để gọn gàng hơn */
+:deep(.ql-toolbar.ql-snow) {
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  padding: 12px 8px;
+}
+
+:deep(.ql-container.ql-snow) {
+  border: none;
+  min-height: 250px; /* Vừa phải, không quá dài gây tràn màn hình nhanh */
+  font-size: 15px;
+}
+
+:deep(.ql-editor) {
+  padding: 16px 20px;
 }
 </style>

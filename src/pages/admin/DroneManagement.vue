@@ -211,13 +211,14 @@
                   class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <button
-                    @click="$router.push(`/admin/drones/edit/${drone.id}`)"
+                    @click.stop="$router.push(`/admin/drones/edit/${drone.id}`)"
                     class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Settings :size="18" />
                   </button>
+
                   <button
-                    @click="handleDelete(drone.id)"
+                    @click.stop="handleDelete(drone.id)"
                     class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                   >
                     <Trash2 :size="18" />
@@ -292,7 +293,7 @@ import {
   XCircle,
   AlertCircle,
 } from "lucide-vue-next";
-
+import Swal from "sweetalert2";
 const toast = useToast();
 const drones = ref([]);
 const totalPages = ref(1);
@@ -372,13 +373,53 @@ const changePage = (page) => {
 };
 
 const handleDelete = async (id) => {
-  if (!confirm("Bạn có chắc chắn muốn xóa UAV này khỏi hệ thống?")) return;
-  try {
-    await api.delete(`/drones/${id}`);
-    toast.success("Đã xóa thiết bị thành công");
-    fetchDrones(currentPage.value);
-  } catch (error) {
-    toast.error("Lỗi khi xóa thiết bị");
+  // 1. Hiển thị hộp thoại xác nhận chuyên nghiệp
+  const result = await Swal.fire({
+    title: "Xác nhận xóa Drone?",
+    text: "Thiết bị này sẽ bị loại bỏ vĩnh viễn khỏi hệ thống. Bạn chắc chắn chứ?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#1a2b4c", // Màu Navy đồng bộ
+    cancelButtonColor: "#64748b", // Màu Slate
+    confirmButtonText: "Đồng ý xóa",
+    cancelButtonText: "Hủy bỏ",
+    reverseButtons: true,
+    customClass: {
+      popup: "rounded-2xl",
+      confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+      cancelButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+    },
+  });
+
+  // 2. Xử lý sau khi người dùng xác nhận
+  if (result.isConfirmed) {
+    try {
+      // Hiển thị loading trong khi chờ API
+      Swal.showLoading();
+
+      await api.delete(`/drones/${id}`);
+
+      // Thông báo thành công
+      Swal.fire({
+        title: "Đã xóa!",
+        text: "Thiết bị UAV đã được gỡ bỏ thành công.",
+        icon: "success",
+        confirmButtonColor: "#1a2b4c",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      // Tải lại dữ liệu (giữ nguyên logic của bạn)
+      fetchDrones(currentPage.value);
+    } catch (error) {
+      console.error("Lỗi xóa UAV:", error);
+      Swal.fire({
+        title: "Thất bại!",
+        text: "Đã xảy ra lỗi trong quá trình xóa thiết bị.",
+        icon: "error",
+        confirmButtonColor: "#1a2b4c",
+      });
+    }
   }
 };
 

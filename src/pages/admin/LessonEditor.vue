@@ -14,6 +14,7 @@ import {
   Edit3,
   Save,
   Send,
+  ArrowLeft,
   ChevronDown,
   RefreshCw,
   Info,
@@ -115,7 +116,10 @@ const videoSource = computed(() => {
     ? url
     : `http://localhost:5000${url}`;
 });
-
+const goToCourseStructure = () => {
+  // Điều hướng về trang danh sách chương học
+  router.push("/admin/course"); //
+};
 /** --- 3. API & CRUD LOGIC --- **/
 const fetchCourseData = async () => {
   try {
@@ -133,7 +137,7 @@ const fetchCourseData = async () => {
             lesson.model3DPath === "null" || !lesson.model3DPath
               ? null
               : lesson.model3DPath,
-          
+
           hotspots:
             typeof lesson.hotspots === "string"
               ? JSON.parse(lesson.hotspots)
@@ -488,8 +492,8 @@ onMounted(fetchCourseData);
             <div class="flex items-center gap-4">
               <button
                 @click="goToCourseStructure"
-                class="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-[#0b1f3f] transition-all group shadow-sm"
-                title="Quay lại cấu trúc khóa học"
+                class="cursor-pointer p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-[#0b1f3f] transition-all group shadow-sm"
+                title="Quay lại quản lý nội dung"
               >
                 <ArrowLeft
                   class="w-5 h-5 text-slate-400 group-hover:text-[#0b1f3f]"
@@ -497,14 +501,10 @@ onMounted(fetchCourseData);
               </button>
 
               <div>
-                <h1
-                  class="text-xl font-black text-[#0b1f3f] uppercase tracking-tight"
-                >
+                <h1 class="text-xl font-black text-[#0b1f3f]">
                   Chi tiết nội dung bài giảng
                 </h1>
-                <p
-                  class="text-[10px] text-slate-400 font-bold uppercase tracking-widest"
-                >
+                <p class="text-[12px] text-slate-400 font-bold">
                   Cấu hình Video, Tài liệu & 3D
                 </p>
               </div>

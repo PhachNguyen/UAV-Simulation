@@ -88,7 +88,7 @@
 
     <div v-else class="space-y-3 mb-8">
       <div
-        v-for="chapter in paginatedChapters"
+        v-for="(chapter, index) in paginatedChapters"
         :key="chapter.id"
         @click="
           $router.push({ name: 'LessonEditor', params: { id: chapter.id } })
@@ -100,7 +100,9 @@
           <span
             class="w-8 h-8 rounded-full bg-gray-50 text-gray-500 border border-gray-200 flex items-center justify-center text-xs font-bold"
           >
-            {{ chapter.order || 0 }}
+            <!-- {{ chapter.order || 0 }}
+             -->
+            {{ (currentPage - 1) * itemsPerPage + index + 1 }}
           </span>
         </div>
 
@@ -158,10 +160,10 @@
           class="col-span-2 flex items-center gap-2 text-xs font-semibold text-gray-700"
         >
           <span
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-200"
           >
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Xuất
-            bản
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Đã
+            đăng
           </span>
         </div>
 
@@ -326,6 +328,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import api from "@/utils/apis/axios";
 import { useToast } from "vue-toastification";
+import Swal from "sweetalert2";
 import {
   Plus,
   Search,
@@ -494,17 +497,52 @@ const paginatedChapters = computed(() => {
 
 // Xóa Chương
 const handleDelete = async (id) => {
-  if (
-    confirm(
-      "CẢNH BÁO: Xóa chương sẽ xóa toàn bộ bài giảng bên trong! Bạn chắc chứ?",
-    )
-  ) {
+  // Hiển thị hộp thoại xác nhận của SweetAlert2
+  const result = await Swal.fire({
+    title: "Xác nhận xóa?",
+    text: "CẢNH BÁO: Xóa chương sẽ xóa toàn bộ bài giảng bên trong! Bạn không thể hoàn tác hành động này.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#1a2b4c", // Màu Navy đồng bộ hệ thống
+    cancelButtonColor: "#64748b", // Màu Slate
+    confirmButtonText: "Đồng ý xóa",
+    cancelButtonText: "Hủy bỏ",
+    reverseButtons: true, // Đưa nút Hủy sang trái, Xóa sang phải cho tự nhiên
+    customClass: {
+      popup: "rounded-2xl", // Bo góc đồng bộ với các Card/Modal của bạn
+      confirmButton: "rounded-lg px-6 py-2.5 text-sm font-semibold",
+      cancelButton: "rounded-lg px-6 py-2.5 text-sm font-semibold",
+    },
+  });
+
+  // Nếu người dùng nhấn đồng ý
+  if (result.isConfirmed) {
     try {
+      // Hiển thị trạng thái loading nếu cần (tùy chọn)
+      Swal.showLoading();
+
       await api.delete(`/courses/${id}`);
-      toast.success("Đã xóa chương và các nội dung liên quan!");
+
+      // Cập nhật danh sách trên FE
       chaptersList.value = chaptersList.value.filter((c) => c.id !== id);
+
+      // Thông báo thành công bằng SweetAlert2 hoặc giữ nguyên Toast của bạn
+      Swal.fire({
+        title: "Đã xóa!",
+        text: "Chương học và các nội dung liên quan đã được loại bỏ.",
+        icon: "success",
+        confirmButtonColor: "#1a2b4c",
+        timer: 2000, // Tự đóng sau 2s
+        showConfirmButton: false,
+      });
     } catch (error) {
-      toast.error("Lỗi hệ thống khi xóa dữ liệu");
+      console.error("Lỗi xóa chương:", error);
+      Swal.fire({
+        title: "Lỗi hệ thống!",
+        text: "Không thể xóa dữ liệu vào lúc này.",
+        icon: "error",
+        confirmButtonColor: "#1a2b4c",
+      });
     }
   }
 };
