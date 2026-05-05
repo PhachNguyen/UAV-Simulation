@@ -113,11 +113,130 @@ const addSection = () => {
   });
 };
 
-const removeSection = (index) => {
-  if (confirm("Bạn có chắc chắn muốn xóa mục này?")) {
-    currentLesson.value.sections.splice(index, 1);
+// Gộp logic của SweetAlert2 vào thẳng hàm removeSection
+const removeSection = async (index) => {
+  if (!currentLesson.value) return;
+  const section = currentLesson.value.sections[index];
+
+  // 1. Hiển thị hộp thoại xác nhận SweetAlert2
+  const result = await Swal.fire({
+    title: "Xác nhận xóa nội dung?",
+    text: `Bạn có chắc chắn muốn xóa mục "${section.title || 'chưa có tiêu đề'}" không? Hành động này không thể hoàn tác.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33", // Màu đỏ cảnh báo xóa
+    cancelButtonColor: "#64748b", // Màu Slate cho nút Hủy
+    confirmButtonText: "Đồng ý xóa",
+    cancelButtonText: "Hủy bỏ",
+    reverseButtons: true,
+    customClass: {
+      popup: "rounded-2xl",
+      confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+      cancelButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+    },
+  });
+
+  // 2. Xử lý sau khi nhấn đồng ý
+  if (result.isConfirmed) {
+    try {
+      Swal.showLoading();
+
+      // Chỉ gọi API xóa nếu section này đã tồn tại trong Database (có id)
+      // Nếu là section mới tạo chưa lưu, bỏ qua bước gọi API
+      if (section.id) {
+        await api.delete(`/courses/sections/${section.id}`);
+      }
+
+      // Xóa section khỏi mảng để giao diện cập nhật ngay lập tức
+      currentLesson.value.sections.splice(index, 1);
+
+      // 3. Thông báo thành công
+      Swal.fire({
+        title: "Đã xóa!",
+        text: "Mục nội dung đã được gỡ bỏ khỏi bài giảng.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: { popup: "rounded-2xl" }
+      });
+
+    } catch (error) {
+      console.error("Lỗi xóa Section:", error);
+      
+      Swal.fire({
+        title: "Thất bại!",
+        text: "Không thể xóa nội dung lúc này. Vui lòng thử lại sau.",
+        icon: "error",
+        confirmButtonText: "Đóng",
+        confirmButtonColor: "#1a2b4c",
+        customClass: { 
+          popup: "rounded-2xl",
+          confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold"
+        }
+      });
+    }
   }
 };
+// const handleRemoveSection = async (cIndex, lIndex, sIndex) => {
+//   // Lấy ra section cụ thể đang muốn xóa
+//   const section = courseStructure.value[cIndex].lessons[lIndex].sections[sIndex];
+
+//   // 1. Hiển thị hộp thoại xác nhận SweetAlert2
+//   const result = await Swal.fire({
+//     title: "Xác nhận xóa nội dung?",
+//     text: `Bạn có chắc chắn muốn xóa mục "${section.title || 'này'}" không? Hành động này không thể hoàn tác.`,
+//     icon: "warning",
+//     showCancelButton: true,
+//     confirmButtonColor: "#d33", // Màu đỏ cảnh báo xóa
+//     cancelButtonColor: "#64748b", // Màu Slate cho nút Hủy
+//     confirmButtonText: "Đồng ý xóa",
+//     cancelButtonText: "Hủy bỏ",
+//     reverseButtons: true,
+//     customClass: {
+//       popup: "rounded-2xl",
+//       confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+//       cancelButton: "rounded-lg px-5 py-2.5 text-sm font-semibold",
+//     },
+//   });
+
+//   // 2. Xử lý sau khi nhấn đồng ý
+//   if (result.isConfirmed) {
+//     try {
+//       Swal.showLoading();
+
+//       // Gọi API xóa Section (Kiểm tra lại đường dẫn route bên Node.js của cậu nhé, thường là /courses/sections/:id)
+//       await api.delete(`/courses/sections/${section.id}`);
+
+//       // Xóa section khỏi mảng (State của Vue) để giao diện cập nhật ngay lập tức
+//       courseStructure.value[cIndex].lessons[lIndex].sections.splice(sIndex, 1);
+
+//       // 3. Thông báo thành công
+//       Swal.fire({
+//         title: "Đã xóa!",
+//         text: "Mục nội dung đã được gỡ bỏ khỏi bài giảng.",
+//         icon: "success",
+//         timer: 1500,
+//         showConfirmButton: false,
+//         customClass: { popup: "rounded-2xl" }
+//       });
+
+//     } catch (error) {
+//       console.error("Lỗi xóa Section:", error);
+      
+//       Swal.fire({
+//         title: "Thất bại!",
+//         text: "Không thể xóa nội dung lúc này. Vui lòng thử lại sau.",
+//         icon: "error",
+//         confirmButtonText: "Đóng",
+//         confirmButtonColor: "#1a2b4c",
+//         customClass: { 
+//           popup: "rounded-2xl",
+//           confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold"
+//         }
+//       });
+//     }
+//   }
+// };
 
 /** --- 4. CÁC HÀM SIDEBAR --- **/
 const handleAddChapter = async () => {
@@ -138,6 +257,7 @@ const handleAddLesson = async (chapterId) => {
   selectLesson(data.id);
 };
 
+// Xóa cấu trúc bài giảng
 const handleRemoveItem = async ({ cIndex, lIndex }) => {
   // Xác định xem người dùng đang muốn xóa Bài giảng hay xóa cả Chương
   const isLesson = lIndex !== undefined;
@@ -154,7 +274,7 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
     text: warningText,
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#1a2b4c", // Màu Navy đồng bộ hệ thống
+    confirmButtonColor: "#d33", // Đổi thành màu Đỏ cảnh báo cho hành động nguy hiểm
     cancelButtonColor: "#64748b", // Màu Slate
     confirmButtonText: "Đồng ý xóa",
     cancelButtonText: "Hủy bỏ",
@@ -189,18 +309,44 @@ const handleRemoveItem = async ({ cIndex, lIndex }) => {
           ? "Bài giảng đã được gỡ bỏ thành công."
           : "Chương học đã được gỡ bỏ thành công.",
         icon: "success",
-        confirmButtonColor: "#1a2b4c",
         timer: 1500,
         showConfirmButton: false,
+        customClass: { popup: "rounded-2xl" }
       });
     } catch (error) {
       console.error("Lỗi xóa nội dung:", error);
-      Swal.fire({
-        title: "Thất bại!",
-        text: "Đã xảy ra lỗi trong quá trình xóa dữ liệu. Vui lòng thử lại.",
-        icon: "error",
-        confirmButtonColor: "#1a2b4c",
-      });
+      
+      // Lấy thông báo lỗi từ Backend trả về
+      const errorMessage = error.response?.data?.message || error.message || "";
+
+      // 4. Phân loại lỗi: Lỗi dính Khóa ngoại (đã có người học) hay Lỗi hệ thống
+      if (errorMessage.includes("FOREIGN KEY") || errorMessage.includes("SQLITE_CONSTRAINT")) {
+        Swal.fire({
+          title: "Không thể xóa!",
+          text: isLesson 
+            ? "Bài giảng này đã có học viên tham gia và được lưu tiến độ. Không thể xóa để bảo vệ dữ liệu."
+            : "Chương học này đã có học viên tham gia và được lưu tiến độ. Không thể xóa để bảo vệ dữ liệu.",
+          icon: "warning",
+          confirmButtonText: "Đã hiểu",
+          confirmButtonColor: "#1a2b4c", // Trả về màu xanh Navy cho thông báo an toàn
+          customClass: { 
+            popup: "rounded-2xl",
+            confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold"
+          }
+        });
+      } else {
+        Swal.fire({
+          title: "Thất bại!",
+          text: "Đã xảy ra lỗi trong quá trình xóa dữ liệu. Vui lòng thử lại.",
+          icon: "error",
+          confirmButtonText: "Đóng",
+          confirmButtonColor: "#1a2b4c",
+          customClass: { 
+            popup: "rounded-2xl",
+            confirmButton: "rounded-lg px-5 py-2.5 text-sm font-semibold"
+          }
+        });
+      }
     }
   }
 };

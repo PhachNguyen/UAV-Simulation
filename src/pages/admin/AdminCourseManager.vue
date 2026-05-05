@@ -495,54 +495,78 @@ const paginatedChapters = computed(() => {
 });
 // ==========================================
 
-// Xóa Chương
 const handleDelete = async (id) => {
-  // Hiển thị hộp thoại xác nhận của SweetAlert2
+  // 1. Hiển thị hộp thoại xác nhận
   const result = await Swal.fire({
     title: "Xác nhận xóa?",
     text: "CẢNH BÁO: Xóa chương sẽ xóa toàn bộ bài giảng bên trong! Bạn không thể hoàn tác hành động này.",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#1a2b4c", // Màu Navy đồng bộ hệ thống
-    cancelButtonColor: "#64748b", // Màu Slate
+    confirmButtonColor: "#d33",   // Đổi sang màu đỏ cảnh báo hành động nguy hiểm (Chuẩn UX)
+    cancelButtonColor: "#64748b", // Màu Slate (Xám)
     confirmButtonText: "Đồng ý xóa",
     cancelButtonText: "Hủy bỏ",
-    reverseButtons: true, // Đưa nút Hủy sang trái, Xóa sang phải cho tự nhiên
+    reverseButtons: true, // Nút Hủy bên trái, Xóa bên phải
     customClass: {
-      popup: "rounded-2xl", // Bo góc đồng bộ với các Card/Modal của bạn
+      popup: "rounded-2xl", // Bo góc đồng bộ
       confirmButton: "rounded-lg px-6 py-2.5 text-sm font-semibold",
       cancelButton: "rounded-lg px-6 py-2.5 text-sm font-semibold",
     },
   });
 
-  // Nếu người dùng nhấn đồng ý
+  // 2. Nếu người dùng nhấn đồng ý
   if (result.isConfirmed) {
     try {
-      // Hiển thị trạng thái loading nếu cần (tùy chọn)
+      // Hiển thị trạng thái loading mượt mà trong lúc gọi API
       Swal.showLoading();
 
       await api.delete(`/courses/${id}`);
 
-      // Cập nhật danh sách trên FE
+      // Cập nhật danh sách trên Frontend
       chaptersList.value = chaptersList.value.filter((c) => c.id !== id);
 
-      // Thông báo thành công bằng SweetAlert2 hoặc giữ nguyên Toast của bạn
+      // Thông báo xóa thành công
       Swal.fire({
         title: "Đã xóa!",
         text: "Chương học và các nội dung liên quan đã được loại bỏ.",
         icon: "success",
-        confirmButtonColor: "#1a2b4c",
         timer: 2000, // Tự đóng sau 2s
         showConfirmButton: false,
+        customClass: { popup: "rounded-2xl" }
       });
+
     } catch (error) {
       console.error("Lỗi xóa chương:", error);
-      Swal.fire({
-        title: "Lỗi hệ thống!",
-        text: "Không thể xóa dữ liệu vào lúc này.",
-        icon: "error",
-        confirmButtonColor: "#1a2b4c",
-      });
+      
+      // Lấy thông báo lỗi từ Backend
+      const errorMessage = error.response?.data?.message || error.message || "";
+
+      // 3. Phân loại lỗi: Lỗi do đã có học viên (Khóa ngoại) vs Lỗi hệ thống
+      if (errorMessage.includes("FOREIGN KEY") || errorMessage.includes("SQLITE_CONSTRAINT")) {
+        Swal.fire({
+          title: "Không thể xóa!",
+          text: "Chương học này đã có học viên tham gia và được lưu tiến độ. Để bảo vệ dữ liệu học tập, hệ thống không thể xóa.",
+          icon: "warning", // Dùng icon cảnh báo
+          confirmButtonText: "Đã hiểu",
+          confirmButtonColor: "#1a2b4c", // Màu Navy của SkyLink
+          customClass: { 
+            popup: "rounded-2xl",
+            confirmButton: "rounded-lg px-6 py-2.5 text-sm font-semibold"
+          }
+        });
+      } else {
+        Swal.fire({
+          title: "Lỗi hệ thống!",
+          text: "Không thể xóa dữ liệu vào lúc này. Vui lòng thử lại sau.",
+          icon: "error",
+          confirmButtonText: "Đóng",
+          confirmButtonColor: "#1a2b4c",
+          customClass: { 
+            popup: "rounded-2xl",
+            confirmButton: "rounded-lg px-6 py-2.5 text-sm font-semibold"
+          }
+        });
+      }
     }
   }
 };

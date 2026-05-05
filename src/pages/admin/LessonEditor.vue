@@ -24,6 +24,7 @@ import {
 import LessonStructure from "@/components/LessonStructure.vue";
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import api from "@/utils/apis/axios";
+import Swal from 'sweetalert2';
 // Nhận diện xem URL có phải là của Youtube không
 const isYouTubeVideo = computed(() => {
   if (!currentLesson.value?.videoUrl) return false;
@@ -299,14 +300,68 @@ const handleAddLesson = async (chapterId) => {
 };
 
 const handleRemoveItem = async ({ cIndex, lIndex }) => {
-  if (!confirm("Xác nhận xóa?")) return;
-  const chapter = courseStructure.value[cIndex];
-  if (lIndex !== undefined) {
-    await api.delete(`/courses/lessons/${chapter.lessons[lIndex].id}`);
-    chapter.lessons.splice(lIndex, 1);
-  } else {
-    await api.delete(`/courses/${chapter.id}`);
-    courseStructure.value.splice(cIndex, 1);
+  // 1. Hiển thị Popup xác nhận xóa
+  const result = await Swal.fire({
+    title: 'Xác nhận xóa?',
+    text: lIndex !== undefined 
+      ? 'Bài học này sẽ bị xóa vĩnh viễn!' 
+      : 'Toàn bộ chương và các bài học bên trong sẽ bị xóa!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33', // Màu đỏ cho nút Xóa
+    cancelButtonColor: '#8a9ab0', // Màu xám cho nút Hủy
+    confirmButtonText: 'Đồng ý',
+    cancelButtonText: 'Hủy bỏ'
+  });
+
+  // 2. Nếu người dùng bấm "Đồng ý, xóa!"
+if (result.isConfirmed) {
+    try {
+      const chapter = courseStructure.value[cIndex];
+      
+      if (lIndex !== undefined) {
+        await api.delete(`/courses/lessons/${chapter.lessons[lIndex].id}`);
+        chapter.lessons.splice(lIndex, 1);
+      } else {
+        await api.delete(`/courses/${chapter.id}`);
+        courseStructure.value.splice(cIndex, 1);
+      }
+
+      Swal.fire({
+        title: 'Đã xóa!',
+        text: 'Dữ liệu đã được xóa khỏi hệ thống.',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+      });
+
+    } catch (error) {
+      console.error("Lỗi khi xóa:", error);
+      
+      // 1. Lấy tin nhắn lỗi từ API trả về (nếu có)
+      const errorMessage = error.response?.data?.message || error.message || "";
+
+      // 2. Kiểm tra xem lỗi có phải do dính Khóa ngoại (đã có người học) không
+      if (errorMessage.includes("FOREIGN KEY") || errorMessage.includes("SQLITE_CONSTRAINT")) {
+        
+        Swal.fire({
+          title: 'Không thể xóa!',
+          text: 'Bài giảng này đã có học viên tham gia học và được lưu tiến độ. Bạn không thể xóa để đảm bảo dữ liệu của học viên.',
+          icon: 'warning', // Dùng icon warning (cảnh báo) sẽ hợp lý hơn icon error
+          confirmButtonText: 'Đã hiểu',
+          confirmButtonColor: '#1a2b4c'
+        });
+
+      } else {
+        // 3. Nếu là lỗi mạng, server sập... thì hiện thông báo chung chung
+        Swal.fire({
+          title: 'Lỗi hệ thống!',
+          text: 'Không thể xóa dữ liệu lúc này. Vui lòng thử lại sau.',
+          icon: 'error',
+          confirmButtonColor: '#1a2b4c'
+        });
+      }
+    }
   }
 };
 
@@ -730,7 +785,7 @@ onMounted(fetchCourseData);
         >
           <Box class="w-16 h-16 text-slate-200 mb-4" />
           <p
-            class="text-slate-400 font-bold uppercase text-[11px] tracking-widest text-center"
+            class="text-slate-400 font-bold  text-[11px]  text-center"
           >
             Vui lòng chọn bài học từ danh sách bên phải <br />
             để bắt đầu chỉnh sửa
@@ -956,7 +1011,7 @@ onMounted(fetchCourseData);
           />
         </section>
       </div>
-      <div v-else class="">Vui lòng chọn bài học</div>
+      <!-- <div v-else class="">Vui lòng chọn bài học</div> -->
     </main>
   </div>
 </template>
