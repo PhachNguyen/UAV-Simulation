@@ -39,7 +39,7 @@ const handleRegister = async () => {
       full_name: name.value,
       email: email.value,
       password: password.value,
-      role: "student", // Mặc định role là student cho dự án UAV của Phach
+      role: "Người dùng", // Mặc định role là student cho dự án UAV của Phach
     });
 
     if (result.success) {
