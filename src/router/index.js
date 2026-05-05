@@ -10,6 +10,7 @@ import Login from "@/pages/auth/Login.vue";
 import Register from "@/pages/auth/Register.vue";
 import MainLayoutUser from "@/layout/MainLayoutUser.vue";
 import MainLayoutAdmin from "@/layout/MainLayoutAdmin.vue";
+import UserManage from "@/pages/admin/UserManage.vue";
 const routes = [
   // history: createWebHistory(),
   //   {
@@ -99,6 +100,10 @@ const routes = [
       {
         path: "course/add",
         component: () => import("../pages/admin/AdminAddLesson.vue"),
+      },
+       {
+        path: "users",
+        component:UserManage,
       },
     ],
     meta: { hideHeaderFooter: true },
