@@ -45,31 +45,55 @@
           <h3 class="text-2xl font-bold text-gray-900">{{ stats.totalLessons }}</h3>
         </div>
       </div>
-
-      <!-- Card 3: Tỷ lệ Hoàn thành -->
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center gap-4 hover:border-emerald-300 transition-colors">
-        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-          <CheckCircle class="w-6 h-6" />
-        </div>
-        <div>
-          <p class="text-sm text-gray-500 font-medium">Tỷ lệ Hoàn thành</p>
-          <h3 class="text-2xl font-bold text-gray-900">{{ stats.completionRate }}%</h3>
-        </div>
-      </div>
-
-      <!-- Card 4: Đang truy cập -->
+  <!-- Card 4: Đang truy cập -->
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center gap-4 hover:border-orange-300 transition-colors relative overflow-hidden">
         <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
           <Activity class="w-6 h-6" />
         </div>
         <div>
-          <p class="text-sm text-gray-500 font-medium">Hoạt động (24h)</p>
+          <p class="text-sm text-gray-500 font-medium">Tổng số Drones</p>
           <div class="flex items-center gap-2">
             <h3 class="text-2xl font-bold text-gray-900">{{ stats.activeToday }}</h3>
             <span class="flex w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
           </div>
         </div>
       </div>
+      <!-- Card 3: Tỷ lệ Hoàn thành (Dạng Biểu đồ tròn) -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center justify-between hover:border-emerald-300 transition-colors">
+        <div>
+          <p class="text-sm text-gray-500 font-medium">Tỷ lệ Hoàn thành</p>
+          <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+             <CheckCircle class="w-3 h-3 text-emerald-500" /> Toàn hệ thống
+          </p>
+        </div>
+
+        <!-- Khung vẽ biểu đồ SVG -->
+        <div class="relative w-16 h-16 flex items-center justify-center shrink-0">
+          <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+            <path
+              class="text-emerald-50"
+              stroke-width="3.5"
+              stroke="currentColor"
+              fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+            <path
+              class="text-emerald-500 transition-all duration-1000 ease-out drop-shadow-sm"
+              stroke-width="3.5"
+              :stroke-dasharray="`${stats.completionRate}, 100`"
+              stroke-linecap="round"
+              stroke="currentColor"
+              fill="none"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            />
+          </svg>
+          <div class="absolute flex flex-col items-center justify-center">
+            <span class="text-sm font-bold text-gray-900">{{ stats.completionRate }}%</span>
+          </div>
+        </div>
+      </div>
+
+    
     </div>
 
     <!-- 2. Main Content Layout -->
@@ -78,33 +102,23 @@
       <!-- Cột Trái: Biểu đồ & Thao tác nhanh (Chiếm 2 phần) -->
       <div class="lg:col-span-2 space-y-6">
         
-        <!-- Báo cáo Tiến độ Khóa học (CSS Bar Chart) -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <!-- Báo cáo Tiến độ Khóa học (Chart.js Line Chart) -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col h-full">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <TrendingUp class="w-5 h-5 text-[#1a2b4c]" /> Tỷ lệ tương tác các Chương
+              <TrendingUp class="w-5 h-5 text-[#1a2b4c]" /> Xu hướng tương tác các Chương
             </h2>
           </div>
           
-          <div class="space-y-5">
-            <div v-for="(chapter, index) in chapterStats" :key="index">
-              <div class="flex justify-between text-sm mb-1.5">
-                <span class="font-semibold text-gray-700">{{ chapter.title }}</span>
-                <span class="text-gray-500">{{ chapter.views }} lượt học</span>
-              </div>
-              <div class="w-full bg-gray-100 rounded-full h-2.5">
-                <div 
-                  class="h-2.5 rounded-full transition-all duration-1000"
-                  :class="chapter.color"
-                  :style="{ width: `${chapter.percent}%` }"
-                ></div>
-              </div>
-            </div>
+          <!-- Khu vực vẽ biểu đồ, chiều cao tối thiểu để chart không bị bóp méo -->
+          <div class="relative w-full h-[280px]">
+            <!-- Thay <Bar> thành <Line> -->
+            <Line v-if="!isLoading && chapterStats.length > 0" :data="chartData" :options="chartOptions" />
           </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <button @click="$router.push('/admin/users')" class="p-4 bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-all group">
             <div class="p-3 bg-blue-100 text-blue-600 rounded-lg group-hover:scale-110 transition-transform"><Users class="w-5 h-5" /></div>
             <span class="text-xs font-semibold text-gray-600">Quản lý User</span>
@@ -124,7 +138,7 @@
             <div class="p-3 bg-orange-100 text-orange-600 rounded-lg group-hover:scale-110 transition-transform"><Database class="w-5 h-5" /></div>
             <span class="text-xs font-semibold text-gray-600">Sao lưu DB</span>
           </button>
-        </div>
+        </div> -->
       </div>
 
       <!-- Cột Phải: Hoạt động gần đây (Chiếm 1 phần) -->
@@ -135,15 +149,12 @@
 
         <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-6">
           <div v-for="(log, i) in recentActivities" :key="i" class="flex gap-4 relative">
-            <!-- Timeline Line -->
             <div v-if="i !== recentActivities.length - 1" class="absolute left-4 top-10 bottom-[-24px] w-0.5 bg-gray-100"></div>
             
-            <!-- Icon -->
             <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10" :class="log.iconBg">
               <component :is="log.icon" class="w-4 h-4" :class="log.iconColor" />
             </div>
 
-            <!-- Content -->
             <div>
               <p class="text-sm font-semibold text-gray-900">{{ log.user }} <span class="font-normal text-gray-600">{{ log.action }}</span></p>
               <p class="text-xs font-medium text-[#1a2b4c] mt-0.5">{{ log.target }}</p>
@@ -164,17 +175,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { 
   Users, BookOpen, CheckCircle, Activity, TrendingUp, 
   Calendar, RefreshCw, LayoutTemplate, Settings, Database, 
   History, Clock, PlayCircle, UserPlus, Trophy
 } from 'lucide-vue-next';
 
+// --- IMPORT CHART.JS (Đổi sang Line Chart) ---
+import { Line } from 'vue-chartjs'; // Đổi Bar thành Line
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale } from 'chart.js'; // Đổi BarElement thành LineElement và PointElement
+
+// Đăng ký các thành phần của Chart.js cho Line Chart
+ChartJS.register(Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale);
+
+// --- 1. STATE CƠ BẢN ---
 const isLoading = ref(false);
 const currentDate = ref(new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
 
-// --- STATE: MOCK DATA (Dữ liệu mẫu) ---
 const stats = ref({
   totalUsers: 0,
   totalLessons: 0,
@@ -185,11 +203,72 @@ const stats = ref({
 const chapterStats = ref([]);
 const recentActivities = ref([]);
 
-// --- API FETCH (Giả lập gọi API) ---
+// --- 2. CẤU HÌNH BIỂU ĐỒ (CHART.JS - LINE CHART) ---
+const chartData = computed(() => ({
+  labels: chapterStats.value.map(c => c.title),
+  datasets: [
+    {
+      label: 'Lượt học',
+      data: chapterStats.value.map(c => c.views),
+      borderColor: '#3b82f6', // Màu của đường line (Xanh dương)
+      borderWidth: 3, // Độ dày của đường
+      backgroundColor: '#3b82f6', // Màu nền (sử dụng nếu cậu bật fill: true)
+      pointBackgroundColor: '#ffffff', // Màu nền của các điểm (trắng)
+      pointBorderColor: '#3b82f6', // Viền của các điểm
+      pointBorderWidth: 2, // Độ dày viền điểm
+      pointRadius: 5, // Kích thước điểm khi bình thường
+      pointHoverRadius: 7, // Kích thước điểm khi hover chuột vào
+      tension: 0.4 // Độ cong của đường thẳng (0 là gãy khúc, 0.4 là cong mềm mại)
+    }
+  ]
+}));
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#1a2b4c',
+      padding: 12,
+      titleFont: { size: 14, family: 'Inter, sans-serif' },
+      bodyFont: { size: 13, family: 'Inter, sans-serif' },
+      displayColors: false,
+      callbacks: {
+        label: (context) => `${context.parsed.y} lượt học`
+      }
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: {
+        font: { size: 12, family: 'Inter, sans-serif' },
+        callback: function(value, index) {
+          const title = chartData.value.labels[index];
+          return title.length > 15 ? title.substring(0, 15) + '...' : title;
+        }
+      }
+    },
+    y: {
+      beginAtZero: true,
+      border: { display: false }, 
+      grid: { 
+        color: '#f1f5f9',
+        tickLength: 0
+      },
+      ticks: {
+        stepSize: 50,
+        font: { size: 12, family: 'Inter, sans-serif' }
+      }
+    }
+  }
+};
+
+// --- 3. LẤY DỮ LIỆU (MOCK API) ---
 const fetchDashboardData = () => {
   isLoading.value = true;
   
-  // Giả lập thời gian chờ của Backend (Delay 800ms)
   setTimeout(() => {
     stats.value = {
       totalUsers: 145,
@@ -199,10 +278,10 @@ const fetchDashboardData = () => {
     };
 
     chapterStats.value = [
-      { title: 'Chương 1: Khái niệm cơ bản về UAV', views: 320, percent: 95, color: 'bg-blue-500' },
-      { title: 'Chương 2: Khí động học & Cấu tạo', views: 215, percent: 70, color: 'bg-purple-500' },
-      { title: 'Chương 3: Điều khiển & Cảm biến', views: 150, percent: 45, color: 'bg-emerald-500' },
-      { title: 'Chương 4: Xử lý sự cố & Bảo trì', views: 85, percent: 25, color: 'bg-orange-500' },
+      { title: 'Chương 1: Khái niệm cơ bản về UAV', views: 320 },
+      { title: 'Chương 2: Khí động học & Cấu tạo', views: 215 },
+      { title: 'Chương 3: Điều khiển & Cảm biến', views: 150 },
+      { title: 'Chương 4: Xử lý sự cố & Bảo trì', views: 85 },
     ];
 
     recentActivities.value = [
