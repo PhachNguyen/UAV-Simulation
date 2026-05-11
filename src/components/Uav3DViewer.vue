@@ -3,7 +3,7 @@
     <Transition name="fade">
       <div v-if="loading" class="loading-overlay">
         <div class="loader"></div>
-        <p class="loader-text">Initializing System...</p>
+        <p class="loader-text">Đang tải mô hình 3D...</p>
       </div>
     </Transition>
 
@@ -53,7 +53,7 @@
     </Transition>
 
     <div class="ui-panel-bottom">
-      <p class="guide-text">Orbit: Left Click • Zoom: Scroll</p>
+      <p class="guide-text">Kéo để xoay • Cuộn để phóng to</p>
     </div>
   </div>
 </template>
@@ -211,6 +211,8 @@ const handleModelSuccess = (gltf) => {
   if (hotspots) setupHotspots(hotspots);
 
   loading.value = false;
+  needsRender = true;
+  emit("on-load");
 };
 
 const loadModel = () => {
@@ -223,10 +225,14 @@ const loadModel = () => {
       " Bỏ qua load 3D: Đường dẫn mô hình không hợp lệ ->",
       props.modelSrc,
     );
+    loading.value = false;
     return; // Chặn ngay không cho GLTFLoader chạy
   }
   const source = props.modelSrc || product.value?.model3d;
-  if (!source) return;
+  if (!source) {
+    loading.value = false;
+    return;
+  }
 
   loading.value = true;
   activeSpot.value = null;
@@ -235,6 +241,7 @@ const loadModel = () => {
   new GLTFLoader().load(source, handleModelSuccess, undefined, (err) => {
     console.error("3D Load Error:", err);
     loading.value = false;
+    needsRender = true;
   });
 };
 

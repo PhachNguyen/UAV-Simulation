@@ -1,143 +1,117 @@
 <template>
-  <footer class="pt-20 pb-10 border-t border-slate-100 bg-gray-950">
-    <div
-      class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16"
-    >
-      <div class="space-y-6">
-        <div class="flex items-center gap-2 text-2xl font-bold text-teal-600">
-          <span class="p-2 bg-teal-600 text-white rounded-lg uppercase">U</span>
-          UAV World
-        </div>
-        <p class="text-slate-500 text-sm leading-relaxed">
-          Dẫn đầu trong việc cung cấp các giải pháp máy bay không người lái hiện
-          đại, phục vụ từ giải trí đến công nghiệp chuyên dụng.
+  <footer class="border-t border-slate-800 bg-slate-950 text-slate-300">
+    <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.15fr_1.85fr] lg:px-8">
+      <div>
+        <router-link to="/" class="inline-flex items-center gap-3">
+          <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-200 ring-1 ring-blue-300/20">
+            <GraduationCap class="h-5 w-5" />
+          </div>
+          <div>
+            <p class="text-lg font-extrabold leading-none text-slate-50">SkyLinkEdu</p>
+            <p class="mt-1 text-xs font-semibold text-slate-400">UAV Learning Platform</p>
+          </div>
+        </router-link>
+
+        <p class="mt-5 max-w-md text-sm leading-7 text-slate-400">
+          Nền tảng bài giảng UAV dành cho sinh viên, kỹ sư và giảng viên: học theo module, thực hành với lab mô phỏng và theo dõi checklist vận hành.
         </p>
-        <div class="flex gap-4">
-          <a
-            v-for="icon in ['f', 't', 'i', 'y']"
-            :key="icon"
-            href="#"
-            class="w-10 h-10 flex items-center justify-center border border-slate-200 rounded-full hover:bg-teal-600 hover:text-white transition uppercase font-bold text-xs"
+
+        <div class="mt-6 grid max-w-md gap-3 sm:grid-cols-3">
+          <div
+            v-for="item in footerStats"
+            :key="item.label"
+            class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"
           >
-            {{ icon }}
-          </a>
+            <p class="text-base font-bold text-slate-50">{{ item.value }}</p>
+            <p class="mt-1 text-xs leading-5 text-slate-500">{{ item.label }}</p>
+          </div>
         </div>
       </div>
 
-      <div>
-        <h4
-          class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6"
-        >
-          Category
-        </h4>
-        <ul class="space-y-4 text-slate-600 text-sm font-medium">
-          <li>
-            <a href="#" class="hover:text-teal-600 transition"
-              >Consumer Drones</a
-            >
-          </li>
-          <li>
-            <a href="#" class="hover:text-teal-600 transition"
-              >Professional Flight</a
-            >
-          </li>
-          <li>
-            <a href="#" class="hover:text-teal-600 transition"
-              >Industrial Solutions</a
-            >
-          </li>
-          <li><a href="#" class="text-teal-600 underline">Racing FPV</a></li>
-          <li>
-            <a href="#" class="hover:text-teal-600 transition">Agriculture</a>
-          </li>
-        </ul>
-      </div>
-
-      <div>
-        <h4
-          class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6"
-        >
-          Support
-        </h4>
-        <ul class="space-y-4 text-slate-600 text-sm font-medium">
-          <li>
-            <a href="#" class="hover:text-teal-600 transition"
-              >Help & Support</a
-            >
-          </li>
-          <li>
-            <a href="#" class="hover:text-teal-600 transition"
-              >Terms & Conditions</a
-            >
-          </li>
-          <li>
-            <a href="#" class="hover:text-teal-600 transition"
-              >Privacy Policy</a
-            >
-          </li>
-          <li>
-            <a href="#" class="hover:text-teal-600 transition"
-              >Technical Help</a
-            >
-          </li>
-        </ul>
-      </div>
-
-      <div>
-        <h4
-          class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6"
-        >
-          Newsletter
-        </h4>
-        <div class="flex gap-2 mb-4">
-          <input
-            type="email"
-            placeholder="Your email"
-            class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-teal-600 transition text-sm"
-          />
-          <button
-            class="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition text-sm"
-          >
-            Subscribe
-          </button>
+      <div class="grid gap-8 sm:grid-cols-3">
+        <div v-for="column in footerColumns" :key="column.title">
+          <h3 class="text-sm font-bold text-slate-50">{{ column.title }}</h3>
+          <ul class="mt-4 space-y-3">
+            <li v-for="link in column.links" :key="link.label">
+              <router-link
+                :to="link.href"
+                class="inline-flex items-center gap-2 text-sm text-slate-400 transition hover:text-blue-200"
+              >
+                <component :is="link.icon" class="h-4 w-4" />
+                {{ link.label }}
+              </router-link>
+            </li>
+          </ul>
         </div>
-        <p class="text-slate-400 text-xs leading-relaxed">
-          Đăng ký để nhận thông báo về các sản phẩm UAV mới nhất và các chương
-          trình khuyến mãi.
-        </p>
       </div>
     </div>
 
-    <div
-      class="max-w-7xl mx-auto px-6 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6"
-    >
-      <p class="text-slate-400 text-xs italic">
-        @ 2026 - UAV World - Designed & Developed by
-        <span class="text-slate-900 font-bold">YourName</span>
-      </p>
-      <div
-        class="flex items-center gap-6 grayscale opacity-40 hover:grayscale-0 transition duration-500"
-      >
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
-          class="h-5"
-          alt="PayPal"
-        />
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
-          class="h-4"
-          alt="Visa"
-        />
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
-          class="h-6"
-          alt="Mastercard"
-        />
+    <div class="border-t border-slate-800">
+      <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-xs text-slate-500 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+        <p>&copy; 2026 SkyLinkEdu. Nền tảng đào tạo kỹ thuật UAV.</p>
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <span class="inline-flex items-center gap-2">
+            <ShieldCheck class="h-4 w-4 text-emerald-300" />
+            Nội dung học tập có cấu trúc
+          </span>
+          <span class="inline-flex items-center gap-2">
+            <Mail class="h-4 w-4 text-blue-200" />
+            Hỗ trợ học viên và giảng viên
+          </span>
+        </div>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
-// Không cần logic phức tạp cho footer tĩnh
+import {
+  BadgeCheck,
+  BookOpen,
+  ClipboardCheck,
+  FileText,
+  GraduationCap,
+  Mail,
+  MonitorPlay,
+  Plane,
+  Route,
+  Settings,
+  ShieldCheck,
+} from "lucide-vue-next";
+
+const footerStats = [
+  { value: "24", label: "bài giảng theo module" },
+  { value: "8", label: "lab mô phỏng UAV" },
+  { value: "12h", label: "thực hành có hướng dẫn" },
+];
+
+const footerColumns = [
+  {
+    title: "Học tập",
+    links: [
+      { label: "Tổng quan", href: "/", icon: Route },
+      { label: "Khóa học", href: "/course", icon: BookOpen },
+      { label: "Bài học mẫu", href: "/test", icon: BadgeCheck },
+      { label: "Khóa học của tôi", href: "/profile/courses", icon: ClipboardCheck },
+    ],
+  },
+  {
+    title: "Thực hành",
+    links: [
+      { label: "Lab mô phỏng", href: "/simulation", icon: MonitorPlay },
+      { label: "Thư viện UAV", href: "/services", icon: Plane },
+      { label: "Vùng cấm bay", href: "/no-fly-zones", icon: ShieldCheck },
+      { label: "Nhật ký bay", href: "/history", icon: FileText },
+    ],
+  },
+  {
+    title: "Tài khoản",
+    links: [
+      { label: "Đăng nhập", href: "/login", icon: BadgeCheck },
+      { label: "Đăng ký học", href: "/register", icon: GraduationCap },
+      { label: "Cài đặt", href: "/settings", icon: Settings },
+      { label: "Hồ sơ học viên", href: "/profile/dashboard", icon: ClipboardCheck },
+    ],
+  },
+];
 </script>

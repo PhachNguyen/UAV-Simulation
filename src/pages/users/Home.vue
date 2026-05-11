@@ -1,679 +1,728 @@
 <template>
-  <div class="min-h-screen bg-white font-sans text-slate-800">
-    <section
-      class="relative w-full pt-20 pb-24 lg:pt-32 lg:pb-32 overflow-hidden bg-slate-50"
-    >
-      <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <div
-          class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-3xl"
-        ></div>
-        <div
-          class="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-emerald-400/10 rounded-full blur-3xl"
-        ></div>
-        <div
-          class="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"
-        ></div>
-      </div>
-
-      <div
-        class="relative z-10 max-w-[1440px] mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center"
-      >
-        <div class="max-w-2xl">
-          <span
-            class="inline-flex items-center gap-2 px-3 py-1.5 mb-6 text-[11px] font-bold tracking-widest text-blue-600 uppercase bg-blue-50 rounded-full border border-blue-100"
-          >
-            <Radio :size="14" /> Professional Training
-          </span>
-
-          <h1
-            class="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6"
-          >
-            Kỹ thuật UAV
-            <span
-              class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500"
-              >Cao cấp</span
-            >
-            <br />
-            & Phân tích Dữ liệu
-          </h1>
-
-          <p
-            class="text-slate-500 text-lg mb-10 leading-relaxed font-medium max-w-xl"
-          >
-            Chương trình chuyên sâu về tối ưu hóa hệ thống không người lái, xử
-            lý dữ liệu LiDAR thời gian thực và phân tích quang trắc độ chính xác
-            cao.
-          </p>
-
-          <div class="flex flex-wrap items-center gap-4">
-            <button
-              class="bg-slate-900 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-600/20 transition-all flex items-center gap-2"
-            >
-              Bắt đầu Chương trình <ArrowRight :size="18" />
-            </button>
-            <button
-              class="bg-white text-slate-700 border border-slate-200 px-8 py-3.5 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-300 transition-all"
-            >
-              Xem Tài liệu
-            </button>
+  <main class="home-page min-h-screen bg-[oklch(0.985_0.006_250)] text-slate-900">
+    <section class="hero-shell border-b border-slate-200/70">
+      <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.04fr_0.96fr] lg:px-8 lg:py-14">
+        <div class="motion-rise flex flex-col justify-center">
+          <div class="inline-flex w-fit items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+            <GraduationCap class="h-3.5 w-3.5" />
+            Trung tâm bài giảng UAV
           </div>
 
-          <div
-            class="mt-12 grid grid-cols-3 gap-8 border-t border-slate-200 pt-8"
-          >
-            <div>
-              <div class="text-slate-900 font-black text-3xl">100+</div>
-              <div
-                class="text-slate-500 text-[11px] font-bold uppercase tracking-wider mt-1"
-              >
-                Học viên tốt nghiệp
-              </div>
-            </div>
-            <div>
-              <div class="text-slate-900 font-black text-3xl">0.5cm</div>
-              <div
-                class="text-slate-500 text-[11px] font-bold uppercase tracking-wider mt-1"
-              >
-                Độ chính xác LiDAR
-              </div>
-            </div>
-            <div>
-              <div class="text-slate-900 font-black text-3xl">24/7</div>
-              <div
-                class="text-slate-500 text-[11px] font-bold uppercase tracking-wider mt-1"
-              >
-                Hỗ trợ kỹ thuật
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="relative hidden lg:block">
-          <div
-            class="aspect-[4/3] rounded-[2rem] bg-slate-200 overflow-hidden border-8 border-white shadow-2xl relative"
-          >
-            <img
-              src="../../../public/img/hero-mavic.webp"
-              alt="UAV Tech"
-              class="w-full h-full object-cover"
-            />
-            <div class="absolute inset-0 bg-slate-900/10"></div>
-          </div>
-          <div
-            class="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4"
-          >
-            <div
-              class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600"
-            >
-              <CheckCircle2 :size="24" />
-            </div>
-            <div>
-              <p
-                class="text-[11px] font-bold text-slate-400 uppercase tracking-wider"
-              >
-                Hệ thống
-              </p>
-              <p class="text-sm font-bold text-slate-800">Hoạt động ổn định</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="max-w-[1440px] mx-auto px-6 py-24 bg-white">
-      <div class="text-center mb-16 max-w-3xl mx-auto">
-        <h2
-          class="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight"
-        >
-          Lộ trình Đào tạo Chuyên sâu
-        </h2>
-        <p class="text-slate-500 text-lg">
-          Từ nền tảng kỹ thuật phần cứng đến kỹ năng phân tích dữ liệu AI phức
-          tạp, chúng tôi chuẩn bị cho bạn lộ trình trở thành chuyên gia UAV thực
-          thụ.
-        </p>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-6 lg:gap-8 relative">
-        <div
-          class="hidden md:block absolute top-12 left-[15%] w-[70%] h-[2px] bg-slate-100 z-0"
-        >
-          <div
-            class="w-1/3 h-full bg-blue-600 transition-all duration-1000"
-          ></div>
-        </div>
-
-        <div class="relative z-10 group">
-          <div class="flex flex-col items-center">
-            <div
-              class="w-24 h-24 bg-white border-4 border-slate-50 rounded-3xl flex items-center justify-center mb-6 shadow-sm group-hover:border-blue-100 group-hover:bg-blue-50 transition-all duration-300"
-            >
-              <Settings
-                class="w-10 h-10 text-slate-400 group-hover:text-blue-600 transition-colors"
-              />
-            </div>
-            <div
-              class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 text-center w-full group-hover:bg-white group-hover:shadow-xl group-hover:border-blue-100 transition-all duration-300"
-            >
-              <span
-                class="text-[10px] font-bold tracking-[0.2em] text-slate-500 group-hover:text-blue-600 uppercase mb-4 inline-block"
-                >Module 01</span
-              >
-              <h3 class="text-xl font-bold text-slate-900 mb-3">
-                Kỹ thuật Hệ thống
-              </h3>
-              <p class="text-sm text-slate-500 leading-relaxed mb-6">
-                Làm chủ cấu trúc Avionics, hệ thống đẩy và cơ chế vận hành an
-                toàn của các dòng thiết bị Enterprise.
-              </p>
-              <ul
-                class="text-sm text-left space-y-3 text-slate-600 font-medium"
-              >
-                <li class="flex items-center gap-3">
-                  <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                  Hiệu chỉnh IMU & Compass
-                </li>
-                <li class="flex items-center gap-3">
-                  <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Bảo
-                  trì hệ thống động cơ
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="relative z-10 group">
-          <div class="flex flex-col items-center">
-            <div
-              class="w-24 h-24 bg-blue-600 border-4 border-blue-50 rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-blue-600/20 group-hover:-translate-y-2 transition-transform duration-300"
-            >
-              <Radio class="w-10 h-10 text-white" />
-            </div>
-            <div
-              class="bg-white p-8 rounded-[2rem] border border-blue-100 shadow-xl text-center w-full transition-all duration-300"
-            >
-              <span
-                class="text-[10px] font-bold tracking-[0.2em] text-blue-600 uppercase bg-blue-50 px-3 py-1.5 rounded-full mb-4 inline-block"
-                >Module 02</span
-              >
-              <h3 class="text-xl font-bold text-slate-900 mb-3">
-                Cảm biến & Khảo sát
-              </h3>
-              <p class="text-sm text-slate-500 leading-relaxed mb-6">
-                Kỹ thuật tích hợp LiDAR, Sensor nhiệt và Quang trắc học để thu
-                thập dữ liệu độ chính xác cấp milimet.
-              </p>
-              <ul
-                class="text-sm text-left space-y-3 text-slate-600 font-medium"
-              >
-                <li class="flex items-center gap-3">
-                  <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                  Thiết lập trạm Base RTK
-                </li>
-                <li class="flex items-center gap-3">
-                  <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Quy
-                  trình quét LiDAR 3D
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="relative z-10 group">
-          <div class="flex flex-col items-center">
-            <div
-              class="w-24 h-24 bg-white border-4 border-slate-50 rounded-3xl flex items-center justify-center mb-6 shadow-sm group-hover:border-blue-100 group-hover:bg-blue-50 transition-all duration-300"
-            >
-              <BarChart3
-                class="w-10 h-10 text-slate-400 group-hover:text-blue-600 transition-colors"
-              />
-            </div>
-            <div
-              class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 text-center w-full group-hover:bg-white group-hover:shadow-xl group-hover:border-blue-100 transition-all duration-300"
-            >
-              <span
-                class="text-[10px] font-bold tracking-[0.2em] text-slate-500 group-hover:text-blue-600 uppercase mb-4 inline-block"
-                >Module 03</span
-              >
-              <h3 class="text-xl font-bold text-slate-900 mb-3">
-                Phân tích AI
-              </h3>
-              <p class="text-sm text-slate-500 leading-relaxed mb-6">
-                Sử dụng thuật toán học máy để phân loại đám mây điểm (Point
-                Cloud) và tự động hóa báo cáo hạ tầng.
-              </p>
-              <ul
-                class="text-sm text-left space-y-3 text-slate-600 font-medium"
-              >
-                <li class="flex items-center gap-3">
-                  <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span> Xử
-                  lý Digital Twin 3D
-                </li>
-                <li class="flex items-center gap-3">
-                  <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                  Nhận diện lỗi bằng AI
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="bg-slate-50 py-24">
-      <div class="max-w-[1440px] mx-auto px-6">
-        <div
-          class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6"
-        >
-          <div class="max-w-2xl">
-            <h2
-              class="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight"
-            >
-              Hệ Sinh Thái Thiết Bị
-            </h2>
-            <p class="text-slate-500 text-lg">
-              Phân tích thông số kỹ thuật và khả năng ứng dụng thực tế của các
-              dòng thiết bị không người lái đầu bảng.
+          <div class="mt-6 max-w-3xl">
+            <p class="text-sm font-semibold text-slate-500">SkyLinkEdu Learning Hub</p>
+            <h1 class="mt-3 max-w-2xl text-4xl font-extrabold  text-slate-950 md:text-5xl">
+              Học UAV theo lộ trình rõ ràng, thực hành ngay trong từng bài.
+            </h1>
+            <p class="mt-5 max-w-2xl text-base leading-8 text-slate-600 md:text-lg">
+              Tập trung vào bài giảng, mô phỏng, checklist vận hành và tài liệu kỹ thuật. Mỗi module được chia nhỏ để người học biết đang học gì, còn thiếu gì và bước tiếp theo là gì.
             </p>
           </div>
-          <button
-            class="text-blue-600 font-bold flex items-center gap-2 hover:gap-3 transition-all bg-blue-50 px-5 py-2.5 rounded-xl hover:bg-blue-100"
-          >
-            Xem tất cả <ArrowRight :size="16" />
-          </button>
+
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <router-link
+              to="/test"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-slate-50 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-200"
+            >
+              <BookOpenCheck class="h-4 w-4" />
+              Vào bài đang học
+            </router-link>
+            <router-link
+              to="/simulation"
+              class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-[oklch(0.998_0.004_250)] px-5 py-3 text-sm font-semibold text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:text-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              <MonitorPlay class="h-4 w-4" />
+              Mở lab mô phỏng
+            </router-link>
+          </div>
+
+          <div class="mt-8 grid max-w-2xl gap-3 sm:grid-cols-3">
+            <div
+              v-for="(stat, index) in learningStats"
+              :key="stat.label"
+              class="stat-card rounded-2xl border border-slate-200 bg-[oklch(0.998_0.004_250)] p-4"
+              :style="{ '--stat-delay': `${index * 110}ms` }"
+            >
+              <p class="stat-value text-2xl font-extrabold text-slate-950">{{ stat.value }}</p>
+              <p class="relative z-10 mt-1 text-sm leading-5 text-slate-500">{{ stat.label }}</p>
+            </div>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div
-            v-for="(item, index) in equipmentList"
-            :key="index"
-            class="group cursor-pointer bg-white p-3 rounded-[2rem] border border-slate-100 hover:shadow-xl transition-all duration-300 flex flex-col h-full"
-          >
+        <aside class="motion-rise motion-delay-1 overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[oklch(0.998_0.004_250)] shadow-[0_20px_54px_oklch(0.68_0.04_250_/_0.12)]">
+          <div class="relative min-h-[220px] overflow-hidden bg-blue-50">
+            <img
+              src="/img/hero-mavic.webp"
+              alt="Drone UAV trong bài giảng mô phỏng"
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+            <div class="absolute inset-0 bg-[linear-gradient(180deg,oklch(0.98_0.01_245_/_0.04),oklch(0.22_0.035_250_/_0.56))]"></div>
+            <div class="absolute left-5 top-5 flex flex-wrap gap-2">
+              <span class="inline-flex items-center gap-2 rounded-full bg-[oklch(0.998_0.004_250_/_0.94)] px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                Học thử
+              </span>
+              <span class="rounded-full bg-[oklch(0.998_0.004_250_/_0.94)] px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
+                Không cần đăng nhập
+              </span>
+            </div>
+            <div class="absolute bottom-5 left-5 right-5">
+              <span class="rounded-full bg-[oklch(0.58_0.18_255)] px-3 py-1 text-xs font-semibold text-slate-50">
+                SkyLinkEdu Preview
+              </span>
+            </div>
+          </div>
+
+          <div class="p-5 lg:p-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p class="text-sm font-semibold text-blue-700">Dành cho người mới</p>
+                <h2 class="mt-2 text-2xl font-bold leading-tight text-slate-950">Khám phá lộ trình học UAV</h2>
+              </div>
+              <router-link
+                to="/course"
+                class="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[oklch(0.58_0.18_255)] px-4 py-2.5 text-sm font-semibold text-slate-50 transition duration-200 hover:-translate-y-0.5 hover:bg-[oklch(0.52_0.17_255)] focus:outline-none focus:ring-4 focus:ring-blue-100"
+              >
+                <BookOpenCheck class="h-4 w-4" />
+                Xem khóa học
+              </router-link>
+            </div>
+
+            <p class="mt-4 max-w-xl text-sm leading-6 text-slate-600">
+              Xem trước cách SkyLink chia bài học, lab mô phỏng và checklist thực hành trước khi tạo tài khoản.
+            </p>
+
+            <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+              <router-link
+                to="/simulation"
+                class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-[oklch(0.985_0.006_250)] px-4 py-2.5 text-sm font-semibold text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              >
+                <MonitorPlay class="h-4 w-4" />
+                Thử mô phỏng
+              </router-link>
+              <router-link
+                to="/register"
+                class="inline-flex items-center justify-center gap-2 rounded-2xl border border-transparent px-4 py-2.5 text-sm font-semibold text-blue-700 transition duration-200 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              >
+                <BadgeCheck class="h-4 w-4" />
+                Tạo tài khoản
+              </router-link>
+            </div>
+
+            <div class="mt-5 space-y-4 border-t border-slate-200 pt-5">
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50">
+                  <BookOpen class="h-5 w-5 text-blue-700" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-900">Học theo module rõ ràng</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-500">Bắt đầu từ an toàn bay, cảm biến, bản đồ đến nhiệm vụ tự động.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50">
+                  <MonitorPlay class="h-5 w-5 text-emerald-700" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-900">Có lab để thử ngay</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-500">Quan sát waypoint, pin và telemetry mẫu trong môi trường mô phỏng.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50">
+                  <BadgeCheck class="h-5 w-5 text-amber-700" />
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-900">Đăng nhập khi cần lưu tiến độ</p>
+                  <p class="mt-1 text-sm leading-6 text-slate-500">Tài khoản giúp lưu bài đã học, checklist và tài liệu cần xem lại.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold text-blue-700">Lộ trình học mở</p>
+          <h2 class="mt-2 max-w-2xl text-3xl font-bold tracking-tight text-slate-950">
+            Bắt đầu nhẹ, hiểu chắc, rồi mới vào nhiệm vụ bay.
+          </h2>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+            Người mới có thể xem trước từng chặng học và chọn module phù hợp trước khi đăng nhập để lưu tiến độ.
+          </p>
+        </div>
+        <router-link
+          to="/course"
+          class="inline-flex w-fit items-center gap-2 rounded-2xl border border-slate-300 bg-[oklch(0.998_0.004_250)] px-4 py-2.5 text-sm font-semibold text-slate-700 transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+        >
+          Xem tất cả module
+          <ArrowRight class="h-4 w-4" />
+        </router-link>
+      </div>
+
+      <div class="mt-8 grid gap-6 lg:grid-cols-[0.88fr_1.12fr]">
+        <div class="motion-rise motion-delay-2 rounded-[1.75rem] border border-slate-200 bg-[oklch(0.998_0.004_250)] p-6">
+          <div class="flex items-center gap-3">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+              <Route class="h-5 w-5" />
+            </div>
+            <div>
+              <p class="text-base font-bold text-slate-950">4 chặng học chính</p>
+              <p class="mt-1 text-sm text-slate-500">Đi theo thứ tự hoặc chọn chặng cần ôn trước.</p>
+            </div>
+          </div>
+
+          <div class="mt-7">
             <div
-              class="relative overflow-hidden rounded-[1.5rem] bg-slate-100 aspect-[4/3] mb-4"
+              v-for="(step, index) in roadmap"
+              :key="step.title"
+              class="grid grid-cols-[auto_1fr] gap-4 pb-6 last:pb-0"
             >
-              <img
-                :src="item.image"
-                :alt="item.title"
-                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
-              />
-              <div class="absolute top-3 left-3">
-                <span
-                  class="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-800 shadow-sm"
-                >
-                  {{ item.category || "Thiết bị" }}
+              <div class="relative flex justify-center">
+                <div class="flex h-9 w-9 items-center justify-center rounded-2xl bg-[oklch(0.965_0.014_250)] text-sm font-bold text-blue-700 ring-1 ring-blue-100">
+                  {{ index + 1 }}
+                </div>
+                <div
+                  v-if="index < roadmap.length - 1"
+                  class="absolute top-11 h-[calc(100%-2rem)] w-px bg-slate-200"
+                ></div>
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900">{{ step.title }}</h3>
+                <p class="mt-1 text-sm leading-6 text-slate-600">{{ step.desc }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="motion-rise grid gap-4">
+          <router-link
+            v-for="module in modules"
+            :key="module.title"
+            :to="module.href"
+            class="group grid gap-4 rounded-[1.35rem] border border-slate-200 bg-[oklch(0.998_0.004_250)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/50 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:grid-cols-[auto_1fr]"
+          >
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" :class="module.iconBg">
+              <component :is="module.icon" class="h-5 w-5" :class="module.iconColor" />
+            </div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                <span class="text-blue-700">{{ module.kicker }}</span>
+                <span class="text-slate-300">/</span>
+                <span class="text-slate-500">{{ module.lessons }} bài</span>
+              </div>
+              <h3 class="mt-2 font-bold text-slate-950">{{ module.title }}</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-600">{{ module.desc }}</p>
+              <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span class="text-sm font-medium text-slate-500">{{ module.level }}</span>
+                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 transition group-hover:gap-2">
+                  {{ module.cta }}
+                  <ArrowRight class="h-4 w-4" />
                 </span>
               </div>
             </div>
-
-            <div class="px-3 pb-3 flex flex-col flex-grow">
-              <h4
-                class="text-lg font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors"
-              >
-                {{ item.title }}
-              </h4>
-              <p class="text-sm text-slate-500 leading-relaxed mb-6 flex-grow">
-                {{ item.description }}
-              </p>
-
-              <div
-                class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto"
-              >
-                <div>
-                  <p
-                    class="text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-1"
-                  >
-                    Độ chính xác
-                  </p>
-                  <p class="text-sm font-bold text-slate-800">
-                    {{ item.accuracy || "Cấp RTK" }}
-                  </p>
-                </div>
-                <div class="w-[1px] h-8 bg-slate-200"></div>
-                <div class="text-right">
-                  <p
-                    class="text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-1"
-                  >
-                    Thời gian bay
-                  </p>
-                  <p class="text-sm font-bold text-slate-800">
-                    {{ item.flightTime || "45 Phút" }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </router-link>
         </div>
       </div>
     </section>
 
-    <section class="max-w-[1440px] mx-auto px-6 py-24">
-      <div class="grid lg:grid-cols-12 gap-12 items-center">
-        <div class="lg:col-span-4 flex flex-col justify-center">
-          <div
-            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 text-[11px] font-bold uppercase tracking-widest mb-6 w-fit border border-blue-100"
-          >
-            <Zap :size="14" /> Nền tảng số
-          </div>
-          <h2
-            class="text-4xl font-black text-slate-900 mb-6 leading-[1.1] tracking-tight"
-          >
-            Học tập trên <br />
-            <span
-              class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500"
+    <section class="border-y border-slate-200 bg-[oklch(0.958_0.012_250)]">
+      <div class="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+        <div>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p class="text-sm font-semibold text-blue-700">Bài giảng nổi bật</p>
+              <h2 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Nội dung khóa học.</h2>
+            </div>
+            <router-link
+              to="/course"
+              class="inline-flex w-fit items-center gap-2 rounded-2xl border border-slate-300 bg-[oklch(0.998_0.004_250)] px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-700"
             >
-              Hệ sinh thái Số
-            </span>
-          </h2>
-          <p class="text-slate-500 mb-8 leading-relaxed text-lg">
-            Chúng tôi cung cấp một nền tảng công nghệ toàn diện để bạn làm chủ
-            toàn bộ quy trình xử lý dữ liệu không gian từ thực địa đến mô hình
-            3D.
-          </p>
-          <div
-            class="flex flex-col gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-100"
-          >
-            <div class="flex gap-4 items-start">
-              <div
-                class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0 border border-slate-200"
-              >
-                <CheckCircle2 class="w-5 h-5 text-emerald-500" />
+              Tất cả khóa học
+              <ArrowRight class="h-4 w-4" />
+            </router-link>
+          </div>
+
+          <div class="mt-7 grid gap-4">
+            <article
+              v-for="lesson in featuredLessons"
+              :key="lesson.title"
+              class="group grid gap-4 rounded-[1.5rem] border border-slate-200 bg-[oklch(0.998_0.004_250)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 md:grid-cols-[160px_1fr_auto]"
+            >
+              <img
+                :src="lesson.image"
+                :alt="lesson.alt"
+                class="h-36 w-full rounded-[1.15rem] object-cover md:h-full"
+              />
+              <div class="flex flex-col justify-center">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{{ lesson.type }}</span>
+                  <span class="text-xs font-medium text-slate-500">{{ lesson.duration }}</span>
+                </div>
+                <h3 class="mt-3 text-lg font-bold text-slate-950">{{ lesson.title }}</h3>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">{{ lesson.desc }}</p>
               </div>
+              <div class="flex items-center md:justify-end">
+                <button
+                  class="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-slate-50 transition duration-200 group-hover:bg-blue-700 group-hover:shadow-lg group-hover:shadow-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-200"
+                  aria-label="Mở bài giảng"
+                >
+                  <ArrowRight class="h-4 w-4" />
+                </button>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <aside class="rounded-[1.75rem] border border-slate-200 bg-[oklch(0.998_0.004_250)] p-6">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <p class="text-sm font-semibold text-blue-700">Tài liệu nhanh</p>
+              <h2 class="mt-2 text-2xl font-bold tracking-tight text-slate-950">Chuẩn bị trước buổi thực hành</h2>
+            </div>
+            <FileText class="h-6 w-6 text-slate-400" />
+          </div>
+
+          <div class="mt-6 space-y-3">
+            <a
+              v-for="doc in quickDocs"
+              :key="doc.title"
+              href="#"
+              class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-[oklch(0.985_0.006_250)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/70 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl" :class="doc.color">
+                <component :is="doc.icon" class="h-5 w-5" />
+              </div>
+              <div class="min-w-0">
+                <h3 class="truncate text-sm font-bold text-slate-900">{{ doc.title }}</h3>
+                <p class="mt-1 text-xs text-slate-500">{{ doc.meta }}</p>
+              </div>
+              <ArrowRight class="ml-auto h-4 w-4 shrink-0 text-slate-400" />
+            </a>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="overflow-hidden border-y border-slate-200 bg-[oklch(0.958_0.012_250)]">
+      <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-sm font-semibold text-blue-700">Lab mô phỏng mở</p>
+            <h2 class="mt-2 max-w-2xl text-3xl font-bold tracking-tight text-slate-950">
+              Xem drone trong không gian 3D trước khi vào bài thực hành.
+            </h2>
+            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+              Xoay mô hình, quan sát điểm chú thích và chọn bài lab phù hợp. Người mới vẫn có thể thử nhanh trước khi đăng nhập.
+            </p>
+          </div>
+          <router-link
+            to="/simulation"
+            class="inline-flex w-fit items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-50 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          >
+            <MonitorPlay class="h-4 w-4" />
+            Mở lab đầy đủ
+          </router-link>
+        </div>
+
+        <div class="mt-8 grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-stretch">
+          <div class="motion-rise relative min-h-[390px] overflow-hidden rounded-[1.75rem] bg-slate-950 text-slate-50 shadow-[0_22px_60px_oklch(0.44_0.05_250_/_0.18)]">
+            <Uav3DViewer
+              class="uav-home-viewer"
+              :model-src="uavPreviewModel"
+              :custom-hotspots="uavPreviewHotspots"
+            />
+            <div class="pointer-events-none absolute left-5 top-5 rounded-full bg-slate-50/10 px-3 py-1.5 text-xs font-semibold text-blue-100 ring-1 ring-slate-50/15">
+              Preview tương tác
+            </div>
+            <div class="pointer-events-none absolute bottom-5 left-5 right-5 flex flex-col gap-3 rounded-[1.25rem] bg-slate-950/78 p-4 ring-1 ring-slate-50/10 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h5 class="font-bold text-slate-900">Chuẩn quốc tế</h5>
-                <p class="text-sm text-slate-500 mt-1">
-                  Giáo trình đào tạo theo tiêu chuẩn DJI Academy và EuroUSC
-                  chuyên nghiệp.
-                </p>
+                <p class="text-sm font-semibold text-slate-50">DJI Flip 3D model</p>
+                <p class="mt-1 text-xs leading-5 text-slate-300">Kéo để xoay, cuộn để phóng to, chọn marker để xem chú thích.</p>
               </div>
+              <span class="rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-300/25">
+                WebGL ready
+              </span>
             </div>
           </div>
-        </div>
 
-        <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div
-            class="md:col-span-2 relative group overflow-hidden rounded-[2rem] bg-slate-900 aspect-[21/9] flex items-center p-8 md:p-12"
-          >
-            <div class="relative z-10 max-w-md">
-              <div
-                class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-blue-600/20"
-              >
-                <Cpu class="w-6 h-6 text-white" />
+          <div class="grid gap-4">
+            <router-link
+              v-for="lab in labs"
+              :key="lab.title"
+              to="/simulation"
+              class="group flex gap-4 rounded-[1.5rem] border border-slate-200 bg-[oklch(0.998_0.004_250)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/60 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" :class="lab.iconBg">
+                <component :is="lab.icon" class="h-5 w-5" :class="lab.iconColor" />
               </div>
-              <h4 class="text-3xl font-bold text-white mb-3 tracking-tight">
-                VR Flight Simulator
-              </h4>
-              <p class="text-slate-400 text-base leading-relaxed">
-                Hệ thống mô phỏng bay thực tế ảo giúp học viên rèn luyện kỹ năng
-                xử lý tình huống khẩn cấp mà không rủi ro thiết bị.
-              </p>
-            </div>
-            <div
-              class="absolute right-[-10%] bottom-[-20%] w-96 h-96 bg-blue-500/20 rounded-full blur-[80px] group-hover:bg-blue-500/30 transition-all duration-700"
-            ></div>
-          </div>
-
-          <div
-            class="bg-slate-50 border border-slate-100 rounded-[2rem] p-8 hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6 border border-slate-200 text-blue-600"
-            >
-              <BrainCircuit class="w-6 h-6" />
-            </div>
-            <h4 class="text-xl font-bold text-slate-900 mb-3">
-              AI Analytics Lab
-            </h4>
-            <p class="text-sm text-slate-500 leading-relaxed">
-              Thực hành huấn luyện Model nhận diện hư hỏng hạ tầng tự động bằng
-              dữ liệu hình ảnh UAV thực tế.
-            </p>
-          </div>
-
-          <div
-            class="bg-slate-50 border border-slate-100 rounded-[2rem] p-8 hover:shadow-lg transition-shadow"
-          >
-            <div
-              class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-6 border border-slate-200 text-blue-600"
-            >
-              <CloudLightning class="w-6 h-6" />
-            </div>
-            <h4 class="text-xl font-bold text-slate-900 mb-3">
-              Cloud Photogrammetry
-            </h4>
-            <p class="text-sm text-slate-500 leading-relaxed">
-              Xử lý hàng nghìn hecta dữ liệu Point Cloud trên hệ thống server
-              đám mây tốc độ cao của chúng tôi.
-            </p>
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="font-bold text-slate-950">{{ lab.title }}</h3>
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                    <Clock3 class="h-3.5 w-3.5" />
+                    {{ lab.time }}
+                  </span>
+                </div>
+                <p class="mt-2 text-sm leading-6 text-slate-600">{{ lab.desc }}</p>
+                <span class="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 transition group-hover:gap-2">
+                  Mở bài lab
+                  <ArrowRight class="h-4 w-4" />
+                </span>
+              </div>
+            </router-link>
           </div>
         </div>
       </div>
     </section>
-
-    <section
-      class="max-w-[1440px] mx-auto px-6 py-24 border-t border-slate-100"
-    >
-      <div class="flex items-center justify-between mb-12">
-        <h2 class="text-3xl font-black text-slate-900 tracking-tight">
-          Thư viện Bài giảng Kỹ thuật
-        </h2>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="group cursor-pointer">
-          <div
-            class="relative overflow-hidden rounded-[1.5rem] mb-5 aspect-video bg-slate-100"
-          >
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLmlNP1PQAzoja3JhvBuuwQ6LA8J0zF031Gvsyxht1IPQ5SBS8_hDKr0L_Kvu2Ml005Nzx1UnT27RiTVJ408d6Xob4MSONKnzOFE0LHnnuX7MZAIBwpr9-QINatcRKOblG_5GhAkPZ6K3UWJUj18Cli8GwdI-RnQSLdCxlSJE1xfikiGeOrCN_KdQejPps8NO0HimYnAbppRT5wIsxqgv7OyXLFzdQ6YiJaMcIhtEbPGW_NCqX9YNI68HvZK_tbp6N6R6qhOybkw"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            <div
-              class="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/40 transition-colors flex items-center justify-center"
-            >
-              <div
-                class="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center text-white"
-              >
-                <PlayCircle :size="32" stroke-width="1.5" />
-              </div>
-            </div>
-          </div>
-          <h4
-            class="font-bold text-lg text-slate-900 mb-2 group-hover:text-blue-600 transition-colors"
-          >
-            LiDAR Point Cloud Generation
-          </h4>
-          <p class="text-sm text-slate-500 mb-4 line-clamp-2">
-            Quy trình xử lý dữ liệu đám mây điểm, khử nhiễu và phân loại mặt đất
-            bằng thuật toán AI nâng cao.
-          </p>
-          <div
-            class="flex items-center gap-4 text-[12px] font-bold text-slate-400"
-          >
-            <span class="flex items-center gap-1.5"
-              ><Clock :size="14" /> 45 phút</span
-            >
-            <span class="flex items-center gap-1.5"
-              ><Signal :size="14" /> Nâng cao</span
-            >
-          </div>
-        </div>
-
-        <div class="group cursor-pointer">
-          <div
-            class="relative overflow-hidden rounded-[1.5rem] mb-5 aspect-video bg-blue-50 flex items-center justify-center border border-blue-100"
-          >
-            <FileText
-              :size="48"
-              stroke-width="1"
-              class="text-blue-300 group-hover:scale-110 transition-transform duration-500"
-            />
-          </div>
-          <h4
-            class="font-bold text-lg text-slate-900 mb-2 group-hover:text-blue-600 transition-colors"
-          >
-            Thermal Data Processing
-          </h4>
-          <p class="text-sm text-slate-500 mb-4 line-clamp-2">
-            Hướng dẫn hiệu chuẩn nhiệt độ bức xạ, phân tích bản đồ nhiệt và phát
-            hiện bất thường điện mặt trời.
-          </p>
-          <div
-            class="flex items-center gap-4 text-[12px] font-bold text-slate-400"
-          >
-            <span class="flex items-center gap-1.5"
-              ><FileText :size="14" /> PDF/Manual</span
-            >
-            <span class="flex items-center gap-1.5"
-              ><BookOpen :size="14" /> 120 trang</span
-            >
-          </div>
-        </div>
-
-        <div class="group cursor-pointer">
-          <div
-            class="relative overflow-hidden rounded-[1.5rem] mb-5 aspect-video bg-slate-100"
-          >
-            <img
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrt_2znr9Af3BGStlrarpa0pzuoCgW-UZIH3-OTfOnYFHtV1RoQ1e-n5vJMDqFuHr1DsyurgjBKXc0K4lVL3RQf_2j8y0GR3Ld3_fnKPgHKUJe5-1FyDdWTenq4lC2DVesA6VQa9TxFtZE26NHqAobsZBv8iB-ZmCixT2FW1MTyLoLbATAPLskKitt-whglAvRenwXPthN4O3bGeWdbZVBzH0YegD6LCiNqgEOlQOZRWHtZolJkhzFmR6tLfcbQlET1ivEX2fSVw"
-              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-            <div
-              class="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors"
-            ></div>
-          </div>
-          <h4
-            class="font-bold text-lg text-slate-900 mb-2 group-hover:text-blue-600 transition-colors"
-          >
-            Digital Twin Modeling
-          </h4>
-          <p class="text-sm text-slate-500 mb-4 line-clamp-2">
-            Thực hành mô phỏng mô hình số độ phân giải cao, xuất file định dạng
-            .obj/ .las cho phần mềm BIM.
-          </p>
-          <div
-            class="flex items-center gap-4 text-[12px] font-bold text-slate-400"
-          >
-            <span class="flex items-center gap-1.5"
-              ><Box :size="14" /> Interactive 3D</span
-            >
-            <span class="flex items-center gap-1.5"
-              ><Cpu :size="14" /> Kỹ thuật</span
-            >
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="bg-white border-t border-slate-200 py-12">
-      <div class="max-w-[1440px] mx-auto px-6">
-        <div
-          class="flex flex-col md:flex-row justify-between items-center gap-6 mb-8"
-        >
-          <div class="flex items-center gap-3">
-            <div class="p-2 bg-slate-900 text-blue-400 rounded-lg">
-              <Radio :size="20" />
-            </div>
-            <span
-              class="text-lg font-black text-slate-900 tracking-tight uppercase"
-              >SkyLink</span
-            >
-          </div>
-          <div
-            class="flex items-center gap-8 text-sm font-semibold text-slate-500"
-          >
-            <a class="hover:text-slate-900 transition-colors" href="#"
-              >Về chúng tôi</a
-            >
-            <a class="hover:text-slate-900 transition-colors" href="#"
-              >Bảo mật</a
-            >
-            <a class="hover:text-slate-900 transition-colors" href="#"
-              >Điều khoản</a
-            >
-            <a class="hover:text-slate-900 transition-colors" href="#"
-              >Liên hệ</a
-            >
-          </div>
-        </div>
-        <div
-          class="pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4"
-        >
-          <p class="text-sm font-medium text-slate-400">
-            © 2024 SkyLink Flight System. All rights reserved.
-          </p>
-          <div class="flex items-center gap-6 text-slate-400">
-            <a href="#" class="hover:text-slate-900"><Globe :size="20" /></a>
-            <a href="#" class="hover:text-slate-900"><Mail :size="20" /></a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  </div>
+  </main>
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { defineAsyncComponent } from "vue";
 import {
-  Settings,
-  Radio,
-  BarChart3,
-  Zap,
-  Cpu,
-  BrainCircuit,
-  CloudLightning,
-  CheckCircle2,
   ArrowRight,
-  PlayCircle,
-  FileText,
-  Clock,
-  Signal,
+  BadgeCheck,
   BookOpen,
-  Box,
-  Globe,
-  Mail,
+  BookOpenCheck,
+  ChartNoAxesColumnIncreasing,
+  Clock3,
+  ClipboardCheck,
+  Compass,
+  FileText,
+  Gauge,
+  GraduationCap,
+  Map,
+  MapPinned,
+  MonitorPlay,
+  Radio,
+  Route,
+  ShieldCheck,
+  Wrench,
 } from "lucide-vue-next";
 
-const equipmentList = ref([
+const Uav3DViewer = defineAsyncComponent(() => import("@/components/Uav3DViewer.vue"));
+
+const learningStats = [
+  { value: "24", label: "bài giảng có cấu trúc" },
+  { value: "8", label: "lab mô phỏng UAV" },
+  { value: "12h", label: "thực hành có hướng dẫn" },
+];
+
+const uavPreviewModel = "/models/DJI Flip.glb";
+
+const uavPreviewHotspots = [
   {
-    title: "Mavic 3 Enterprise",
-    category: "Surveying",
-    description:
-      "Mechanical shutter 1/2000s, RTK module độ chính xác cấp cm, tích hợp cảm biến đa phổ.",
-    accuracy: "Cấp RTK (1-2cm)",
-    flightTime: "45 Phút",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDxxuqU1b1JrhWq_5_MaCyoh2v7RJICZFlIlQyF5MDLaY2QcMN9Y0frDyVIM2COajovvpmL7cQiPFcfXz2iX7BItFqqx4w298yyWnz6_EGEtLaLI9ipCCziMQ89cLPbDRUJVdD4bnzE2j6RoRvmNnItVFZzIVes5UMs0xElRDsRTu0zUdMF9O2a-8QwDtaphiAvKfLhd74jNUU_anrZIAe2HWXdzekodhLt30UhWSVR2UA0P2KMY0n2XqiFujNJ35HtBa0YLCxgow",
+    id: 1,
+    pos: { x: 0, y: 0.11, z: 0.6 },
+    title: "Camera và gimbal",
+    desc: "Quan sát cụm camera, nơi người học làm quen với góc chụp, chống rung và dữ liệu hình ảnh.",
   },
   {
-    title: "eBee X Fixed-Wing",
-    category: "Mapping",
-    description:
-      "Sức bền 90 phút, cảm biến S.O.D.A 3D, tối ưu cho bản đồ 3D diện tích cực lớn (>500ha).",
-    accuracy: "Tuyệt đối 1.5cm",
-    flightTime: "90 Phút",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBdWnHDAXLVr0vwFNKA8yIthCGXmjyZru8iH0xJ0qj7PxapMjvGNt83899gVIz7gjaQBJB5WSfdQvzw_Q8SAV_Q8H_fIYBrtQWksjURBYrftXhcCnarHsZvtOHvoozHYRuZ4Rr8rGhzTTpq513zhE3eR1URudE4JGYSkt43OyRdzyjVb_zGxpL1eMD0sd7Hhy4uXuUZxEWTWShEScXpTy3pft6WPbs7yciUk2ynvNbX_W3vfGBD864U4uA5x-PWw89cN3o2rug8DA",
+    id: 2,
+    pos: { x: 0.01, y: 0.34, z: 0.48 },
+    title: "Cảm biến tránh vật cản",
+    desc: "Điểm minh họa cho bài học về nhận diện môi trường, giữ khoảng cách an toàn và bay trong khu vực hẹp.",
   },
   {
-    title: "Matrice 350 RTK",
-    category: "Enterprise",
-    description:
-      "Tải trọng 2.7kg, chuẩn IP55, tích hợp LiDAR Zenmuse L2 và camera nhiệt phân giải cao H20T.",
-    accuracy: "Cấp RTK (1cm)",
-    flightTime: "55 Phút",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAfF3vjoMDPZC1iNBtKBSme0O2T36iHVhzgpnfXohfnhTEoZq6ZcYAG841RtGh-FwyHSV7vWXNnDn48gurZIi4f5Zte0HmayheLrFndWT-Czp44ag0zhj69Pv7xblMVn9Si7zonUHH0rdgxo5Alr9W1BD9Yj5ymN-jVeJmw5mt5iCWUvV5GPu30-UlvImvGccAaokmj9x3kmjfqZYo3EEWR6RSzLS2iTRCWLn_EkHlPnbgon-uPQ2fytpCPLb2dER-ptTM7sa5tcw",
+    id: 3,
+    pos: { x: -0.43, y: 0.21, z: 0.65 },
+    title: "Động cơ và cánh quạt",
+    desc: "Khu vực dùng để giải thích lực đẩy, hướng quay cánh quạt và kiểm tra trước khi cất cánh.",
   },
   {
-    title: "Hệ thống Sensor",
-    category: "Payloads",
-    description:
-      "Phân tích dải phổ Multispectral, bước sóng hồng ngoại (LWIR) và đo xa bằng Laser.",
-    accuracy: "Cảm biến kép",
-    flightTime: "Tích hợp",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDLuH1L6XyAkJaCP1gezKaD3hDbH71wIicT0TMh5RAvncoZHeosR1LXrBqRp_ZZKsiVCbleEwkQbWV4w8jV3WdTOzDxj1bBK1p4rFW_ZhkdPRjsXDFt1uYUhI4AFe5ZzdH3p8SDU6O_maJkYty0ycve9Fw85RPM7t7B6m8aCGIT6FlF7maM4V0yIG783kLGJuJmCy0130Adq697Ke4DPvjd4uOHDwyyiK4bzRrap1VDzJazsm4S3LvsaTj-G5qNQYgy1ef9PYMRTA",
+    id: 4,
+    pos: { x: 0.19, y: 0.42, z: -0.13 },
+    title: "Pin thông minh",
+    desc: "Theo dõi năng lượng, thời gian bay còn lại và điều kiện kích hoạt quay về tự động.",
   },
-]);
+];
+
+const roadmap = [
+  {
+    title: "Nền tảng bay và an toàn",
+    desc: "Hiểu khung pháp lý, giới hạn không vực, pin, tín hiệu và checklist trước khi cất cánh.",
+  },
+  {
+    title: "Cấu tạo hệ thống UAV",
+    desc: "Đọc sơ đồ phần cứng, cảm biến, IMU, GNSS, payload và luồng dữ liệu điều khiển.",
+  },
+  {
+    title: "Nhiệm vụ tự động",
+    desc: "Thiết kế waypoint, thiết lập độ cao, tốc độ, vùng khảo sát và phương án quay về.",
+  },
+  {
+    title: "Phân tích dữ liệu sau bay",
+    desc: "Tổng hợp log, ảnh khảo sát, bản đồ 3D và báo cáo sai số nhiệm vụ.",
+  },
+];
+
+const modules = [
+  {
+    icon: Compass,
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-700",
+    kicker: "Làm quen",
+    title: "UAV bay được nhờ những gì?",
+    desc: "Một vòng ngắn về lực nâng, hướng bay, tọa độ và những thuật ngữ người mới hay gặp.",
+    level: "Nên xem đầu tiên",
+    lessons: 6,
+    cta: "Bắt đầu nhẹ",
+    href: "/course",
+  },
+  {
+    icon: ClipboardCheck,
+    iconBg: "bg-emerald-50",
+    iconColor: "text-emerald-700",
+    kicker: "Trước khi bay",
+    title: "Checklist an toàn dễ nhớ",
+    desc: "Kiểm tra pin, cánh quạt, tín hiệu và vùng bay bằng quy trình đủ ngắn để dùng được ngoài sân.",
+    level: "Thực hành cơ bản",
+    lessons: 5,
+    cta: "Xem quy trình",
+    href: "/course",
+  },
+  {
+    icon: MapPinned,
+    iconBg: "bg-cyan-50",
+    iconColor: "text-cyan-700",
+    kicker: "Nhiệm vụ",
+    title: "Lập tuyến bay trên bản đồ",
+    desc: "Đặt waypoint, chọn độ cao, kiểm tra vùng phủ và chuẩn bị phương án quay về khi có sự cố.",
+    level: "Ứng dụng",
+    lessons: 5,
+    cta: "Mở ví dụ",
+    href: "/simulation",
+  },
+  {
+    icon: ChartNoAxesColumnIncreasing,
+    iconBg: "bg-amber-50",
+    iconColor: "text-amber-700",
+    kicker: "Sau chuyến bay",
+    title: "Đọc log và hiểu sai số",
+    desc: "Nhìn vào pin, độ cao, GNSS và sai lệch quỹ đạo để biết chuyến bay có đáng tin hay không.",
+    level: "Dành cho lab",
+    lessons: 4,
+    cta: "Xem dữ liệu mẫu",
+    href: "/test",
+  },
+];
+
+const featuredLessons = [
+  {
+    type: "Video + quiz",
+    duration: "18 phút",
+    title: "Đọc checklist an toàn trước chuyến bay",
+    desc: "Một quy trình ngắn để kiểm tra pin, propeller, tín hiệu, vùng bay và phương án hạ cánh khẩn cấp.",
+    image: "/img/Classification.jpg",
+    alt: "Bài giảng phân loại và an toàn UAV",
+  },
+  {
+    type: "Interactive lab",
+    duration: "32 phút",
+    title: "Thiết kế nhiệm vụ khảo sát bằng waypoint",
+    desc: "Kéo thả tuyến bay, kiểm tra độ phủ ảnh, đặt giới hạn độ cao và chạy thử mô phỏng trong trình duyệt.",
+    image: "/img/drones/Mavic-3.webp",
+    alt: "Drone phục vụ bài lab waypoint",
+  },
+  {
+    type: "Tài liệu kỹ thuật",
+    duration: "12 phút",
+    title: "Hiệu chỉnh IMU và la bàn đúng cách",
+    desc: "Giải thích lỗi thường gặp khi hiệu chỉnh cảm biến và cách nhận biết dữ liệu telemetry bất thường.",
+    image: "/img/drones/DJI Air.webp",
+    alt: "Drone dùng trong bài học hiệu chỉnh cảm biến",
+  },
+];
+
+const quickDocs = [
+  {
+    icon: ShieldCheck,
+    title: "Checklist bay an toàn",
+    meta: "PDF, 6 trang",
+    color: "bg-emerald-100 text-emerald-700",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Chuẩn đánh giá module",
+    meta: "Rubric, cập nhật mới",
+    color: "bg-blue-100 text-blue-700",
+  },
+  {
+    icon: Wrench,
+    title: "Bảng lỗi cảm biến thường gặp",
+    meta: "Tài liệu tra cứu nhanh",
+    color: "bg-amber-100 text-amber-700",
+  },
+];
+
+const labs = [
+  {
+    icon: MonitorPlay,
+    iconBg: "bg-blue-50",
+    iconColor: "text-blue-700",
+    title: "Mô phỏng quỹ đạo",
+    desc: "Chạy thử tuyến bay, quan sát sai số, pin, độ cao và phản ứng khi tín hiệu yếu.",
+    time: "25 phút",
+  },
+  {
+    icon: Gauge,
+    iconBg: "bg-emerald-50",
+    iconColor: "text-emerald-700",
+    title: "Đọc telemetry",
+    desc: "Phân tích tốc độ, độ cao, pin, GNSS và cảnh báo từ log sau mỗi nhiệm vụ.",
+    time: "16 phút",
+  },
+  {
+    icon: Radio,
+    iconBg: "bg-cyan-50",
+    iconColor: "text-cyan-700",
+    title: "Mất tín hiệu",
+    desc: "Thiết lập failsafe, điểm quay về và kịch bản xử lý khi kết nối bị gián đoạn.",
+    time: "20 phút",
+  },
+  {
+    icon: Map,
+    iconBg: "bg-amber-50",
+    iconColor: "text-amber-700",
+    title: "Khảo sát địa hình",
+    desc: "Tạo tuyến bay phủ ảnh, kiểm tra GSD và chuẩn bị dữ liệu cho xử lý bản đồ.",
+    time: "28 phút",
+  },
+];
 </script>
+
+<style scoped>
+.home-page {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    system-ui,
+    sans-serif;
+}
+
+.hero-shell {
+  background:
+    linear-gradient(135deg, oklch(0.998 0.004 250), oklch(0.966 0.012 250)),
+    radial-gradient(circle at 20% 20%, oklch(0.92 0.045 240 / 0.45), transparent 34%);
+}
+
+.motion-rise {
+  animation: rise-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.motion-delay-1 {
+  animation-delay: 80ms;
+}
+
+.motion-delay-2 {
+  animation-delay: 130ms;
+}
+
+.stat-card {
+  --stat-delay: 0ms;
+  position: relative;
+  overflow: hidden;
+  transform-origin: center;
+  animation: stat-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--stat-delay);
+  transition:
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, oklch(0.72 0.11 235 / 0.14), transparent 52%, oklch(0.78 0.13 150 / 0.12));
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  border-color: oklch(0.82 0.07 245);
+  box-shadow: 0 16px 36px oklch(0.65 0.04 250 / 0.14);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-value {
+  position: relative;
+  z-index: 1;
+  animation: stat-value-pop 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--stat-delay) + 130ms);
+}
+
+.uav-home-viewer.viewer-container {
+  height: 520px;
+  min-height: 390px;
+  border-radius: 1.75rem;
+}
+
+.uav-home-viewer :deep(.ui-panel-bottom) {
+  display: none;
+}
+
+.uav-home-viewer :deep(.hotspot-detail-card) {
+  bottom: 5rem;
+  left: 1.25rem;
+  right: 1.25rem;
+  top: auto;
+  width: auto;
+  max-width: 28rem;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stat-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes stat-value-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-rise,
+  .stat-card,
+  .stat-value {
+    animation: none;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
+}
+</style>
