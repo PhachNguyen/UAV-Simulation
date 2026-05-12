@@ -84,8 +84,18 @@
         </button>
 
         <button
+          @click="$router.push('/')"
+          class=" cursor-pointer flex items-center p-3 w-full text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all font-medium"
+          :class="isSidebarOpen ? 'gap-3.5' : 'justify-center'"
+          title="Về trang chủ"
+        >
+          <Home :size="20" />
+          <span v-if="isSidebarOpen" class="text-sm">Về trang chủ</span>
+        </button>
+
+        <button
           @click="logout"
-          class="flex items-center p-3 w-full text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-medium"
+          class="củ flex items-center p-3 w-full text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-medium"
           :class="isSidebarOpen ? 'gap-3.5' : 'justify-center'"
           title="Đăng xuất"
         >
@@ -175,11 +185,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   LayoutDashboard,
-  Box,
   LogOut,
   Menu,
   ChevronLeft,
@@ -190,6 +199,7 @@ import {
   GraduationCap,
   PlaneTakeoff,
   Calendar,
+  Home // Import thêm icon Home
 } from "lucide-vue-next";
 
 const route = useRoute();
@@ -205,7 +215,7 @@ const menuItems = [
 ];
 
 const logout = () => {
-  // Logic đăng xuất
+  // Thực hiện các lệnh xóa token ở đây (ví dụ: localStorage.removeItem('access_token'))
   router.push("/login");
 };
 </script>

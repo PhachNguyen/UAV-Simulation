@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { useRouter } from "vue-router";
+import Swal from "sweetalert2";
 const router = useRouter();
 const props = defineProps({
   structure: { type: Array, default: () => [] },
@@ -78,9 +79,20 @@ const goToNextLesson = () => {
       nextId: props.activeLessonId,
     });
 
-    alert(
-      "Hệ thống SkyLink: Chúc mừng phi công! Bạn đã hoàn thành 100% khóa huấn luyện!",
-    );
+Swal.fire({
+  icon: "success",
+  title: "Hoàn thành xuất sắc!",
+  html: "<b>Hệ thống SkyLink:</b><br/> Chúc mừng bạn! Bạn đã hoàn thành 100% khóa huấn luyện!",
+  confirmButtonText: "Đóng",
+  confirmButtonColor: "#1e293b", // Màu slate-800 giống UI của bạn
+  allowOutsideClick: false, // Bắt buộc người dùng phải bấm nút để đóng
+  showClass: {
+    popup: 'animate__animated animate__fadeInDown'
+  },
+  hideClass: {
+    popup: 'animate__animated animate__fadeOutUp'
+  }
+});
   } else {
     // TRƯỜNG HỢP CÒN BÀI TIẾP THEO:
     const nextLesson = allLessons[currentIndex + 1];

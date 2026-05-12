@@ -37,7 +37,7 @@
           <template v-if="isLoggedIn && user">
             <button
               @click="isProfileOpen = !isProfileOpen"
-              class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-[oklch(0.998_0.004_250)] py-1.5 pl-1.5 pr-3 transition duration-200 hover:border-blue-200 hover:bg-blue-50/60"
+              class="cursor-pointer flex items-center gap-3 rounded-2xl border border-slate-200 bg-[oklch(0.998_0.004_250)] py-1.5 pl-1.5 pr-3 transition duration-200 hover:border-blue-200 hover:bg-blue-50/60"
               :class="{ 'border-blue-200 ring-4 ring-blue-100': isProfileOpen }"
             >
               <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-sm font-bold text-slate-50">
@@ -106,7 +106,7 @@
             </router-link>
             <router-link
               to="/register"
-              class="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-50 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+              class="inline-flex items-center gap-[20px] rounded-2xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-slate-50 transition duration-200 hover:-translate-y-0.5 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
             >
               <UserPlus class="h-4 w-4" />
               Bắt đầu học
@@ -136,7 +136,7 @@
       leave-to-class="-translate-y-2 opacity-0"
     >
       <div v-if="isMobileOpen" class="border-t border-slate-200 bg-[oklch(0.998_0.004_250)] lg:hidden">
-        <div class="mx-auto grid max-w-7xl gap-2 px-4 py-4 sm:px-6">
+        <div class="cursor-pointer mx-auto grid max-w-7xl gap-2 px-4 py-4 sm:px-6">
           <router-link
             v-for="link in navLinks"
             :key="link.name"
@@ -222,7 +222,7 @@ onUnmounted(() => document.removeEventListener("click", handleClickOutside));
 const navLinks = [
   { name: "Tổng quan", href: "/" },
   { name: "Khóa học", href: "/course" },
-  { name: "Bài học mẫu", href: "/test" },
+  // { name: "Bài học mẫu", href: "/test" },
   { name: "Thư viện UAV", href: "/services" },
   // { name: "Tài liệu", href: "/history" },
 ];
