@@ -357,11 +357,11 @@ const handleNextLesson = async ({ currentId, nextId }) => {
             class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4"
           >
             <div class="flex justify-between items-start">
-              <div
+              <!-- <div
                 class="bg-slate-800/80 backdrop-blur border border-slate-600/50 rounded p-2 px-3 text-xs text-white font-mono flex items-center gap-2"
               >
                 <i class="ph ph-target"></i> Tín hiệu: Ổn định
-              </div>
+              </div> -->
               <!-- <div
                 class="text-right text-xs text-white/80 font-mono drop-shadow-md"
               >

@@ -109,12 +109,13 @@
   
         </div>
 <!--  Mô hình 3D -->
-      <div class="lg:col-span-6 bg-[#ebf0f7] rounded-3xl p-4 shadow-inner relative flex flex-col border border-slate-200 min-h-0">
+   <div class="lg:col-span-6 bg-[#ebf0f7] rounded-3xl p-4 shadow-inner relative flex flex-col border border-slate-200 min-h-0">
   <div class="flex justify-between items-center mb-4 shrink-0">
     <h2 class="text-lg font-bold text-slate-800">
       Mô hình cấu tạo
     </h2>
     <button
+      v-if="isLoggedIn"
       class="flex items-center gap-2 px-3 py-1.5 bg-white text-xs font-medium rounded-full shadow-sm hover:bg-slate-50 transition-colors"
     >
       <RefreshCcwIcon class="w-3.5 h-3.5" /> Reset View
@@ -122,24 +123,29 @@
   </div>
 
   <div
-    class="flex-1 bg-gradient-to-b from-transparent to-slate-200/50 rounded-2xl relative min-h-0 overflow-hidden"
+    class="flex-1 bg-gradient-to-b from-transparent to-slate-200/50 rounded-2xl relative min-h-0 overflow-hidden flex items-center justify-center"
   >
-    <Uav3DViewer class="w-full h-full  " :modelSrc="`http://localhost:5000${drone.model3d}`" :customHotspots="drone.hotspots" />
+    <div v-if="!isLoggedIn" class="text-center p-6 bg-white/80 backdrop-blur-md rounded-2xl shadow-sm border border-white/60 max-w-sm m-4 z-10">
+      <div class="mx-auto w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mb-4 shadow-inner">
+        <i class="ph ph-lock text-2xl text-slate-900"></i>
+      </div>
+      
+      <h3 class="text-lg font-bold text-slate-900 mb-2">Yêu cầu đăng nhập</h3>
+      <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+        Đăng nhập tài khoản để tương tác và xem chi tiết cấu tạo mô hình 3D của UAV này.
+      </p>
+      
+      <button @click="goToLogin" class="bg-[#0F172B] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all shadow-md hover:shadow-lg">
+        Đăng nhập ngay
+      </button>
+    </div>
 
-    <!-- <div
-      class="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 bg-white/80 backdrop-blur rounded-full p-1.5 shadow-sm z-10"
-    >
-      <button class="p-1.5 hover:bg-slate-200 rounded-full transition-colors">
-        <MaximizeIcon class="w-4 h-4 text-slate-700" />
-      </button>
-      <div class="w-full h-px bg-slate-300 my-0.5"></div>
-      <button class="p-1.5 hover:bg-slate-200 rounded-full transition-colors">
-        <PlusIcon class="w-4 h-4 text-slate-700" />
-      </button>
-      <button class="p-1.5 hover:bg-slate-200 rounded-full transition-colors">
-        <MinusIcon class="w-4 h-4 text-slate-700" />
-      </button>
-    </div> -->
+    <Uav3DViewer 
+      v-else 
+      class="w-full h-full" 
+      :modelSrc="`http://localhost:5000${drone.model3d}`" 
+      :customHotspots="drone.hotspots" 
+    />
   </div>
 </div>
 
@@ -240,6 +246,17 @@ const isLoading = ref(false); // Khai báo biến loading
 const drone = ref({});
 const gallery = ref([]); // Khởi tạo gallery rỗng để chờ API
 const technicalSpecs = ref([]);
+// THÊM ĐOẠN NÀY ĐỂ KIỂM TRA ĐĂNG NHẬP:
+const checkAuth = () => {
+  // Thay 'access_token' bằng key lưu token thực tế của bạn trong localStorage
+  const token = localStorage.getItem("userToken"); 
+  return !!token;
+};
+const isLoggedIn = ref(checkAuth());
+
+const goToLogin = () => {
+  router.push("/login"); // Chuyển hướng sang trang đăng nhập
+};
 const goBack = () => {
   router.push('/services');
 };
