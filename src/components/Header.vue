@@ -224,6 +224,6 @@ const navLinks = [
   { name: "Khóa học", href: "/course" },
   { name: "Bài học mẫu", href: "/test" },
   { name: "Thư viện UAV", href: "/services" },
-  { name: "Tài liệu", href: "/history" },
+  // { name: "Tài liệu", href: "/history" },
 ];
 </script>

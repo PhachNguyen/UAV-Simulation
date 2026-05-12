@@ -567,6 +567,7 @@ defineExpose({ flyToSpot });
   background: #080808;
   border-radius: 1.5rem;
   overflow: hidden;
+
 }
 
 /* Hotspot Detail Card */

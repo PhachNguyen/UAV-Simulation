@@ -1,66 +1,41 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-// Import các Page (Component) của bạn
+// Import các Page (Component)
 import Dashboard from "../pages/users/Home.vue";
-import NoFlyZones from "@/pages/users/NoFlyZones.vue";
-import ProductDetail from "@/components/ProductDetail.vue";
 import ProductPage from "@/pages/users/ProductPage.vue";
-import Uav3DViewer from "@/components/Uav3DViewer.vue";
 import Login from "@/pages/auth/Login.vue";
 import Register from "@/pages/auth/Register.vue";
-import MainLayoutUser from "@/layout/MainLayoutUser.vue";
 import MainLayoutAdmin from "@/layout/MainLayoutAdmin.vue";
 import UserManage from "@/pages/admin/UserManage.vue";
+
+// ==========================================
+// HÀM KIỂM TRA QUYỀN ADMIN
+// ==========================================
+const checkIfUserIsAdmin = () => {
+  try {
+    // Thay "user_info" bằng tên key bạn dùng để lưu thông tin user lúc login
+    const userStr = localStorage.getItem("userData"); 
+    if (!userStr) return false;
+
+    const user = JSON.parse(userStr);
+    
+    // Thay "admin" bằng role tương ứng của bạn (ví dụ: role === 1, role === 'ADMIN'...)
+    return user.role === "admin"; 
+  } catch (error) {
+    console.error("Lỗi parse dữ liệu user:", error);
+    return false;
+  }
+};
+
 const routes = [
-  // history: createWebHistory(),
-  //   {
-  //     path: "/",
-  //     redirect: "/dashboard",
-  //   },
-  // User routes
-  // {
-  //   path: "/profile",
-  //   component: MainLayoutUser,
-  //   children: [
-  //     {
-  //       path: "dashboard",
-  //       component: () => import("../pages/users/DashboardView.vue"),
-  //     },
-  //     {
-  //       path: "fleet",
-  //       component: () => import("../pages/users/DroneFleetView.vue"),
-  //     },
-  //     {
-  //       path: "courses",
-  //       component: () => import("../pages/users/MyCourses.vue"),
-  //     },
-  //   ],
-  //   meta: { hideHeaderFooter: true },
-  // },
-  {
-    path: "/test",
-    component: () => import("../pages/Course.vue"),
-  },
-  {
-    path: "/test1",
-    component: () => import("../pages/Test.vue"),
-    meta: { hideHeaderFooter: true },
-  },
-  {
-    // Thêm :id để truyền mã định danh của drone vào trang chi tiết
-    path: "/test2/:id",
-    name: "ProductDetail",
-    component: () => import("../pages/ProductPagever2.vue"),
-    meta: { hideHeaderFooter: true },
-  },
-  // {
-  //   path: "/test1",
-  //   component: () => import("../pages/Test.html"),
-  // },
-  // Admin routes
+  // ==========================================
+  // ROUTE ADMIN (ĐÃ ĐƯỢC BẢO VỆ)
+  // ==========================================
   {
     path: "/admin",
     component: MainLayoutAdmin,
+    // Đánh dấu route này và tất cả route con yêu cầu quyền Admin
+    meta: { hideHeaderFooter: true, requiresAdmin: true }, 
     children: [
       {
         path: "dashboard",
@@ -75,24 +50,22 @@ const routes = [
         component: () => import("../pages/admin/AddDroneView.vue"),
       },
       {
+        path: "drones/edit/:id",
+        name: "EditDrone",
+        component: () => import("../pages/admin/AddDroneView.vue"),
+      },
+      {
         path: "chapter/:id",
         name: "LessonEditor",
         component: () => import("../pages/admin/LessonEditor.vue"),
-        props: true, // Cho phép nhận id như một props
+        props: true, 
       },
       {
         path: "lesson/:id/sections",
         name: "SectionEditor",
         component: () => import("../pages/admin/SectionEditor.vue"),
-        props: true, // Cho phép nhận id như một props
+        props: true, 
       },
-      // Ví dụ trong router/index.js
-      {
-        path: "drones/edit/:id",
-        name: "EditDrone",
-        component: () => import("../pages/admin/AddDroneView.vue"), // Dùng chung file với trang Add
-      },
-
       {
         path: "course",
         component: () => import("../pages/admin/AdminCourseManager.vue"),
@@ -101,12 +74,20 @@ const routes = [
         path: "course/add",
         component: () => import("../pages/admin/AdminAddLesson.vue"),
       },
-       {
+      {
         path: "users",
-        component:UserManage,
+        component: UserManage,
       },
     ],
-    meta: { hideHeaderFooter: true },
+  },
+
+  // ==========================================
+  // ROUTE PUBLIC & USER (KHÔNG YÊU CẦU ADMIN)
+  // ==========================================
+  {
+    path: "/",
+    name: "Home",
+    component: Dashboard,
   },
   {
     path: "/login",
@@ -115,28 +96,32 @@ const routes = [
     meta: { hideHeaderFooter: true },
   },
   {
+    path: "/register",
+    name: "register",
+    component: Register,
+    meta: { hideHeaderFooter: true },
+  },
+  {
+    path: "/test",
+    component: () => import("../pages/Course.vue"),
+  },
+  {
+    path: "/test1",
+    component: () => import("../pages/Test.vue"),
+    meta: { hideHeaderFooter: true },
+  },
+  {
+    path: "/test2/:id",
+    name: "ProductDetail",
+    component: () => import("../pages/ProductPagever2.vue"),
+    meta: { hideHeaderFooter: true },
+  },
+  {
     path: "/simulation",
     name: "Simulation",
     component: () => import("../components/UnityPlayer.vue"),
     meta: { hideHeaderFooter: true },
   },
-  {
-    path: "/",
-    name: "Home",
-    component: Dashboard,
-    // meta: { hideHeaderFooter: true },
-  },
-  {
-    path: "/register",
-    name: "register",
-    component: Register,
-    meta: { hideHeaderFooter: true }, // Ẩn header/footer
-  },
-  // {
-  //   path: "/simulation/:id",
-  //   name: "Simulation",
-  //   component: Uav3DViewer,
-  // },
   {
     path: "/products",
     name: "ProductPage",
@@ -152,26 +137,6 @@ const routes = [
     name: "Blog",
     component: () => import("@/pages/Blog.vue"),
   },
-  // {
-  //   path: "/drone/:id",
-  //   name: "droneDetail",
-  //   component: ProductDetail,
-  // },
-  // {
-  //   path: "/no-fly-zones",
-  //   name: "NFZ",
-  //   component: NoFlyZones,
-  // },
-  // {
-  //   path: "/fleet/drones",
-  //   name: "ListDrones",
-  //   component: () => import("@/pages/users/DroneList.vue"),
-  // },
-  // {
-  //   path: "/fleet/battery",
-  //   name: "Battery",
-  //   component: () => import("@/pages/users/Battery.vue"),
-  // },
   {
     path: "/fleet/stations",
     name: "Stations",
@@ -191,7 +156,7 @@ const routes = [
     path: "/history",
     name: "History",
     component: () => import("@/pages/users/History.vue"),
-    meta: { hideHeaderFooter: true }, // Ẩn header/footer
+    meta: { hideHeaderFooter: true }, 
   },
   {
     path: "/monitor/live-map",
@@ -218,16 +183,37 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  // Thêm đoạn code scrollBehavior vào đây
   scrollBehavior(to, from, savedPosition) {
-    // Nếu người dùng nhấn nút "Back" (Quay lại), trình duyệt sẽ quay về vị trí cũ
     if (savedPosition) {
       return savedPosition;
     } else {
-      // Khi chuyển sang trang chi tiết (ví dụ: /drone/:id), luôn cuộn lên đầu trang
       return { top: 0, left: 0 };
     }
   },
+});
+
+// ==========================================
+// ĐIỀU HƯỚNG BẢO MẬT (NAVIGATION GUARDS)
+// ==========================================
+router.beforeEach((to, from, next) => {
+  // Kiểm tra xem route hiện tại hoặc các route cha của nó có yêu cầu quyền admin không
+  const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin);
+
+  if (requiresAdmin) {
+    const isAdmin = checkIfUserIsAdmin();
+
+    if (!isAdmin) {
+      // Nếu không phải Admin, chặn lại và đá về trang Home (hoặc trang Login tùy bạn)
+      alert("Truy cập bị từ chối! Bạn không có quyền quản trị viên.");
+      next({ name: "Home" });
+    } else {
+      // Đúng là Admin thì cho đi tiếp
+      next();
+    }
+  } else {
+    // Các route bình thường không yêu cầu admin thì cho qua
+    next();
+  }
 });
 
 export default router;

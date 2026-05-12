@@ -217,18 +217,18 @@ const handleLessonClick = (lessonId) => {
       <div class="p-5 bg-slate-50 border-t border-slate-100">
         <button
           @click="goToNextLesson"
-          class="cursor-pointer w-full bg-[#0b1f3f] hover:bg-slate-800 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 active:scale-95"
+          class="cursor-pointer w-full bg-[#0b1f3f] hover:bg-gray-900 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2 active:scale-95"
         >
           Bài giảng tiếp theo <i class="ph-bold ph-arrow-right"></i>
         </button>
         <button
           @click="goToSimulation"
-          class="w-full mt-3 bg-blue-500 cursor-pointer hover:bg-blue-600 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 group"
+          class="w-full mt-3 bg-gray-500 cursor-pointer hover:bg-gray-600 text-white text-xs font-bold uppercase py-4 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95 group"
         >
           <i
             class="ph-bold ph-airplane-takeoff text-lg group-hover:animate-bounce"
           ></i>
-          Huấn luyện mô phỏng lái
+          Lab mô phỏng
         </button>
       </div>
 
