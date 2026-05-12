@@ -18,28 +18,28 @@ const routes = [
   //     redirect: "/dashboard",
   //   },
   // User routes
-  {
-    path: "/profile",
-    component: MainLayoutUser,
-    children: [
-      {
-        path: "dashboard",
-        component: () => import("../pages/users/DashboardView.vue"),
-      },
-      {
-        path: "fleet",
-        component: () => import("../pages/users/DroneFleetView.vue"),
-      },
-      {
-        path: "courses",
-        component: () => import("../pages/users/MyCourses.vue"),
-      },
-    ],
-    meta: { hideHeaderFooter: true },
-  },
+  // {
+  //   path: "/profile",
+  //   component: MainLayoutUser,
+  //   children: [
+  //     {
+  //       path: "dashboard",
+  //       component: () => import("../pages/users/DashboardView.vue"),
+  //     },
+  //     {
+  //       path: "fleet",
+  //       component: () => import("../pages/users/DroneFleetView.vue"),
+  //     },
+  //     {
+  //       path: "courses",
+  //       component: () => import("../pages/users/MyCourses.vue"),
+  //     },
+  //   ],
+  //   meta: { hideHeaderFooter: true },
+  // },
   {
     path: "/test",
-    component: () => import("../pages/DetailCourse.vue"),
+    component: () => import("../pages/Course.vue"),
   },
   {
     path: "/test1",
@@ -145,7 +145,7 @@ const routes = [
   {
     path: "/course",
     name: "Course",
-    component: () => import("@/pages/Course.vue"),
+    component: () => import("@/pages/DetailCourse.vue"),
   },
   {
     path: "/drone/:id",
@@ -157,21 +157,21 @@ const routes = [
   //   name: "droneDetail",
   //   component: ProductDetail,
   // },
-  {
-    path: "/no-fly-zones",
-    name: "NFZ",
-    component: NoFlyZones,
-  },
+  // {
+  //   path: "/no-fly-zones",
+  //   name: "NFZ",
+  //   component: NoFlyZones,
+  // },
   // {
   //   path: "/fleet/drones",
   //   name: "ListDrones",
   //   component: () => import("@/pages/users/DroneList.vue"),
   // },
-  {
-    path: "/fleet/battery",
-    name: "Battery",
-    component: () => import("@/pages/users/Battery.vue"),
-  },
+  // {
+  //   path: "/fleet/battery",
+  //   name: "Battery",
+  //   component: () => import("@/pages/users/Battery.vue"),
+  // },
   {
     path: "/fleet/stations",
     name: "Stations",

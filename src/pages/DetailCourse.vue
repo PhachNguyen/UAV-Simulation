@@ -6,6 +6,7 @@ import api from "@/utils/apis/axios";
 import { compute } from "three/tsl";
 const isSimulating = ref(false);
 import { computed } from "vue";
+import { useAuthStore } from "@/stores/auth";
 // 1. Quản lý trạng thái tiến độ
 const progress = ref(70);
 // const currentModule = ref("Mô-đun 02: Khí động học");
@@ -15,6 +16,14 @@ const activeLessonId = ref(null);
 import ProductSimulation from "@/components/ProductSimulation.vue";
 import Uav3DViewer from "@/components/Uav3DViewer.vue";
 const isLoading = ref(false);
+const authStore = useAuthStore();
+const authRequired = ref(false);
+const hasAuthenticatedUser = computed(() =>
+  Boolean(authStore.user && authStore.token),
+);
+const showLoginRequired = computed(
+  () => authRequired.value || !hasAuthenticatedUser.value,
+);
 // 2. Dữ liệu chương trình đào tạo (Sidebar)
 // const curriculum = ref([
 //   {
@@ -110,17 +119,42 @@ const downloadResource = (relativeUrl) => {
 
 // 1. API Fetch dữ liệu Aero-X
 const fetchAllData = async () => {
-  const { data } = await api.get("/courses");
+  if (!hasAuthenticatedUser.value) {
+    authRequired.value = true;
+    courseStructure.value = [];
+    completedLessonIds.value = [];
+    activeLessonId.value = null;
+    return;
+  }
 
-  // 1. Gán mảng bài học đã xong trước
-  completedLessonIds.value = data.completedLessons;
-  courseStructure.value = data.chapters;
+  isLoading.value = true;
+  authRequired.value = false;
 
-  // 2. Sau đó mới gán activeLessonId
-  if (data.lastAccessed) {
-    activeLessonId.value = data.lastAccessed; // Sẽ nhảy về bài 8
-  } else {
-    activeLessonId.value = data.chapters[0]?.lessons[0]?.id;
+  try {
+    const { data } = await api.get("/courses");
+
+    // 1. Gán mảng bài học đã xong trước
+    completedLessonIds.value = data.completedLessons;
+    courseStructure.value = data.chapters;
+
+    // 2. Sau đó mới gán activeLessonId
+    if (data.lastAccessed) {
+      activeLessonId.value = data.lastAccessed; // Sẽ nhảy về bài 8
+    } else {
+      activeLessonId.value = data.chapters[0]?.lessons[0]?.id;
+    }
+  } catch (error) {
+    if ([401, 403].includes(error.response?.status)) {
+      authRequired.value = true;
+      courseStructure.value = [];
+      completedLessonIds.value = [];
+      activeLessonId.value = null;
+      return;
+    }
+
+    console.error("Lỗi tải dữ liệu khóa học:", error);
+  } finally {
+    isLoading.value = false;
   }
 };
 // 2. COMPUTED: Tìm bài học hiện tại từ cấu trúc BE
@@ -234,7 +268,38 @@ const handleNextLesson = async ({ currentId, nextId }) => {
     <main
       class="flex-1 max-w-[1400px] mx-auto w-full px-6 py-8 flex flex-col lg:flex-row gap-8"
     >
-      <div class="flex-1 flex flex-col gap-8 min-w-0" v-if="currentLesson">
+      <section
+        v-if="showLoginRequired"
+        class="flex-1 min-h-[420px] flex items-center justify-center"
+      >
+        <div
+          class="w-full max-w-xl rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm"
+        >
+          <div
+            class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700"
+          >
+         <i class="ph ph-user-circle text-4xl text-slate-900"></i>
+          </div>
+          <h1 class="text-2xl font-bold text-slate-900">
+            Bạn cần đăng nhập để xem
+          </h1>
+          <p class="mt-3 text-sm leading-6 text-slate-600">
+            Đăng nhập tài khoản học viên để mở nội dung bài giảng và lưu tiến
+            độ học tập.
+          </p>
+          <router-link
+            to="/login"
+            class="mt-6 inline-flex items-center justify-center rounded-lg bg-[#13203A] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          >
+            Đăng nhập
+          </router-link>
+        </div>
+      </section>
+
+      <div
+        class="flex-1 flex flex-col gap-8 min-w-0"
+        v-else-if="currentLesson"
+      >
         <div>
           <h2
             class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 font-mono"
@@ -398,6 +463,7 @@ const handleNextLesson = async ({ currentId, nextId }) => {
       </div>
 
       <CourseSidebar
+        v-if="!showLoginRequired && courseStructure.length"
         :structure="courseStructure"
         :active-lesson-id="activeLessonId"
         :completed-lessons="completedLessonIds"
@@ -406,7 +472,7 @@ const handleNextLesson = async ({ currentId, nextId }) => {
       />
     </main>
     <section
-      v-if="currentLesson?.model3DPath"
+      v-if="!showLoginRequired && currentLesson?.model3DPath"
       class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-2xl mt-4 max-w-[1400px] mx-auto w-full"
     >
       <div
