@@ -1,7 +1,17 @@
 <template>
-  <h1 class="text-3xl md:text-4xl font-bold text-[#0b1f3f] text-center m-8">
-Cẩm nang công nghệ Drone
-</h1>
+<!-- <div class="flex flex-col items-center justify-center text-center m-8 md:m-8 gap-4">
+  <span class="px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100 shadow-sm">
+    Chào mừng đến với Drone Pro
+  </span>
+  
+  <h1 class="text-3xl md:text-5xl font-black text-[#0b1f3f] tracking-tight max-w-4xl leading-tight">
+    Nền tảng đào tạo UAV <span class="text-blue-600">Hàng đầu</span>
+  </h1>
+  
+  <p class="text-slate-600 text-sm md:text-base font-medium max-w-2xl leading-relaxed">
+    Trang bị kiến thức toàn diện từ lý thuyết nền tảng, kỹ thuật bay chuyên sâu đến thực hành trên hệ thống mô phỏng 3D sát với thực tế nhất.
+  </p>
+</div> -->
   <div class="min-h-screen bg-slate-100 p-4 lg:p-6 flex justify-center font-sans text-slate-800">
     <!-- <h1 class="text-3xl md:text-4xl font-bold text-[#0b1f3f] text-center mb-8">
   Tổng quan hệ thống
@@ -159,8 +169,12 @@ Cẩm nang công nghệ Drone
 <section class="mb-10 w-full">
   <div class="flex justify-between items-end mb-6">
     <h2 class="text-2xl font-bold text-[#0b1f3f]">Thư viện Drone</h2>
-    <a href="#" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">Xem tất cả</a>
-  </div>
+<router-link 
+  to="/services" 
+  class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+>
+  Xem tất cả
+</router-link>  </div>
 
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
     
@@ -177,7 +191,7 @@ Cẩm nang công nghệ Drone
         MÔ TẢ NGẮN VỀ {{ drone.name }}
       </p>
       
-      <ul class="flex flex-col gap-2.5 text-[12px] text-slate-700 mb-8 flex-1">
+      <!-- <ul class="flex flex-col gap-2.5 text-[12px] text-slate-700 mb-8 flex-1">
         <li class="flex justify-between items-center border-b border-slate-100 pb-1.5">
           <span class="text-slate-500 font-medium">Trọng lượng:</span>
           <span class="font-bold text-[#0b1f3f]">{{ drone.weight }}</span>
@@ -198,7 +212,7 @@ Cẩm nang công nghệ Drone
           <span class="text-slate-500 font-medium">Thời gian bay:</span>
           <span class="font-bold text-[#0b1f3f]">{{ drone.flightTime }}</span>
         </li>
-      </ul>
+      </ul> -->
       
       <button class="mt-auto w-full bg-[#0b1f3f] text-white py-3 rounded-[0.5rem] text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm">
         Tìm hiểu thêm
@@ -209,7 +223,16 @@ Cẩm nang công nghệ Drone
 </section>
 <!-- Lộ trình bài giảng -->
 <section class="w-full">
-  <h2 class="text-2xl font-bold text-[#0b1f3f] mb-8">Lộ trình bài giảng</h2>
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+  <h2 class="text-2xl font-bold text-[#0b1f3f]">Lộ trình bài giảng</h2>
+  
+  <router-link 
+    to="/register-course" 
+    class="inline-flex items-center justify-center px-6 py-2.5 bg-[#0b1f3f] text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:scale-95"
+  >
+    Đăng ký tham gia ngay
+  </router-link>
+</div>
 
   <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
     
@@ -238,8 +261,8 @@ Cẩm nang công nghệ Drone
   </div>
 </section>
 <!-- Trải nghiệm 3D -->
-<section class="w-full mt-12">
-  <h2 class="text-xl md:text-2xl font-bold text-[#0b1f3f] mb-6 md:mb-8 ">
+<section class="w-full mt-10">
+  <h2 class="text-xl md:text-2xl font-bold text-[#0b1f3f] mb-6 md:mb-5 ">
     Trải nghiệm mô phỏng
   </h2>
   <div class="relative w-full min-h-[400px] md:min-h-[500px] rounded-2xl overflow-hidden shadow-xl group flex items-center justify-center border border-slate-200/50">
@@ -254,17 +277,20 @@ Cẩm nang công nghệ Drone
 
     <div class="relative z-10 px-6 py-8 md:px-6 md:py-6 mx-4 bg-white/50 backdrop-blur-sm rounded-2xl max-w-2xl text-center shadow-[0_10px_40px_rgba(0,0,0,0.2)] border border-white/60 transition-transform duration-300 hover:scale-[1.02]">
       
-      <h2 class="text-2xl md:text-3xl font-black text-[#0b1f3f]  mb-4 ">
-        Mô phỏng cấu tạo & vận hành
+      <h2 class="text-2xl md:text-3xl font-black text-[#0b1f3f]  mb-4  ">
+        Mô phỏng cấu tạo và vận hành
       </h2>
       
       <p class="text-slate-700 font-medium text-sm md:text-base  mb-8 max-w-lg mx-auto">
         Hệ thống mô phỏng 3D hiện đại tích hợp trực tiếp vào bài giảng, cung cấp cái nhìn chi tiết về linh kiện và trải nghiệm bay chân thực nhất.
       </p>
 
-      <button class="bg-[#0b1f3f] text-white px-8 py-3.5 rounded-lg font-bold text-base hover:bg-[#1a365d] transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200">
-        Trải Nghiệm Mô Phỏng
-      </button>
+      <router-link 
+  to="/simulation" 
+  class="inline-block bg-[#0b1f3f] text-white px-8 py-3.5 rounded-lg font-bold text-base hover:bg-[#1a365d] transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 duration-200"
+>
+  Trải Nghiệm Mô Phỏng
+</router-link>
 
     </div>
   </div>
@@ -307,24 +333,24 @@ const droneLibrary = ref([
     flightTime: '43 phút',
     image: 'https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&q=80'
   },
-  // {
-  //   name: 'Matrice 300 RTK',
-  //   weight: '6.3 kg',
-  //   range: '15 km',
-  //   speed: '23 m/s',
-  //   camera: 'Zenmuse H20T',
-  //   flightTime: '55 phút',
-  //   image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80'
-  // },
-  // {
-  //   name: 'Inspire 2',
-  //   weight: '3440g',
-  //   range: '7 km',
-  //   speed: '26 m/s',
-  //   camera: 'Zenmuse X7',
-  //   flightTime: '27 phút',
-  //   image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80' // Thêm ảnh Unsplash thứ 4
-  // }
+  {
+    name: 'Matrice 300 RTK',
+    weight: '6.3 kg',
+    range: '15 km',
+    speed: '23 m/s',
+    camera: 'Zenmuse H20T',
+    flightTime: '55 phút',
+    image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80'
+  },
+  {
+    name: 'Inspire 2',
+    weight: '3440g',
+    range: '7 km',
+    speed: '26 m/s',
+    camera: 'Zenmuse X7',
+    flightTime: '27 phút',
+    image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80' // Thêm ảnh Unsplash thứ 4
+  }
 ]);
 
 // Danh sách bài giảng
