@@ -102,6 +102,7 @@ const routes = [
     meta: { hideHeaderFooter: true },
   },
   {
+    
     path: "/test",
     component: () => import("../pages/Course.vue"),
   },

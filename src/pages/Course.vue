@@ -195,4 +195,5 @@ const handleSelectLesson = (lesson) => {
 };
 
 onMounted(fetchData);
+
 </script>
