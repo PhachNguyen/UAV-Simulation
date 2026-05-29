@@ -261,7 +261,7 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4">
-              Tóm tắt nhiệm vụ
+              Tóm tắt bài giảng
             </h3>
             <div
               class="text-slate-600 text-sm leading-relaxed mb-6 prose max-w-none"
@@ -280,7 +280,7 @@ onMounted(() => {
 
           <div>
             <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4">
-              Tài nguyên bài giảng
+              Tài liệu0 bài giảng
             </h3>
             <div class="space-y-3">
               <div

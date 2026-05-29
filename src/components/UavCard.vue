@@ -17,11 +17,13 @@
         {{ drone.name }}
       </h4>
 
-      <p class="text-[11px] font-black text-slate-800 mb-2 uppercase">
-        Mô tả ngắn về {{ drone.name }} :
-      </p>
-      <!-- <div>{{ drone.description }}</div> -->
-      <div
+   <div class="line-clamp-3 text-[13px] text-slate-600 leading-relaxed mb-4 justify-end">
+  <span class="text-[11px] font-bold text-slate-800 mr-1 ">
+    Mô tả về {{ drone.name }} :
+  </span>
+  {{ drone.description }}
+</div>
+      <!-- <div
         class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] text-slate-700 mb-6"
       >
         <div class="flex items-start">
@@ -54,7 +56,7 @@
           <span class="font-bold mr-1">Thời gian bay:</span>
           <span class="truncate">{{ drone.flight_time }} phút</span>
         </div>
-      </div>
+      </div> -->
 
       <div class="mt-auto border-t border-slate-100">
         <button

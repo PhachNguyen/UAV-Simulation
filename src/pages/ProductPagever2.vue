@@ -155,23 +155,22 @@
             class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100"
           >
             <h2 class="text-lg font-bold mb-5">Thông tin cần thiết</h2>
-            <div class="grid grid-cols-2 gap-y-6 gap-x-2">
-              <div
-                v-for="spec in technicalSpecs"
-                :key="spec.label"
-                class="flex gap-3 items-start"
-              >
-                <div class="p-2 bg-[#1a2b4c] text-white rounded-lg shrink-0">
-                  <component :is="spec.icon" class="w-5 h-5" />
-                </div>
-                <div>
-                  <p class="text-xs font-semibold text-slate-900 leading-tight">
-                    {{ spec.title }}
-                  </p>
-                  <p class="text-xs text-slate-500 mt-1">{{ spec.value }}</p>
-                </div>
-              </div>
-            </div>
+           <div class="grid grid-cols-2 gap-y-6 gap-x-2">
+  <div v-for="(spec, index) in technicalSpecs" :key="spec.name" class="flex gap-3 items-start">
+    
+    <div class="w-9 h-9 bg-[#1a2b4c] text-white rounded-lg shrink-0 flex items-center justify-center font-bold text-sm">
+      {{ index + 1 }}
+    </div>
+    
+    <div>
+      <p class="text-xs font-semibold text-slate-900 leading-tight">
+        {{ spec.name }}
+      </p>
+      <p class="text-xs text-slate-500 mt-1">{{ spec.value }}</p>
+    </div>
+    
+  </div>
+</div>
           </div>
 
           <div
@@ -179,7 +178,10 @@
           >
             <h2 class="text-base font-bold mb-2 shrink-0">Mô tả & Ứng dụng</h2>
           <div class="flex-1 overflow-y-auto pr-2 mb-4 custom-scrollbar">
-  <div class="text-[11px] lg:text-xs text-slate-600 leading-relaxed text-justify space-y-4">
+         <div class="text-[14px] text-slate-600 leading-relaxed text-justify whitespace-pre-line">
+                {{ drone?.description || 'Đang cập nhật mô tả...' }}
+              </div>
+  <!-- <div class="text-[11px] lg:text-xs text-slate-600 leading-relaxed text-justify space-y-4">
     <p>
       Hệ thống UAV giáo dục này được phát triển như một nền tảng thí nghiệm di động toàn diện, phục vụ cho việc đào tạo chuyên sâu trong lĩnh vực hàng không không người lái. Thiết kế khung máy (airframe) sử dụng vật liệu composite siêu nhẹ nhưng đảm bảo độ bền cơ học cao, giúp tối ưu hóa hiệu suất khí động học và kéo dài thời gian hoạt động trong các môi trường khắc nghiệt.
     </p>
@@ -204,7 +206,7 @@
     <p>
       Mọi dữ liệu đo đạc (Telemetry) bao gồm vận tốc, độ cao, điện áp pin và trạng thái kết nối đều được số hóa và truyền tải theo thời gian thực về máy chủ trung tâm. Điều này giúp giảng viên và sinh viên có cái nhìn trực quan, hỗ trợ tối đa cho việc phân tích hậu kiểm và tối ưu hóa các dự án nghiên cứu khoa học chuyên sâu về UAV.
     </p>
-  </div>
+  </div> -->
 </div>
              <!-- <router-link
   to="/test"

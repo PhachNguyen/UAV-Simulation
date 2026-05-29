@@ -57,7 +57,7 @@ const toggleChapter = (chapterId) => {
       <h3 class="text-sm font-black text-[#0b1f3f]">Cấu trúc Bài học</h3>
 
       <div class="space-y-4">
-        <div
+   <div
           v-for="(chapter, cIndex) in structure"
           :key="chapter.id"
           class="space-y-2"
@@ -67,27 +67,29 @@ const toggleChapter = (chapterId) => {
             class="flex items-center gap-3 p-3 bg-slate-50 border border-[#dee2e6] rounded-lg group hover:border-[#0b1f3f] transition-all cursor-pointer select-none"
           >
             <GripVertical
-              class="w-4 h-4 text-slate-300 group-hover:text-[#0b1f3f] cursor-grab"
+              class="w-4 h-4 shrink-0 text-slate-300 group-hover:text-[#0b1f3f] cursor-grab"
               @click.stop
             />
 
             <ChevronRight
-              class="w-4 h-4 text-[#0b1f3f] transition-transform duration-300"
+              class="w-4 h-4 shrink-0 text-[#0b1f3f] transition-transform duration-300"
               :class="{ 'rotate-90': expandedChapters.has(chapter.id) }"
             />
 
             <span
-              class="text-[11px] font-black text-[#0b1f3f] uppercase truncate flex-1"
+              class="text-[11px] font-black text-[#0b1f3f] uppercase line-clamp-2 flex-1 min-w-0"
+              :title="chapter.title"
             >
               {{ chapter.title }}
             </span>
+            
             <button
               @click.stop="emit('remove-item', { cIndex })"
-              class="cursor-pointer opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-all"
+              class="shrink-0 cursor-pointer opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-all"
             >
               <Trash2 class="w-3 h-3 text-red-500" />
             </button>
-            <span class="text-[9px] font-bold text-slate-400 font-mono">
+            <span class="shrink-0 text-[9px] font-bold text-slate-400 font-mono">
               ({{ chapter.lessons?.length || 0 }})
             </span>
           </div>
@@ -108,14 +110,15 @@ const toggleChapter = (chapterId) => {
               ]"
             >
               <FileText
-                class="w-3.5 h-3.5"
+                class="w-3.5 h-3.5 shrink-0"
                 :class="
                   activeLessonId === lesson.id ? 'text-white' : 'text-slate-400'
                 "
               />
 
               <span
-                class="text-[11px] font-bold tracking-wide flex-1"
+                class="text-[11px] font-bold tracking-wide flex-1 min-w-0 line-clamp-2"
+                :title="lesson.title"
                 :class="
                   activeLessonId === lesson.id ? 'text-white' : 'text-[#4a4a4a]'
                 "
@@ -125,7 +128,7 @@ const toggleChapter = (chapterId) => {
 
               <button
                 @click.stop="emit('remove-item', { cIndex, lIndex })"
-                class="p-1 transition-all"
+                class="shrink-0 p-1 transition-all"
                 :class="
                   activeLessonId === lesson.id
                     ? 'text-white/50 hover:text-white'
@@ -138,7 +141,7 @@ const toggleChapter = (chapterId) => {
 
             <button
               @click.stop="emit('add-lesson', chapter.id)"
-              class="w-full py-2 border border-dashed border-[#dee2e6] text-[#4a4a4a] text-[9px] font-black uppercase rounded-md hover:border-[#0b1f3f] hover:text-[#0b1f3f] transition-all flex items-center justify-center gap-2 bg-white"
+              class="cursor-pointer w-full py-2 border border-dashed border-[#dee2e6] text-[#4a4a4a] text-[9px] font-black uppercase rounded-md hover:border-[#0b1f3f] hover:text-[#0b1f3f] transition-all flex items-center justify-center gap-2 bg-white"
             >
               <Plus class="w-3 h-3" /> Thêm Bài học
             </button>

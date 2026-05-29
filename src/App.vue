@@ -4,7 +4,7 @@
 
     <router-view />
 
-    <TheFooter v-if="!$route.meta.hideHeaderFooter" />
+    <TheFooter v-if="!(route.meta.hideHeaderFooter || route.meta.hideFooter)" />
   </div>
 </template>
 

@@ -45,8 +45,8 @@
             class="cursor-pointer text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#1a2b4c] outline-none bg-white"
           >
             <option value="All">Tất cả vai trò</option>
-            <option value="Admin">Quản trị viên (Admin)</option>
-            <option value="User">Học viên (User)</option>
+            <option value="Admin">Quản trị viên (admin)</option>
+            <option value="User">Người dùng (User)</option>
           </select>
         </div>
       </div>
@@ -99,16 +99,16 @@
               <td class="p-4">
                 <span 
                   class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-colors"
-                  :class="user.role === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'"
+                  :class="user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'"
                 >
-                  <Shield v-if="user.role === 'Admin'" class="w-3 h-3" />
+                  <Shield v-if="user.role === 'admin'" class="w-3 h-3" />
                   <User v-else class="w-3 h-3" />
-                  {{ user.role }}
+                  <!-- {{ user.role }} --> Quản trị viên
                 </span>
               </td>
 
               <td class="p-4">
-                <div v-if="user.role === 'Admin'" class="text-sm italic text-gray-400 flex items-center gap-1.5">
+                <div v-if="user.role === 'admin'" class="text-sm italic text-gray-400 flex items-center gap-1.5">
                   <Shield class="w-4 h-4 opacity-50" /> Quản trị viên hệ thống
                 </div>
                 
@@ -129,7 +129,7 @@
 
               <td class="p-4">
                 <p class="text-sm text-gray-700 font-medium">{{ formatDate(user.lastActive) }}</p>
-                <p class="text-xs text-gray-500" v-if="user.role !== 'Admin'">
+                <p class="text-xs text-gray-500" v-if="user.role !== 'admin'">
                   Mở bài: {{ user.lastAccessedLessonName || 'Chưa học' }}
                 </p>
               </td>
@@ -145,7 +145,7 @@
                   </button>
                   
                   <button 
-                    v-if="user.role !== 'Admin'"
+                    v-if="user.role !== 'admin'"
                     @click="handleDeleteUser(user.id, user.name)"
                     class="cursor-pointer p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                     title="Xóa tài khoản"
@@ -265,8 +265,8 @@ const filteredUsers = computed(() => {
 
   // SẮP XẾP: Ép Admin lên đầu tiên
   result.sort((a, b) => {
-    if (a.role === 'Admin' && b.role !== 'Admin') return -1;
-    if (a.role !== 'Admin' && b.role === 'Admin') return 1;
+    if (a.role === 'admin' && b.role !== 'admin') return -1;
+    if (a.role !== 'admin' && b.role === 'admin') return 1;
     return a.name.localeCompare(b.name);
   });
 
@@ -293,7 +293,7 @@ const formatDate = (dateString) => {
 };
 
 const viewDetails = (user) => {
-  const progressHtml = user.role === 'Admin' 
+  const progressHtml = user.role === 'admin' 
     ? `<p class="text-gray-500 italic mt-2">Tài khoản Quản trị viên không ghi nhận tiến độ học tập.</p>`
     : `<p><strong>Hoàn thành:</strong> ${user.completedLessons} / ${user.totalLessons} bài giảng</p>
        <p><strong>Đang học:</strong> ${user.lastAccessedLessonName || 'Chưa bắt đầu'}</p>`;

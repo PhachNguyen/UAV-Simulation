@@ -1,17 +1,33 @@
 <template>
-<!-- <div class="flex flex-col items-center justify-center text-center m-8 md:m-8 gap-4">
-  <span class="px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 font-bold text-xs border border-blue-100 shadow-sm">
-    Chào mừng đến với Drone Pro
+<div class="relative w-full h-[300px] flex items-center overflow-hidden  shadow-sm mb-12">
+  
+  <img 
+    src="../../../public/img/hero-mavic.webp" 
+    alt="Hero UAV"
+    class="absolute inset-0 w-full h-full object-cover object-center z-0"
+  >
+  
+  <div class="absolute inset-0 bg-gradient-to-r from-[#0b1f3f]/95 via-[#0b1f3f]/70 to-transparent z-0"></div>
+
+ <div class="relative z-10 flex flex-col justify-center px-8 md:px-10 max-w-3xl h-full">
+    
+  <span class="font-['Roboto_Mono'] inline-block w-max px-3 py-1 mb-4 text-[10px] font-bold tracking-widest text-blue-300 uppercase bg-blue-900/40 border border-blue-500/30 rounded-full backdrop-blur-sm">
+    Trung tâm đào tạo 
   </span>
   
-  <h1 class="text-3xl md:text-5xl font-black text-[#0b1f3f] tracking-tight max-w-4xl leading-tight">
-    Nền tảng đào tạo UAV <span class="text-blue-600">Hàng đầu</span>
+  <h1 class="font-['Poppins'] text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-snug drop-shadow-lg">
+    Làm chủ không gian với <br />
+    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
+      Hệ thống giả lập bay
+    </span>
   </h1>
   
-  <p class="text-slate-600 text-sm md:text-base font-medium max-w-2xl leading-relaxed">
-    Trang bị kiến thức toàn diện từ lý thuyết nền tảng, kỹ thuật bay chuyên sâu đến thực hành trên hệ thống mô phỏng 3D sát với thực tế nhất.
+  <p class="font-['Poppins'] text-slate-300 text-sm md:text-base mt-4 max-w-xl leading-relaxed line-clamp-2">
+    Trải nghiệm sa bàn kỹ thuật số độc quyền. Bắt đầu lộ trình trở thành chuyên gia đo đạc và điều khiển Drone chuyên nghiệp ngay hôm nay.
   </p>
-</div> -->
+  
+</div>
+</div>
   <div class="min-h-screen bg-slate-100 p-4 lg:p-6 flex justify-center font-sans text-slate-800">
     <!-- <h1 class="text-3xl md:text-4xl font-bold text-[#0b1f3f] text-center mb-8">
   Tổng quan hệ thống
@@ -65,12 +81,12 @@
     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
   </button>
 
-  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+  <div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2 ">
     <button 
       v-for="(banner, index) in banners" 
       :key="'dot-' + index"
       @click="goToSlide(index)"
-      class="h-2 rounded-full transition-all duration-500 ease-in-out"
+      class="h-2 rounded-full transition-all duration-500 ease-in-out cursor-pointer"
       :class="currentIndex === index ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'"
     ></button>
   </div>
@@ -176,62 +192,35 @@
   Xem tất cả
 </router-link>  </div>
 
-  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-    
-    <div v-for="(drone, idx) in droneLibrary" :key="idx" 
-         class="bg-white border border-slate-200/80 rounded-2xl p-5 flex flex-col hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 group">
-      
-      <div class="h-44 bg-slate-100 rounded-xl flex items-center justify-center mb-5 overflow-hidden">
-        <img :src="drone.image" :alt="drone.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-      </div>
-      
-      <h3 class="text-[20px] font-bold text-[#0b1f3f] mb-1 tracking-tight">{{ drone.name }}</h3>
-      
-      <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-5">
-        MÔ TẢ NGẮN VỀ {{ drone.name }}
-      </p>
-      
-      <!-- <ul class="flex flex-col gap-2.5 text-[12px] text-slate-700 mb-8 flex-1">
-        <li class="flex justify-between items-center border-b border-slate-100 pb-1.5">
-          <span class="text-slate-500 font-medium">Trọng lượng:</span>
-          <span class="font-bold text-[#0b1f3f]">{{ drone.weight }}</span>
-        </li>
-        <li class="flex justify-between items-center border-b border-slate-100 pb-1.5">
-          <span class="text-slate-500 font-medium">Phạm vi:</span>
-          <span class="font-bold text-[#0b1f3f]">{{ drone.range }}</span>
-        </li>
-        <li class="flex justify-between items-center border-b border-slate-100 pb-1.5">
-          <span class="text-slate-500 font-medium">Tốc độ tối đa:</span>
-          <span class="font-bold text-[#0b1f3f]">{{ drone.speed }}</span>
-        </li>
-        <li class="flex justify-between items-center border-b border-slate-100 pb-1.5">
-          <span class="text-slate-500 font-medium">Camera:</span>
-          <span class="font-bold text-[#0b1f3f]">{{ drone.camera }}</span>
-        </li>
-        <li class="flex justify-between items-center border-b border-slate-100 pb-1.5">
-          <span class="text-slate-500 font-medium">Thời gian bay:</span>
-          <span class="font-bold text-[#0b1f3f]">{{ drone.flightTime }}</span>
-        </li>
-      </ul> -->
-      
-      <button class="mt-auto w-full bg-[#0b1f3f] text-white py-3 rounded-[0.5rem] text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm">
-        Tìm hiểu thêm
-      </button>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <UavCard 
+        v-for="drone in droneLibrary" 
+        :key="drone.id" 
+        :drone="drone"
+        @details="goToDroneDetails"
+      />
     </div>
-
-  </div>
 </section>
 <!-- Lộ trình bài giảng -->
 <section class="w-full">
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
   <h2 class="text-2xl font-bold text-[#0b1f3f]">Lộ trình bài giảng</h2>
   
-  <router-link 
-    to="/register-course" 
-    class="inline-flex items-center justify-center px-6 py-2.5 bg-[#0b1f3f] text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:scale-95"
-  >
-    Đăng ký tham gia ngay
-  </router-link>
+ <router-link 
+  v-if="!isLoggedIn"
+  to="/register-course" 
+  class="inline-flex items-center justify-center px-6 py-2.5 bg-[#0b1f3f] text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:scale-95"
+>
+  Đăng ký tham gia ngay
+</router-link>
+
+<router-link 
+  v-else
+  to="/course" 
+  class="inline-flex items-center justify-center px-6 py-2.5 bg-[#0b1f3f] text-white font-bold text-sm rounded-lg hover:bg-gray-800 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:scale-95"
+>
+  Vào học bài giảng ngay
+</router-link>
 </div>
 
   <div class="bg-white border border-slate-200/80 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
@@ -302,7 +291,7 @@
       <a href="#" class="hover:text-[#0b1f3f]">Điều Khoản Sử Dụng</a>
       <a href="#" class="hover:text-[#0b1f3f]">Liên Hệ Hỗ Trợ</a>
     </div>
-    <p class="text-[11px] text-slate-400">© 2024 Drone Pro. All rights reserved.</p>
+    <p class="text-[11px] text-slate-400">©2026 Electric Power University. All rights reserved.</p>
   </footer>
 
 </div>
@@ -313,45 +302,83 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
+import UavCard from '@/components/UavCard.vue';
+import axios from '../../utils/apis/axios';
+import { useRouter } from 'vue-router';
+const router = useRouter();
+// Khởi tạo biến kiểm tra trạng thái đăng nhập
+const isLoggedIn = ref(false);
 // Danh sách thiết bị đã thay ảnh Unsplash
-const droneLibrary = ref([
-  {
-    name: 'Phantom 4 Advanced',
-    weight: '1368g',
-    range: '7 km',
-    speed: '20 m/s',
-    camera: '1" CMOS',
-    flightTime: '30 phút',
-    image: 'https://images.unsplash.com/photo-1524143986875-3b098d78b363?auto=format&fit=crop&q=80'
-  },
-  {
-    name: 'Mavic 3 Pro',
-    weight: '958g',
-    range: '15 km',
-    speed: '21 m/s',
-    camera: '4/3 CMOS',
-    flightTime: '43 phút',
-    image: 'https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&q=80'
-  },
-  {
-    name: 'Matrice 300 RTK',
-    weight: '6.3 kg',
-    range: '15 km',
-    speed: '23 m/s',
-    camera: 'Zenmuse H20T',
-    flightTime: '55 phút',
-    image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80'
-  },
-  {
-    name: 'Inspire 2',
-    weight: '3440g',
-    range: '7 km',
-    speed: '26 m/s',
-    camera: 'Zenmuse X7',
-    flightTime: '27 phút',
-    image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80' // Thêm ảnh Unsplash thứ 4
+const droneLibrary = ref([]);
+// 2. Hàm kết nối API Backend bằng Axios
+const fetchDrones = async () => {
+  try {
+    const response = await axios.get('/drones'); 
+    
+    // 1. In dữ liệu ra console để xem Backend thực sự trả về cái gì
+    console.log("Dữ liệu gốc từ API:", response.data); 
+    
+    // 2. Tìm đúng mảng dữ liệu. 
+    // TẠM THỜI gán thử các trường hợp phổ biến:
+    let uavArray = response.data; 
+    
+    if (response.data.data) uavArray = response.data.data;
+    else if (response.data.uavs) uavArray = response.data.uavs; // Nếu backend trả về { uavs: [...] }
+    else if (response.data.drones) uavArray = response.data.drones;
+    
+    // 3. Kiểm tra an toàn trước khi dùng .slice()
+    if (Array.isArray(uavArray)) {
+      droneLibrary.value = uavArray.slice(0, 4); 
+    } else {
+      console.error("Dữ liệu không phải là mảng! Vui lòng kiểm tra lại cấu trúc API ở console.log.");
+    }
+    
+  } catch (error) {
+    console.error('Không thể tải dữ liệu Thư viện Drone:', error);
   }
-]);
+};
+
+const goToDroneDetails = (droneId) => {
+  router.push(`/test2/${droneId}`); 
+};
+// const droneLibrary = ref([
+//   {
+//     name: 'Phantom 4 Advanced',
+//     weight: '1368g',
+//     range: '7 km',
+//     speed: '20 m/s',
+//     camera: '1" CMOS',
+//     flightTime: '30 phút',
+//     image: 'https://images.unsplash.com/photo-1524143986875-3b098d78b363?auto=format&fit=crop&q=80'
+//   },
+//   {
+//     name: 'Mavic 3 Pro',
+//     weight: '958g',
+//     range: '15 km',
+//     speed: '21 m/s',
+//     camera: '4/3 CMOS',
+//     flightTime: '43 phút',
+//     image: 'https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&q=80'
+//   },
+//   {
+//     name: 'Matrice 300 RTK',
+//     weight: '6.3 kg',
+//     range: '15 km',
+//     speed: '23 m/s',
+//     camera: 'Zenmuse H20T',
+//     flightTime: '55 phút',
+//     image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80'
+//   },
+//   {
+//     name: 'Inspire 2',
+//     weight: '3440g',
+//     range: '7 km',
+//     speed: '26 m/s',
+//     camera: 'Zenmuse X7',
+//     flightTime: '27 phút',
+//     image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80' // Thêm ảnh Unsplash thứ 4
+//   }
+// ]);
 
 // Danh sách bài giảng
 const lectureList = ref([
@@ -412,47 +439,9 @@ const featuredProducts = ref([
   }
 ]);
 
-// Mock data cho Cột Phải
-const categories = ref([
-  {
-    title: 'Drone Chụp ảnh & Quay phim',
-    desc: 'Sáng tạo nội dung chuyên nghiệp',
-    image: 'https://images.unsplash.com/photo-1579829366248-204fe8413f31?auto=format&fit=crop&q=80'
-  },
-  {
-    title: 'Drone Nông nghiệp & Công nghiệp',
-    desc: 'Tăng hiệu quả sản xuất',
-    image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80'
-  },
-  {
-    title: 'Drone FPV Tốc độ cao',
-    desc: 'Trải nghiệm bay tốc độ',
-    image: 'https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&q=80'
-  },
-  {
-    title: 'Drone Khảo sát Địa hình',
-    desc: 'Bản đồ hóa và phân tích',
-    image: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?auto=format&fit=crop&q=80'
-  }
-]);
 
-const benefits = ref([
-  {
-    icon: 'description', // Tên icon của Material Symbols
-    title: 'Chương trình bài bản',
-    desc: 'Chương trình được thiết kế chi tiết, từ cơ bản đến nâng cao đáp ứng mọi nhu cầu.'
-  },
-  {
-    icon: 'ondemand_video',
-    title: 'Nội dung đa dạng',
-    desc: 'Bao gồm lý thuyết bay, thực hành giả lập và phân tích dữ liệu thực tế.'
-  },
-  {
-    icon: 'workspace_premium',
-    title: 'Chứng chỉ uy tín',
-    desc: 'Cấp chứng chỉ hoàn thành khóa học có giá trị xác nhận kỹ năng chuyên môn.'
-  }
-]);
+
+
 // 1. Mảng chứa các hình ảnh banner của bạn
 const banners = ref([
   { id: 1, url: 'https://images.unsplash.com/photo-1524143986875-3b098d78b363?auto=format&fit=crop&q=80', alt: 'Drone 1' },
@@ -480,9 +469,14 @@ const goToSlide = (index) => {
 
 // Tự động chuyển ảnh sau mỗi 5 giây
 onMounted(() => {
+  const token = localStorage.getItem("userToken");
+  
+  // Nếu có token, chuyển isLoggedIn thành true để hiển thị nút "Vào học bài giảng"
+  isLoggedIn.value = !!token;
+  fetchDrones();
   autoPlayInterval = setInterval(() => {
     nextSlide();
-  }, 5000); // 5000ms = 5 giây
+  }, 3000); // 5000ms = 5 giây
 });
 
 // Xóa bộ đếm khi component bị hủy để tối ưu bộ nhớ

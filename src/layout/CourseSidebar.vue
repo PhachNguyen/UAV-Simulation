@@ -110,32 +110,34 @@ const handleLessonClick = (lessonId) => {
 
 <template>
   <aside class="w-full lg:w-[400px] flex flex-col gap-6">
-    <div
-      class="bg-white rounded-lg p-5 border border-slate-200 flex items-center justify-between shadow-sm"
-    >
-      <div class="flex-1 mr-6">
-        <div class="flex justify-between items-end mb-2">
-          <span class="text-xs font-bold text-slate-700 uppercase"
-            >Tiến độ khóa học</span
-          >
-          <span class="text-xs font-bold text-slate-900">{{ progress }}%</span>
-        </div>
-        <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-          <div
-            class="h-full bg-[#0b1f3f] transition-all duration-700 ease-out"
-            :style="{ width: progress + '%' }"
-          ></div>
-        </div>
-      </div>
-      <div class="text-right text-[10px]">
-        <div class="text-slate-500 uppercase mb-1 font-semibold">
-          Bài giảng đang học:
-        </div>
-        <div class="font-bold text-slate-800 line-clamp-1">
-          {{ currentModule }}
-        </div>
-      </div>
+<div class="bg-white rounded-lg p-4 lg:p-5 border border-slate-200 flex items-center justify-between shadow-sm gap-5">
+  
+  <div class="w-[45%] shrink-0">
+    <div class="flex justify-between items-end mb-2">
+      <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tiến độ bài giảng:</span>
+      <span class="text-xs font-bold text-slate-900">{{ progress }}%</span>
     </div>
+    <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+      <div
+        class="h-full bg-[#0b1f3f] transition-all duration-700 ease-out"
+        :style="{ width: progress + '%' }"
+      ></div>
+    </div>
+  </div>
+
+  <div class="flex-1 min-w-0 text-right">
+    <div class="text-[10px] text-slate-400 uppercase mb-0.5 font-bold tracking-wider">
+      Đang học:
+    </div>
+    <div 
+      class="text-xs font-bold text-slate-800 truncate" 
+      :title="currentModule"
+    >
+      {{ currentModule }}
+    </div>
+  </div>
+  
+</div>
 
     <div
       class="bg-white border border-slate-200 rounded-lg flex flex-col overflow-hidden sticky top-6 shadow-md"

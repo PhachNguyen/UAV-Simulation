@@ -88,6 +88,7 @@ const routes = [
     path: "/",
     name: "Home",
     component: Dashboard,
+    meta: { hideFooter: true },
   },
   {
     path: "/login",
