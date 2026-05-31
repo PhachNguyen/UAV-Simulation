@@ -666,13 +666,9 @@ const finishEditing = () => {
 };
 
 const removeHotspot = (index) => {
-  if (
-    uavViewerRef.value &&
-    typeof uavViewerRef.value.removeMarkerById === "function"
-  ) {
-    uavViewerRef.value.removeMarkerById(form.hotspots[index].id);
-  }
   form.hotspots.splice(index, 1);
+  // ✨ Assign lại array để trigger watch customHotspots và update 3D viewer
+  form.hotspots = [...form.hotspots];
   if (editingIndex.value === index) editingIndex.value = null;
 };
 
@@ -780,6 +776,12 @@ const handleFileUpload = (event, type) => {
   const file = event.target.files[0];
   if (!file) return;
   if (type === "image" && errors.image) delete errors.image;
+  if (type === "model3d") {
+    // ✨ THÊM: Xóa hotspots khi đổi file GLB
+    form.hotspots = [];
+    editingIndex.value = null;
+    isPickingLocation.value = false;
+  }
   form[type] = file;
   if (previews[type]) URL.revokeObjectURL(previews[type]);
   previews[type] = URL.createObjectURL(file);

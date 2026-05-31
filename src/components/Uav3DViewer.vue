@@ -44,7 +44,7 @@
       <div v-if="activeSpot" class="hotspot-detail-card">
         <button @click="activeSpot = null" class="close-btn">&times;</button>
         <div class="detail-header flex items-center gap-3 mb-2">
-          <div class="spot-id">{{ activeSpot.id }}</div>
+          <div class="spot-id">{{ activeSpotNumber }}</div>
           <h4 class="spot-title">{{ activeSpot.title }}</h4>
         </div>
         <p class="spot-desc">{{ activeSpot.desc }}</p>
@@ -107,6 +107,18 @@ const product = computed(() => {
   if (props.modelSrc) return { name: "UAV Preview", stats: {} };
   const id = parseInt(route.params.id);
   return uavList.find((item) => item.id === id) || { name: "Unknown System" };
+});
+
+const activeSpotNumber = computed(() => {
+  if (!activeSpot.value) return null;
+  const hotspots = props.customHotspots || [];
+  const index = hotspots.findIndex(
+    (h) =>
+      h.pos.x === activeSpot.value.pos.x &&
+      h.pos.y === activeSpot.value.pos.y &&
+      h.pos.z === activeSpot.value.pos.z,
+  );
+  return index >= 0 ? index + 1 : null;
 });
 
 // --- METHODS ---
@@ -206,9 +218,10 @@ const handleModelSuccess = (gltf) => {
   //   core.controls.update();
   // }
 
-  // Load Hotspots
-  const hotspots = props.customHotspots || product.value?.hotspots;
-  if (hotspots) setupHotspots(hotspots);
+  // ✨ SETUP HOTSPOTS: Gọi trực tiếp nếu customHotspots tồn tại
+  if (props.customHotspots && props.customHotspots.length > 0) {
+    setupHotspots(props.customHotspots);
+  }
 
   loading.value = false;
   needsRender = true;
@@ -425,6 +438,16 @@ const createMarkerSprite = (pos, number) => {
 const cleanupExistingModel = () => {
   if (!core.currentModel) return;
 
+  // ✨ TRƯỚC TIÊN: Xóa tất cả hotspots/markers
+  const objectsToRemove = core.currentModel.children.filter(
+    (child) =>
+      child.isCSS2DObject || (child.name && child.name.startsWith("marker-")),
+  );
+  objectsToRemove.forEach((obj) => {
+    core.currentModel.remove(obj);
+    if (obj.element) obj.element.remove();
+  });
+
   // Xóa model khỏi scene
   core.scene.remove(core.currentModel);
 
@@ -473,7 +496,7 @@ watch(
     // QUAN TRỌNG: Tắt ngay khung thông tin chi tiết của bài cũ
     activeSpot.value = null;
 
-    if (newVal && core.currentModel) {
+    if (Array.isArray(newVal) && core.currentModel) {
       // 2. Dọn dẹp triệt để trước khi vẽ bài mới
       const objectsToRemove = core.currentModel.children.filter(
         (child) =>
@@ -486,7 +509,7 @@ watch(
         if (obj.element) obj.element.remove(); // Xóa hẳn thẻ HTML khỏi DOM
       });
 
-      // 3. Vẽ bộ marker mới
+      // 3. Vẽ bộ marker mới (kể cả khi rỗng, vẫn cleanup)
       setupHotspots(newVal);
       needsRender = true;
     }
@@ -567,7 +590,6 @@ defineExpose({ flyToSpot });
   background: #080808;
   border-radius: 1.5rem;
   overflow: hidden;
-
 }
 
 /* Hotspot Detail Card */
