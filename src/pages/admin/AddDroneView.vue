@@ -447,13 +447,13 @@
                     Tiêu đề <span class="text-red-500">*</span>
                   </label>
                   <input
-                    v-model="spec.title"
+                    v-model="spec.name"
                     type="text"
                     placeholder="VD: Tốc độ tối đa"
                     @focus="clearError('specifications')"
                     :class="[
                       'w-full border rounded-lg px-4 py-2 text-sm bg-white focus:outline-none transition-shadow',
-                      errors.specifications && !spec.title.trim()
+                      errors.specifications && !spec.name.trim()
                         ? 'border-red-400 focus:ring-2 focus:ring-red-100'
                         : 'border-gray-300 focus:border-blue-400 shadow-sm',
                     ]"
@@ -560,7 +560,7 @@ const clearError = (field) => {
 };
 // Thông số kỹ thuật
 const addSpec = () =>
-  form.specifications.push({ id: Date.now(), title: "", value: "" });
+  form.specifications.push({ id: Date.now(), name: "", value: "" });
 const removeSpec = (id) =>
   (form.specifications = form.specifications.filter((s) => s.id !== id));
 
@@ -589,7 +589,7 @@ const validateForm = () => {
   // 3. Kiểm tra Thông số kỹ thuật (Nếu có thêm thì không được để trống ô nào)
   if (form.specifications.length > 0) {
     const hasEmptySpecs = form.specifications.some(
-      (spec) => !spec.title.trim() || !spec.value.trim(),
+      (spec) => !spec.name.trim() || !spec.value.trim(),
     );
     if (hasEmptySpecs) {
       errors.specifications =
@@ -804,7 +804,7 @@ const handleSave = async () => {
   if (!validateForm()) return;
 
   try {
-    toast.info("Đang xử lý dữ liệu...");
+    // toast.info("Đang xử lý dữ liệu ...");
 
     const uploadIfNew = async (file, currentUrl) => {
       if (file instanceof File) {
@@ -857,7 +857,7 @@ const handleSave = async () => {
 
     if (isEdit.value) {
       await api.put(`/drones/${droneId}`, finalData);
-      toast.success("Hệ thống SkyLink: Cập nhật thiết bị thành công!");
+      toast.success(" Cập nhật thiết bị thành công!");
     } else {
       await api.post("/drones", finalData);
       toast.success("Hệ thống SkyLink: Đã lưu thiết bị mới!");

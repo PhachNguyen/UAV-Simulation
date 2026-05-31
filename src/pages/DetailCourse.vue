@@ -22,11 +22,11 @@ const activeLessonId = ref(null);
 // 2. PHÂN QUYỀN VÀ AUTHENTICATION
 // ==========================================
 const hasAuthenticatedUser = computed(() =>
-  Boolean(authStore.user && authStore.token)
+  Boolean(authStore.user && authStore.token),
 );
 
 const showLoginRequired = computed(
-  () => authRequired.value || !hasAuthenticatedUser.value
+  () => authRequired.value || !hasAuthenticatedUser.value,
 );
 
 // Bắt bao quát mọi tên gọi của Admin (admin, Quản trị viên...)
@@ -52,7 +52,7 @@ const currentLesson = computed(() => {
 const currentChapter = computed(() => {
   if (!activeLessonId.value || courseStructure.value.length === 0) return null;
   return courseStructure.value.find((chapter) =>
-    chapter.lessons?.some((lesson) => lesson.id === activeLessonId.value)
+    chapter.lessons?.some((lesson) => lesson.id === activeLessonId.value),
   );
 });
 
@@ -74,7 +74,8 @@ const videoEmbedUrl = computed(() => {
 
   if (url.includes("/embed/")) return url;
 
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const regExp =
+    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = url.match(regExp);
 
   if (match && match[2].length === 11) {
@@ -100,7 +101,7 @@ const downloadResource = (relativeUrl) => {
 
 const findChapterId = (lessonId) => {
   const chapter = courseStructure.value.find((ch) =>
-    ch.lessons?.some((l) => l.id === lessonId)
+    ch.lessons?.some((l) => l.id === lessonId),
   );
   return chapter ? chapter.id : null;
 };
@@ -194,22 +195,30 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="text-slate-800 antialiased min-h-screen flex flex-col font-inter bg-slate-50">
-    <main class="flex-1 max-w-[1400px] mx-auto w-full px-6 py-8 flex flex-col lg:flex-row gap-8">
-      
+  <div
+    class="text-slate-800 antialiased min-h-screen flex flex-col font-inter bg-slate-50"
+  >
+    <main
+      class="flex-1 max-w-[1400px] mx-auto w-full px-6 py-8 flex flex-col lg:flex-row gap-8"
+    >
       <section
         v-if="showLoginRequired"
         class="flex-1 min-h-[420px] flex items-center justify-center"
       >
-        <div class="w-full max-w-xl rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
-          <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+        <div
+          class="w-full max-w-xl rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm"
+        >
+          <div
+            class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700"
+          >
             <i class="ph ph-user-circle text-4xl text-slate-900"></i>
           </div>
           <h1 class="text-2xl font-bold text-slate-900">
             Bạn cần đăng nhập để xem
           </h1>
           <p class="mt-3 text-sm leading-6 text-slate-600">
-            Đăng nhập tài khoản học viên để mở nội dung bài giảng và lưu tiến độ học tập.
+            Đăng nhập tài khoản học viên để mở nội dung bài giảng và lưu tiến độ
+            học tập.
           </p>
           <router-link
             to="/login"
@@ -222,7 +231,9 @@ onMounted(() => {
 
       <div class="flex-1 flex flex-col gap-8 min-w-0" v-else-if="currentLesson">
         <div>
-          <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 font-mono">
+          <h2
+            class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 font-mono"
+          >
             Bài giảng // {{ currentChapter?.title || "Chương không xác định" }}
           </h2>
           <h1 class="text-3xl font-bold text-slate-900">
@@ -230,13 +241,23 @@ onMounted(() => {
           </h1>
         </div>
 
-        <div class="relative bg-slate-900 rounded-lg overflow-hidden aspect-[16/9] shadow-sm border border-slate-200">
+        <div
+          class="relative bg-slate-900 rounded-lg overflow-hidden aspect-[16/9] shadow-sm border border-slate-200"
+        >
           <iframe
             v-if="isYoutube"
             :src="videoEmbedUrl"
             class="w-full h-full"
             frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;"
+            allow="
+              accelerometer;
+              autoplay;
+              clipboard-write;
+              encrypted-media;
+              gyroscope;
+              picture-in-picture;
+              web-share;
+            "
             allowfullscreen
           ></iframe>
 
@@ -252,7 +273,9 @@ onMounted(() => {
               src="../assets/img/DJI Flip_thumbail_2.webp"
               class="w-full h-full object-cover opacity-50"
             />
-            <div class="absolute inset-0 flex items-center justify-center text-white/50 font-mono text-sm">
+            <div
+              class="absolute inset-0 flex items-center justify-center text-white/50 font-mono text-sm"
+            >
               [ TÍN HIỆU VIDEO TRỐNG ]
             </div>
           </div>
@@ -260,26 +283,33 @@ onMounted(() => {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4">
+            <h3
+              class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4"
+            >
               Tóm tắt bài giảng
             </h3>
             <div
               class="text-slate-600 text-sm leading-relaxed mb-6 prose max-w-none"
               v-html="currentLesson.description"
             ></div>
-            <div class="flex items-center gap-4 text-xs font-semibold text-slate-700">
+            <div
+              class="flex items-center gap-4 text-xs font-semibold text-slate-700"
+            >
               <div class="flex items-center gap-1.5">
                 <i class="ph-fill ph-clock text-slate-400"></i>
                 {{ currentLesson.duration || "15:00" }}
               </div>
               <div class="flex items-center gap-1.5">
-                <i class="ph-fill ph-seal-check text-slate-400"></i> Level 4 Cert
+                <i class="ph-fill ph-seal-check text-slate-400"></i> Level 4
+                Cert
               </div>
             </div>
           </div>
 
           <div>
-            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4">
+            <h3
+              class="text-sm font-bold text-slate-800 uppercase tracking-wide mb-4"
+            >
               Tài liệu0 bài giảng
             </h3>
             <div class="space-y-3">
@@ -290,27 +320,44 @@ onMounted(() => {
                 @click="downloadResource(res.url)"
               >
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 bg-[#0b1f3f] text-white rounded flex items-center justify-center text-[10px] font-bold uppercase">
+                  <div
+                    class="w-8 h-8 bg-[#0b1f3f] text-white rounded flex items-center justify-center text-[10px] font-bold uppercase"
+                  >
                     {{ res.name.split(".").pop() }}
                   </div>
-                  <span class="text-sm font-bold text-slate-800 group-hover:text-blue-900 line-clamp-1">
+                  <span
+                    class="text-sm font-bold text-slate-800 group-hover:text-blue-900 line-clamp-1"
+                  >
                     {{ res.name }}
                   </span>
                 </div>
-                <i class="ph ph-download-simple text-slate-400 group-hover:text-blue-600"></i>
+                <i
+                  class="ph ph-download-simple text-slate-400 group-hover:text-blue-600"
+                ></i>
               </div>
             </div>
           </div>
         </div>
 
-        <section class="bg-white border border-slate-200 rounded-lg p-8 shadow-sm">
-          <h2 class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-8">
+        <section
+          class="bg-white border border-slate-200 rounded-lg p-8 shadow-sm"
+        >
+          <h2
+            class="text-2xl font-bold text-slate-900 border-b border-slate-100 pb-4 mb-8"
+          >
             Nội dung chi tiết bài học
           </h2>
           <div class="space-y-12">
-            <div v-for="(section, index) in currentLesson.sections" :key="section.id">
-              <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-mono text-slate-600">
+            <div
+              v-for="(section, index) in currentLesson.sections"
+              :key="section.id"
+            >
+              <h3
+                class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"
+              >
+                <span
+                  class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm font-mono text-slate-600"
+                >
                   {{ index + 1 }}
                 </span>
                 {{ section.title }}
@@ -338,7 +385,9 @@ onMounted(() => {
       v-if="!showLoginRequired && currentLesson?.model3DPath"
       class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-2xl mt-4 max-w-[1400px] mx-auto w-full"
     >
-      <div class="px-8 py-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+      <div
+        class="px-8 py-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50"
+      >
         <div class="flex items-center gap-3">
           <div class="p-2 bg-blue-500/10 rounded-lg">
             <i class="ph ph-cube text-blue-400 text-xl"></i>
@@ -347,7 +396,9 @@ onMounted(() => {
             <h3 class="text-sm font-bold text-white uppercase tracking-widest">
               Hệ thống Mô phỏng 3D
             </h3>
-            <p class="text-[10px] text-slate-500 font-bold uppercase mt-0.5 font-mono">
+            <p
+              class="text-[10px] text-slate-500 font-bold uppercase mt-0.5 font-mono"
+            >
               [ TRẠNG THÁI: KIỂM TRA LINH KIỆN TƯƠNG TÁC ]
             </p>
           </div>
@@ -355,7 +406,10 @@ onMounted(() => {
 
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
-          <span class="text-[9px] font-black text-teal-400 uppercase tracking-tighter">Live Telemetry</span>
+          <span
+            class="text-[9px] font-black text-teal-400 uppercase tracking-tighter"
+            >Live Telemetry</span
+          >
         </div>
       </div>
 
@@ -368,15 +422,19 @@ onMounted(() => {
         />
 
         <div class="absolute bottom-6 left-6 pointer-events-none">
-          <div class="bg-black/40 backdrop-blur-md border border-white/10 p-3 rounded-xl text-white/60 text-[10px] font-bold uppercase tracking-widest space-y-1">
+          <div
+            class="bg-black/40 backdrop-blur-md border border-white/10 p-3 rounded-xl text-white/60 text-[10px] font-bold uppercase tracking-widest space-y-1"
+          >
             <div class="flex items-center gap-2">
               <i class="ph ph-mouse"></i> Chuột trái: Xoay mô hình
             </div>
             <div class="flex items-center gap-2">
-              <i class="ph ph-magnifying-glass-plus"></i> Cuộn chuột: Phóng to/thu nhỏ
+              <i class="ph ph-magnifying-glass-plus"></i> Cuộn chuột: Phóng
+              to/thu nhỏ
             </div>
             <div class="flex items-center gap-2">
-              <i class="ph ph-cursor-click"></i> Click điểm: Xem chi tiết linh kiện
+              <i class="ph ph-cursor-click"></i> Click điểm: Xem chi tiết linh
+              kiện
             </div>
           </div>
         </div>
@@ -384,12 +442,20 @@ onMounted(() => {
     </section>
 
     <footer class="bg-white border-t border-slate-200 mt-auto">
-      <div class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">
+      <div
+        class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono"
+      >
         <div class="flex items-center gap-6">
           <span class="text-slate-900">SPEC-01 // HUD_OS</span>
-          <a href="#" class="hover:text-blue-900 transition-colors">Giao thức đo từ xa</a>
-          <a href="#" class="hover:text-blue-900 transition-colors">Điều khoản bay</a>
-          <a href="#" class="hover:text-blue-900 transition-colors">Trạng thái hệ thống</a>
+          <a href="#" class="hover:text-blue-900 transition-colors"
+            >Giao thức đo từ xa</a
+          >
+          <a href="#" class="hover:text-blue-900 transition-colors"
+            >Điều khoản bay</a
+          >
+          <a href="#" class="hover:text-blue-900 transition-colors"
+            >Trạng thái hệ thống</a
+          >
         </div>
         <div>© 2026 TRÍ TUỆ HÀNG KHÔNG</div>
       </div>

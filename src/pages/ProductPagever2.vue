@@ -164,7 +164,7 @@
     
     <div>
       <p class="text-xs font-semibold text-slate-900 leading-tight">
-        {{ spec.name }}
+        {{ spec.title }}
       </p>
       <p class="text-xs text-slate-500 mt-1">{{ spec.value }}</p>
     </div>
